@@ -2,7 +2,7 @@
 
 > 🚀 **官方开源脚手架** | 面向二次开发者与 AI 编程助手（Cursor, Antigravity, Windsurf, Copilot）的跨平台脑机接口 (BCI) 开箱即用全栈模板。
 
-本项目是 **ZKBrain 跨平台脑机接口 SDK** 的官方公开脚手架，内置 Android Compose、Android Native、Flutter、华为鸿蒙 (HarmonyOS Next)、iOS SwiftUI、Web H5、微信小程序、Windows 桌面 8 大主流平台的最简运行模板，并深度整合了 **AI 上下文工程（Skill + llms.txt + Cursorrules）**。
+本项目是 **ZKBrain 跨平台脑机接口 SDK** 的官方公开脚手架，内置 Android Compose、Flutter、华为鸿蒙 (HarmonyOS Next)、iOS SwiftUI、Web H5、微信小程序、Windows 桌面 7 大主流平台的最简运行模板，并深度整合了 **AI 上下文工程（Skill + llms.txt + Cursorrules）**。
 
 开发者（或您的 AI）无需关心底层复杂的硬件点火包、协议解包与加解密，克隆后**只需对 AI 说一句话，即可秒级生成专属脑电应用**！
 
