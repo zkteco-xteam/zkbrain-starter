@@ -43,21 +43,23 @@ object ZKBrainManager {
 
 ```kotlin
 data class MultiBrainEeg(
-    val attention: Int = 0,         // 专注度指数 (0 ~ 100)
-    val meditation: Int = 0,        // 放松度/冥想指数 (0 ~ 100)
-    val poorSignal: Int = 0,        // 接触信号质量 (0: 信号极佳良好佩戴, 200: 完全脱落/未接触皮肤)
+    val attentionLevel: Int = 0,    // 专注度指数 (0 ~ 100，便捷别名: attention)
+    val meditationDepth: Int = 0,   // 放松度/冥想指数 (0 ~ 100，便捷别名: meditation)
+    val signal: Int = 200,          // 接触信号质量 (0: 信号极佳良好佩戴, 200: 完全脱落/未接触皮肤)
+    val batteryCapacity: Int = 0,   // 电池电量 (0 ~ 100)
+    val heartRateBPM: Int = 0,      // 心率 (若设备支持心率传感器)
     
-    // 脑波 8 频段绝对功率
-    val delta: Int = 0,             // Delta 波 (0.5 ~ 2.75Hz，深度睡眠)
-    val theta: Int = 0,             // Theta 波 (3.5 ~ 6.75Hz，浅睡、潜意识、创意)
-    val lowAlpha: Int = 0,          // 低 Alpha 波 (7.5 ~ 9.25Hz，放松、冥想)
-    val highAlpha: Int = 0,         // 高 Alpha 波 (10 ~ 11.75Hz，安静闭眼、心流)
-    val lowBeta: Int = 0,           // 低 Beta 波 (13 ~ 16.75Hz，警觉、轻度专注)
-    val highBeta: Int = 0,          // 高 Beta 波 (17 ~ 29.75Hz，高度警觉、焦虑、计算)
-    val lowGamma: Int = 0,          // 低 Gamma 波 (31 ~ 39.75Hz，认知加工)
-    val midGamma: Int = 0,          // 中 Gamma 波 (41 ~ 49.75Hz，高阶多感官整合)
-    
-    val timestamp: Long = 0L        // 数据生成时间戳 (毫秒)
+    // 脑波 8 频段绝对功率 (封装于 brainWaves 实体中)
+    val brainWaves: BrainWaves = BrainWaves(
+        val delta: Int = 0,         // Delta 波 (0.5 ~ 2.75Hz，深度睡眠)
+        val theta: Int = 0,         // Theta 波 (3.5 ~ 6.75Hz，浅睡、潜意识、创意)
+        val lowAlpha: Int = 0,      // 低 Alpha 波 (7.5 ~ 9.25Hz，放松、冥想)
+        val highAlpha: Int = 0,     // 高 Alpha 波 (10 ~ 11.75Hz，安静闭眼、心流)
+        val lowBeta: Int = 0,       // 低 Beta 波 (13 ~ 16.75Hz，警觉、轻度专注)
+        val highBeta: Int = 0,      // 高 Beta 波 (17 ~ 29.75Hz，高度警觉、焦虑、计算)
+        val lowGamma: Int = 0,      // 低 Gamma 波 (31 ~ 39.75Hz，认知加工)
+        val middleGamma: Int = 0    // 中 Gamma 波 (41 ~ 49.75Hz，高阶多感官整合)
+    )
 )
 ```
 

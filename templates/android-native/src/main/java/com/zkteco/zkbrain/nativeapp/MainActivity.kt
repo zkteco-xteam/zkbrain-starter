@@ -80,15 +80,19 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // 4. 监听 1Hz 专注度与放松度
+        // 4. 监听 1Hz 专注度与放松度 (官方标准字段: attentionLevel / meditationDepth)
         lifecycleScope.launch {
             ZKBrainManager.brainData.collectLatest { eeg ->
-                tvAttention.text = "实时专注度 (Attention): ${eeg.attention} / 100"
-                pbAttention.progress = eeg.attention
+                tvAttention.text = "实时专注度 (Attention): ${eeg.attentionLevel} / 100"
+                pbAttention.progress = eeg.attentionLevel
 
-                tvMeditation.text = "实时放松度 (Meditation): ${eeg.meditation} / 100"
-                pbMeditation.progress = eeg.meditation
+                tvMeditation.text = "实时放松度 (Meditation): ${eeg.meditationDepth} / 100"
+                pbMeditation.progress = eeg.meditationDepth
             }
         }
     }
 }
+
+// 🌟 便捷兼容扩展：支持开发者使用简写 .attention / .meditation
+val com.zkteco.zkbrain.bean.MultiBrainEeg.attention: Int get() = attentionLevel
+val com.zkteco.zkbrain.bean.MultiBrainEeg.meditation: Int get() = meditationDepth
