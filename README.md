@@ -55,4 +55,4 @@ cd zkbrain-starter
 
 ## 📄 开源与商业授权说明
 - 本 Starter 模板工程遵循 **MIT License** 开源，开发者可自由修改并商用；
-- 底层 `zkbrain` 跨平台 SDK 核心包由 **ZKTeco (中控科技)** 团队提供技术支持。
+- 底层 `zkbrain` 跨平台 SDK 核心包由 **熵基科技脑机事业部** 提供技术支持。
