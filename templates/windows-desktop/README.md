@@ -11,11 +11,15 @@
 进入 `python/` 目录：
 ```bash
 cd python
+# 运行 1:1 设备管理可视化桌面控制台 (Tkinter，零依赖开箱即用)
+python gui_demo.py
+
+# 或运行命令行 BLE 自动连接与解调脚本
 pip install bleak numpy
 python ble_connect_demo.py
 ```
-- 自动扫描周围蓝牙脑电设备；
-- 原生解析 512Hz 原始脑电波形与 1Hz 专注度/放松度。
+- **`gui_demo.py`**：1:1 完整实现 shared1 设备管理控制台（包含 7 大核心板块、4x3 三色 Spectrum 表格与设备搜索弹窗）；
+- **`ble_connect_demo.py`**：自动扫描周围蓝牙脑电设备，原生解析 512Hz 原始脑电波形与 1Hz 专注度/放松度。
 
 ---
 
