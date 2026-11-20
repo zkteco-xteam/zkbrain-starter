@@ -24,7 +24,7 @@ if (-not (Test-Path ".git")) {
 # 2. 添加并提交全部模板文件
 Write-Host "📝 正在暂存并提交模板文件..." -ForegroundColor Green
 git add .
-git commit -m "feat: 发布 ZKBrain AI-Ready 跨平台脑机接口开源脚手架 v1.0.0" -ErrorAction SilentlyContinue
+git commit -m "feat: 发布 ZKBrain AI-Ready 跨平台脑机接口开源脚手架 v1.0.0"
 
 # 3. 强推到公开仓库 main 分支
 Write-Host "🚀 正在推送到公开 GitHub 仓库..." -ForegroundColor Green
