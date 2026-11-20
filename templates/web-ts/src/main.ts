@@ -16,16 +16,27 @@ const ctx = canvas.getContext('2d')!;
 const waveBuffer: number[] = [];
 const MAX_POINTS = 300;
 
-// 1. 扫描与连接
+// 1. 扫描与连接 (前置检查 Web Bluetooth 权限环境与蓝牙适配器可用性)
 connectBtn.addEventListener('click', async () => {
+  if (!navigator.bluetooth) {
+    statusText.innerText = '❌ 当前浏览器不支持 Web Bluetooth（请使用 Chrome/Edge 并通过 HTTPS 或 localhost 访问）';
+    return;
+  }
   try {
-    statusText.innerText = '正在唤起 Web Bluetooth 选择器...';
+    if (typeof navigator.bluetooth.getAvailability === 'function') {
+      const available = await navigator.bluetooth.getAvailability();
+      if (!available) {
+        statusText.innerText = '⚠️ 未检测到可用的系统蓝牙适配器，请打开电脑/手机蓝牙';
+        return;
+      }
+    }
+    statusText.innerText = '正在唤起 Web Bluetooth 授权与设备选择器...';
     await sdk.requestDeviceAndConnect();
     statusText.innerText = '🟢 已连接脑电设备';
     connectBtn.innerText = '已就绪';
     (connectBtn as HTMLButtonElement).disabled = true;
   } catch (err: any) {
-    statusText.innerText = `❌ 连接失败: ${err.message}`;
+    statusText.innerText = `❌ 授权或连接失败: ${err.message}`;
   }
 });
 

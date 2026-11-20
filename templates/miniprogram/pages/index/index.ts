@@ -60,7 +60,72 @@ Page({
     });
   },
 
-  toggleScan() {
+  /**
+   * 🌟 微信小程序动态申请蓝牙权限 (scope.bluetooth) 并检测蓝牙适配器状态
+   */
+  ensureBluetoothPermission(): Promise<boolean> {
+    return new Promise((resolve) => {
+      wx.getSetting({
+        success: (res: any) => {
+          const auth = res.authSetting['scope.bluetooth'];
+          if (auth === true) {
+            this.checkBluetoothAdapter(resolve);
+          } else if (auth === false) {
+            wx.showModal({
+              title: '需要蓝牙权限',
+              content: '请在小程序设置中开启“蓝牙”权限，以便搜索并连接脑电设备。',
+              confirmText: '去设置',
+              success: (modalRes: any) => {
+                if (modalRes.confirm) {
+                  wx.openSetting({
+                    success: (settingRes: any) => {
+                      if (settingRes.authSetting['scope.bluetooth']) {
+                        this.checkBluetoothAdapter(resolve);
+                      } else {
+                        resolve(false);
+                      }
+                    },
+                    fail: () => resolve(false)
+                  });
+                } else {
+                  resolve(false);
+                }
+              }
+            });
+          } else {
+            wx.authorize({
+              scope: 'scope.bluetooth',
+              success: () => this.checkBluetoothAdapter(resolve),
+              fail: () => {
+                this.appendLog('[权限拦截] 用户拒绝了小程序蓝牙授权');
+                resolve(false);
+              }
+            });
+          }
+        },
+        fail: () => resolve(false)
+      });
+    });
+  },
+
+  checkBluetoothAdapter(resolve: (ok: boolean) => void) {
+    wx.openBluetoothAdapter({
+      success: () => resolve(true),
+      fail: (err: any) => {
+        this.appendLog(`[蓝牙未开启] 请打开手机系统蓝牙开关 (${err.errMsg || err.errCode})`);
+        wx.showToast({ title: '请先打开手机蓝牙', icon: 'none' });
+        resolve(false);
+      }
+    });
+  },
+
+  async toggleScan() {
+    const granted = await this.ensureBluetoothPermission();
+    if (!granted) {
+      this.setData({ statusText: '未开启蓝牙权限或系统蓝牙' });
+      return;
+    }
+
     this.setData({ isScanning: true, statusText: '正在搜索脑电设备...' });
     sdk.startScanAndConnect({
       timeout: 10000,

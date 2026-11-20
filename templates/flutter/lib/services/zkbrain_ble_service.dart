@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../models/brain_data.dart';
 
 enum BleConnectionState { disconnected, connecting, connected }
@@ -30,12 +32,53 @@ class ZKBrainBleService extends ChangeNotifier {
     });
   }
 
-  /// 扫描周围脑电设备 (过滤常见脑电设备前缀: MindWave, BrainLink, ZK-EEG 等)
+  /// 🌟 动态申请双端蓝牙与定位权限 (兼容 Android 12+ / Android 11- / iOS 13+)
+  Future<bool> ensureBluetoothPermissions() async {
+    if (!kIsWeb && Platform.isAndroid) {
+      final statuses = await [
+        Permission.bluetoothScan,
+        Permission.bluetoothConnect,
+        Permission.locationWhenInUse,
+      ].request();
+
+      final bleGranted = (statuses[Permission.bluetoothScan]?.isGranted ?? false) &&
+          (statuses[Permission.bluetoothConnect]?.isGranted ?? false);
+      final locGranted = statuses[Permission.locationWhenInUse]?.isGranted ?? false;
+
+      if (!bleGranted && !locGranted) {
+        lastCommandResponse = "[权限拦截] 未授予蓝牙或定位权限，请在系统设置中开启";
+        notifyListeners();
+        return false;
+      }
+    } else if (!kIsWeb && Platform.isIOS) {
+      final status = await Permission.bluetooth.request();
+      if (!status.isGranted) {
+        lastCommandResponse = "[权限拦截] 请在 iOS 设置中允许本应用访问蓝牙";
+        notifyListeners();
+        return false;
+      }
+    }
+
+    // 检查蓝牙硬件开关状态
+    final adapterState = await FlutterBluePlus.adapterState.first;
+    if (adapterState != BluetoothAdapterState.on) {
+      lastCommandResponse = "[蓝牙未开启] 请先打开手机系统蓝牙开关";
+      notifyListeners();
+      return false;
+    }
+    return true;
+  }
+
+  /// 扫描周围脑电设备 (扫描前自动动态申请蓝牙权限)
   Future<void> startScan() async {
+    final hasPerm = await ensureBluetoothPermissions();
+    if (!hasPerm) return;
+
     scanResults.clear();
     isScanning = true;
     notifyListeners();
 
+    _scanSub?.cancel();
     _scanSub = FlutterBluePlus.scanResults.listen((results) {
       scanResults = results;
       notifyListeners();

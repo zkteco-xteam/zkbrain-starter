@@ -1,7 +1,8 @@
+import { abilityAccessCtrl, common, Permissions } from '@kit.AbilityKit';
 import { BrainData, BrainWaves, calculateFatigue, evaluateFlowState } from '../model/BrainData';
 
 /**
- * 🌟 ZKBrain 鸿蒙原生 ArkUI 脑机交互控制台
+ * 🌟 ZKBrain 鸿蒙原生 ArkUI 脑机交互控制台 (内置动态蓝牙权限申请)
  * 技术支持：熵基科技脑机事业部 (ZKTeco Brain-Computer Interface Division)
  */
 @Entry
@@ -26,12 +27,35 @@ struct Index {
   };
 
   // MEMS 传感器与硬件指令控制
-  @State commandInput: string = "mems_enable=1;\n";
+  @State commandInput: string = "mems_on:1";
   @State commandLog: string = "等待下发指令...\n";
 
   private wavePoints: number[] = [];
   private canvasContext: CanvasRenderingContext2D = new CanvasRenderingContext2D(new RenderingContextSettings(true));
   private timerId: number = -1;
+
+  /**
+   * 🌟 HarmonyOS Next 运行时动态申请系统蓝牙与定位权限
+   */
+  async requestBluetoothPermission(): Promise<boolean> {
+    try {
+      const context = getContext(this) as common.UIAbilityContext;
+      const atManager = abilityAccessCtrl.createAtManager();
+      const permissions: Array<Permissions> = [
+        'ohos.permission.ACCESS_BLUETOOTH',
+        'ohos.permission.APPROXIMATELY_LOCATION'
+      ];
+      const result = await atManager.requestPermissionsFromUser(context, permissions);
+      const granted = result.authResults.every((code: number) => code === 0);
+      if (!granted) {
+        this.commandLog += "[权限拦截] 未授予系统蓝牙权限，请在设置中开启蓝牙访问权限\n";
+      }
+      return granted;
+    } catch (err) {
+      this.commandLog += `[权限申请异常] ${JSON.stringify(err)}\n`;
+      return false;
+    }
+  }
 
   sendCommand(cmd: string): void {
     if (!this.isConnected) {
@@ -136,7 +160,14 @@ struct Index {
             .backgroundColor(this.isConnected ? "#DC2626" : "#2563EB")
             .fontSize(14)
             .borderRadius(8)
-            .onClick(() => {
+            .onClick(async () => {
+              if (!this.isConnected) {
+                const granted = await this.requestBluetoothPermission();
+                if (!granted) {
+                  this.connectionStateText = "缺少蓝牙权限";
+                  return;
+                }
+              }
               this.isConnected = !this.isConnected;
               this.connectionStateText = this.isConnected ? "已就绪 (CONNECTED)" : "未连接";
             })

@@ -1,10 +1,12 @@
 import SwiftUI
+import CoreBluetooth
 import zkbrain_parser
 
 @MainActor
 class BrainMonitorViewModel: ObservableObject {
     @Published var connectionStatus: String = "DISCONNECTED"
     @Published var connectedName: String = "未连接脑电设备"
+    @Published var showBluetoothPermissionAlert: Bool = false
     @Published var attention: Int32 = 0
     @Published var meditation: Int32 = 0
     @Published var isGoodContact: Bool = false
@@ -83,6 +85,14 @@ class BrainMonitorViewModel: ObservableObject {
     }
 
     func toggleScan() {
+        // 🌟 检查 iOS 13+ 系统蓝牙授权状态 (未授权将弹窗引导至系统设置；首次调用由 CoreBluetooth 自动弹出系统授权框)
+        let auth = CBManager.authorization
+        if auth == .denied || auth == .restricted {
+            showBluetoothPermissionAlert = true
+            commandLogs += "[权限拦截] iOS 系统蓝牙权限已被拒绝，请在系统设置中开启\n"
+            return
+        }
+
         if isScanning {
             ZKBrainManager.shared.stopScan()
             isScanning = false
@@ -395,6 +405,16 @@ struct ContentView: View {
             .navigationTitle("ZKBrain 脑机交互")
             .onAppear {
                 vm.startListeningData()
+            }
+            .alert("需要蓝牙访问权限", isPresented: $vm.showBluetoothPermissionAlert) {
+                Button("前往设置") {
+                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                        UIApplication.shared.open(url)
+                    }
+                }
+                Button("取消", role: .cancel) {}
+            } message: {
+                Text("请在系统设置中允许本应用访问蓝牙，以便扫描并连接 ZKBrain 脑电设备。")
             }
         }
     }

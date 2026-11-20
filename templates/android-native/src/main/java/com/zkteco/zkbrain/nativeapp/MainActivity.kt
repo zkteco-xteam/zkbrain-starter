@@ -1,8 +1,13 @@
 package com.zkteco.zkbrain.nativeapp
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.widget.*
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.zkteco.zkbrain.ZKBrainManager
 import com.zkteco.zkbrain.bean.MultiBrainEeg
@@ -12,10 +17,50 @@ import kotlinx.coroutines.launch
 
 /**
  * 🌟 纯原生 Android 开发者极速样板 (纯 Kotlin + LifecycleScope)
- * 包含：8 频段频谱、专注/放松度、512Hz 原始波与 MEMS/硬件指令下发
+ * 包含：动态蓝牙权限申请、8 频段频谱、专注/放松度、512Hz 原始波与 MEMS/硬件指令下发
  * 技术支持：熵基科技脑机事业部 (ZKTeco Brain-Computer Interface Division)
  */
 class MainActivity : AppCompatActivity() {
+
+    // 🌟 运行时动态蓝牙权限申请器 (兼容 Android 12+ 及 Android 6~11)
+    private val blePermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { results ->
+        val allGranted = results.values.all { it }
+        if (allGranted) {
+            Toast.makeText(this, "蓝牙权限已授权，正在扫描脑电设备...", Toast.LENGTH_SHORT).show()
+            ZKBrainManager.startScan(timeoutMillis = 10000L)
+        } else {
+            Toast.makeText(this, "未授予蓝牙权限，请在系统设置中开启附近设备/蓝牙权限", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun getRequiredBlePermissions(): Array<String> {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            arrayOf(
+                Manifest.permission.BLUETOOTH_SCAN,
+                Manifest.permission.BLUETOOTH_CONNECT
+            )
+        } else {
+            arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            )
+        }
+    }
+
+    private fun checkAndRequestBlePermissionsThenScan() {
+        val perms = getRequiredBlePermissions()
+        val missing = perms.filter {
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }
+        if (missing.isEmpty()) {
+            Toast.makeText(this, "正在扫描周围有效脑电设备...", Toast.LENGTH_SHORT).show()
+            ZKBrainManager.startScan(timeoutMillis = 10000L)
+        } else {
+            blePermissionLauncher.launch(missing.toTypedArray())
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,13 +103,13 @@ class MainActivity : AppCompatActivity() {
             textSize = 15f
         }
         val btnMemsStream = Button(this).apply {
-            text = "📡 开启 MEMS 惯导/姿态流 (mems_enable=1;)"
+            text = "📡 开启 MEMS 惯导/姿态流 (mems_on:1)"
         }
         val btnIgnite = Button(this).apply {
             text = "🔥 下发点火指令 (0x15 Raw + 0x17 Band)"
         }
         val etCustomCmd = EditText(this).apply {
-            hint = "输入自定义 ASCII 指令 (如 eeg_data_rate=1;)"
+            hint = "输入自定义键值对或 ASCII 指令 (如 eeg_data_rate:512)"
         }
         val btnSendCustom = Button(this).apply {
             text = "📤 发送自定义指令"
@@ -95,10 +140,9 @@ class MainActivity : AppCompatActivity() {
         // 逻辑处理
         // ==========================================
 
-        // 1. 扫描与连接
+        // 1. 扫描与连接 (点击时自动检查并申请运行时蓝牙权限)
         btnScan.setOnClickListener {
-            Toast.makeText(this, "正在扫描周围有效脑电设备...", Toast.LENGTH_SHORT).show()
-            ZKBrainManager.startScan(timeoutMillis = 10000L)
+            checkAndRequestBlePermissionsThenScan()
         }
 
         lifecycleScope.launch {
