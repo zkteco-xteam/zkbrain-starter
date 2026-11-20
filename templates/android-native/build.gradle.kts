@@ -46,19 +46,19 @@ dependencies {
     // 🌟 核心依赖 (双轨支持，按需二选一)：
     // -----------------------------------------------------------------------------------------
     // 方式 A (推荐开箱即用)：内置预编译官方 AAR，克隆即可离线编译跑通
-    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.aar", "*.jar"))))
+    // implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.aar", "*.jar"))))
     // 采用本地 AAR 方式时需显式保留以下传递依赖：
-    implementation("no.nordicsemi.android.kotlin.ble:scanner:1.0.1")
-    implementation("no.nordicsemi.android.kotlin.ble:client:1.0.1")
-    implementation("no.nordicsemi.android.kotlin.ble:core:1.0.1")
-    implementation("androidx.security:security-crypto:1.1.0-alpha06")
-    implementation("co.touchlab:kermit:2.0.4")
-    implementation("com.squareup.okio:okio:3.17.0")
-    implementation("org.korge:korlibs-crypto:6.1.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+    // implementation("no.nordicsemi.android.kotlin.ble:scanner:1.0.1")
+    // implementation("no.nordicsemi.android.kotlin.ble:client:1.0.1")
+    // implementation("no.nordicsemi.android.kotlin.ble:core:1.0.1")
+    // implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    // implementation("co.touchlab:kermit:2.0.4")
+    // implementation("com.squareup.okio:okio:3.17.0")
+    // implementation("org.korge:korlibs-crypto:6.1.0")
+    // implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+    // implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 
     // 方式 B (国际 Maven Central 官方直连，免 Token 零配置全球加速，底层依赖已由 Central 自动解析)：
     // 若开启方式 B，请注销上方方式 A 及 9 个传递依赖，仅保留下方单行即可：
-    // implementation("io.github.zkteco-xteam:zkbrain-android:1.2.1")
+    implementation("io.github.zkteco-xteam:zkbrain-android:1.2.1")
 }

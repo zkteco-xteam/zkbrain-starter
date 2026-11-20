@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>设备管理 (DeviceScreen) - ZKBrain Electron 桌面工作站</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #f1f5f9;
+      color: #0f172a;
+      padding: 16px;
+    }
+    .container { max-width: 960px; margin: 0 auto; }
+    /* 顶部操作栏 */
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .header-title { font-size: 20px; font-weight: bold; color: #0f172a; }
+    .header-actions { display: flex; align-items: center; gap: 8px; }
+    .btn-top {
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      color: white;
+    }
+    .btn-search { background-color: #2563eb; }
+    .btn-dfu { background-color: #475569; }
+    .badge-auth {
+      font-size: 11px;
+      font-weight: bold;
+      color: #16a34a;
+      background-color: #dcfce7;
+      border: 1px solid #86efac;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+    /* 卡片基类 */
+    .card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .card-title { font-size: 15px; font-weight: bold; color: #1e293b; margin-bottom: 4px; }
+    .card-subtitle { font-size: 12px; color: #64748b; margin-bottom: 12px; }
+    /* 状态卡片 */
+    .status-row { display: flex; justify-content: space-between; align-items: center; }
+    .status-badge-wrap { display: flex; align-items: center; gap: 8px; }
+    .status-dot { width: 10px; height: 10px; border-radius: 50%; background-color: #ef4444; }
+    .status-dot.connected { background-color: #22c55e; }
+    .status-text { font-size: 14px; font-weight: bold; color: #dc2626; }
+    .status-text.connected { color: #16a34a; }
+    .battery-capsule {
+      background: #dcfce7;
+      border: 1px solid #86efac;
+      border-radius: 12px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: bold;
+      color: #16a34a;
+    }
+    .device-name { font-size: 18px; font-weight: bold; margin-top: 8px; }
+    .device-mac { font-size: 12px; color: #64748b; margin: 4px 0 10px 0; font-family: monospace; }
+    .badges-row { display: flex; gap: 8px; margin-bottom: 12px; }
+    .chip { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 4px; }
+    .chip-blue { background: rgba(2, 132, 199, 0.12); color: #0284c7; border: 1px solid rgba(2, 132, 199, 0.3); }
+    .chip-teal { background: rgba(13, 148, 136, 0.12); color: #0d9488; border: 1px solid rgba(13, 148, 136, 0.3); }
+    .chip-purple { background: rgba(124, 58, 237, 0.12); color: #7c3aed; border: 1px solid rgba(124, 58, 237, 0.3); }
+    .btn-connect {
+      width: 100%;
+      padding: 10px;
+      font-size: 14px;
+      font-weight: bold;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      color: white;
+      background: #2563eb;
+    }
+    .btn-connect.connected { background: #dc2626; }
+    /* 通道配置 */
+    .channel-options { display: flex; gap: 20px; font-size: 13px; }
+    .channel-options label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+    /* 图表显隐 */
+    .chart-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chart-chip-btn {
+      padding: 5px 10px;
+      font-size: 12px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      background: #f1f5f9;
+      color: #334155;
+      cursor: pointer;
+    }
+    .chart-chip-btn.active { background: #2563eb; color: white; border-color: #2563eb; }
+    /* 按钮控制台网格 */
+    .btn-console-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .btn-act {
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      cursor: pointer;
+    }
+    .act-green { background: rgba(22, 163, 74, 0.12); color: #16a34a; border-color: rgba(22, 163, 74, 0.3); }
+    .act-red { background: rgba(220, 38, 38, 0.12); color: #dc2626; border-color: rgba(220, 38, 38, 0.3); }
+    .act-blue { background: rgba(2, 132, 199, 0.12); color: #0284c7; border-color: rgba(2, 132, 199, 0.3); }
+    .act-orange { background: rgba(217, 119, 6, 0.12); color: #d97706; border-color: rgba(217, 119, 6, 0.3); }
+    .act-gray { background: rgba(71, 85, 105, 0.1); color: #475569; border-color: rgba(71, 85, 105, 0.3); }
+    .act-purple { background: rgba(124, 58, 237, 0.12); color: #7c3aed; border-color: rgba(124, 58, 237, 0.3); }
+    .act-teal { background: rgba(13, 148, 136, 0.12); color: #0d9488; border-color: rgba(13, 148, 136, 0.3); }
+    .input-row { display: flex; gap: 8px; margin-top: 8px; }
+    .input-field {
+      flex: 1;
+      padding: 8px 12px;
+      font-size: 13px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+    }
+    .btn-input-send {
+      padding: 8px 16px;
+      font-size: 12px;
+      font-weight: bold;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      color: white;
+      background: #2563eb;
+    }
+    .btn-sn-send {
+      padding: 8px 16px;
+      font-size: 12px;
+      font-weight: bold;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      color: white;
+      background: #0f172a;
+    }
+    /* MEMS 姿态卡片 */
+    .mems-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .mems-header { font-size: 13px; font-weight: bold; color: #334155; margin-bottom: 6px; }
+    .mems-text { font-family: monospace; font-size: 12px; color: #1e293b; line-height: 1.5; }
+    .text-dim { color: #64748b; }
+    /* 终端监控 */
+    .terminal-box { background: #0f172a; border-radius: 8px; padding: 12px; margin-top: 12px; }
+    .terminal-header { display: flex; justify-content: space-between; font-size: 12px; color: #94a3b8; margin-bottom: 8px; }
+    .btn-clear { color: #38bdf8; cursor: pointer; }
+    .terminal-logs {
+      font-family: monospace;
+      font-size: 11px;
+      color: #4ade80;
+      line-height: 1.4;
+      max-height: 140px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+    /* DeviceShowTable 4x3 三色表格 */
+    .table-mac-header {
+      background: #1e293b;
+      color: white;
+      text-align: center;
+      font-family: monospace;
+      font-size: 13px;
+      font-weight: bold;
+      padding: 8px 0;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+    .table-container { border: 1px solid #cbd5e1; border-radius: 4px; overflow: hidden; }
+    .table-row { display: flex; border-bottom: 1px solid #cbd5e1; }
+    .table-row:last-child { border-bottom: none; }
+    .table-cell { flex: 1; padding: 10px 4px; text-align: center; border-right: 1px solid #cbd5e1; }
+    .table-cell:last-child { border-right: none; }
+    .cell-label { font-size: 11px; font-weight: bold; color: #334155; margin-bottom: 2px; }
+    .cell-val { font-family: monospace; font-size: 14px; font-weight: bold; color: #0f172a; }
+    .bg-pink { background: #ffe4e1; }
+    .bg-cyan { background: #e0ffff; }
+    .bg-yellow { background: #f0e68c; }
+    /* 弹窗 */
+    .modal-mask {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+    .modal-mask.open { display: flex; }
+    .modal-content {
+      width: 440px;
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .modal-title { font-size: 16px; font-weight: bold; color: #1e293b; }
+    .modal-close { font-size: 18px; color: #64748b; cursor: pointer; }
+    .device-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f8fafc;
+      padding: 10px 14px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+    .btn-item-connect {
+      background: #16a34a;
+      color: white;
+      border: none;
+      padding: 5px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .btn-rescan {
+      width: 100%;
+      padding: 10px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- 板块 1：顶部操作栏 -->
+    <div class="header-bar">
+      <div class="header-title">设备管理 (DeviceScreen)</div>
+      <div class="header-actions">
+        <button id="topSearchBtn" class="btn-top btn-search">🔍 搜索设备</button>
+        <button id="topDfuBtn" class="btn-top btn-dfu">OTA升级</button>
+        <div class="badge-auth">✓ SN就绪</div>
+      </div>
+    </div>
+
+    <!-- 板块 2：设备链路状态卡片 -->
+    <div class="card">
+      <div class="status-row">
+        <div class="status-badge-wrap">
+          <div id="statusDot" class="status-dot"></div>
+          <span id="statusText" class="status-text">未连接 (DISCONNECTED)</span>
+        </div>
+        <div class="battery-capsule">⚡ 85%</div>
+      </div>
+
+      <div class="device-name">ZKBrain Headband PRO</div>
+      <div class="device-mac">MAC: DC:23:4F:9A:88:01</div>
+
+      <div class="badges-row">
+        <div class="chip chip-blue">Nordic BLE 5.0</div>
+        <div class="chip chip-teal">ASCII 512Hz</div>
+        <div class="chip chip-purple">NeuroSky XMW</div>
+      </div>
+
+      <button id="mainConnectBtn" class="btn-connect">连接设备</button>
+    </div>
+
+    <!-- 板块 3：硬件通道配置 -->
+    <div class="card">
+      <div class="card-title">🎧 脑电测量通道 (Channels)</div>
+      <div class="card-subtitle">单导联额贴固定使用前额左侧 (FP1) 测量点</div>
+      <div class="channel-options">
+        <label><input type="checkbox" checked disabled> Left (FP1) [激活中]</label>
+        <label style="color: #94a3b8;"><input type="checkbox" disabled> Right (FP2) [硬件不支持]</label>
+      </div>
+    </div>
+
+    <!-- 板块 4：图表显隐过滤矩阵 -->
+    <div class="card">
+      <div class="card-title">📊 12项生理指标图表显隐过滤</div>
+      <div class="card-subtitle">实时联动控制下方 4x3 三色脑电指标表格</div>
+      <div class="chart-chips" id="chartChipsContainer"></div>
+    </div>
+
+    <!-- 板块 5：NeuroSky XMW 二进制协议硬件控制台 -->
+    <div class="card">
+      <div class="card-title">⚡ NeuroSky XMW 二进制硬件控制台</div>
+      <div class="card-subtitle">直接控制 TGAM / MindWave 芯片底层寄存器与传输开关</div>
+      <div class="btn-console-grid">
+        <button id="btnIgnition" class="btn-act act-green">点火包 (0x15+0x17)</button>
+        <button id="btnStopXmw" class="btn-act act-red">停止传输 (0x16+0x18)</button>
+        <button id="btn50Hz" class="btn-act act-blue">50Hz 陷波 (0x1B)</button>
+        <button id="btn60Hz" class="btn-act act-blue">60Hz 陷波 (0x1C)</button>
+        <button id="btnBatterySky" class="btn-act act-orange">读电量 (0x06)</button>
+        <button id="btnReadSn" class="btn-act act-gray">查询 SN (0xF4)</button>
+        <button id="btnDetectMac" class="btn-act act-teal">探测经典MAC (0xFC)</button>
+      </div>
+      <div class="input-row">
+        <input id="inputWriteSn" class="input-field" placeholder="输入新设备 SN (例如: ZK20261120001)">
+        <button id="btnSendSn" class="btn-sn-send">写入 SN (0xF2)</button>
+      </div>
+    </div>
+
+    <!-- 板块 6：ZKBrain 自研脑电设备官方控制台 -->
+    <div class="card">
+      <div class="card-title">🧠 ZKBrain 自研脑电设备官方控制台</div>
+      <div class="card-subtitle">支持 ASCII 控制指令与 MEMS 6轴姿态惯导流</div>
+      <div class="mems-box">
+        <div class="mems-header">🧭 MEMS 传感器 6 轴空间姿态 (Euler 欧拉角 & 四元数):</div>
+        <div class="mems-text">Roll(横滚): 1.2° | Pitch(俯仰): -0.5° | Yaw(偏航): 14.8°</div>
+        <div class="mems-text text-dim">Q0: 0.992 | Q1: 0.010 | Q2: -0.004 | Q3: 0.129</div>
+      </div>
+      <div class="btn-console-grid">
+        <button id="btnLicense" class="btn-act act-gray">license:?</button>
+        <button id="btnBatteryZk" class="btn-act act-orange">battery:?</button>
+        <button id="btnVersion" class="btn-act act-gray">version:?</button>
+        <button id="btnEegOn" class="btn-act act-green">eeg_data_on:1</button>
+        <button id="btnEegOff" class="btn-act act-red">eeg_data_on:0</button>
+        <button id="btnRate256" class="btn-act act-blue">256Hz (rate:2)</button>
+        <button id="btnRate512" class="btn-act act-blue">512Hz (rate:1)</button>
+        <button id="btnMemsOn" class="btn-act act-purple">开启 MEMS (mems_on:1)</button>
+        <button id="btnMemsOff" class="btn-act act-gray">关闭 MEMS (mems_on:0)</button>
+        <button id="btnDfuScan" class="btn-act act-orange">空中升级 (dfu_scan:1)</button>
+      </div>
+      <div class="input-row">
+        <input id="inputCustomCmd" class="input-field" placeholder="自定义指令 (例如: mems_on:1)">
+        <button id="btnSendCustomCmd" class="btn-input-send">发送指令</button>
+      </div>
+      <div class="terminal-box">
+        <div class="terminal-header">
+          <span>💻 指令下发与硬件回包监控终端:</span>
+          <span id="terminalClearBtn" class="btn-clear">清空</span>
+        </div>
+        <div id="terminalLogs" class="terminal-logs">[系统启动] ZKBrain Electron 专业桌面工作站初始化就绪\n</div>
+      </div>
+    </div>
+
+    <!-- 板块 7：DeviceShowTable 4x3 三色脑电指标表格 -->
+    <div class="card">
+      <div class="card-title">📈 4x3 全波段三色脑电数据表 (DeviceShowTable)</div>
+      <div class="card-subtitle">1:1 逐项还原 shared1 测量看板；粉色：认知与信号，青色：慢波与Alpha，黄色：高频能谱</div>
+      <div class="table-mac-header">MAC: DC:23:4F:9A:88:01</div>
+      <div class="table-container">
+        <div class="table-row">
+          <div class="table-cell bg-pink"><div class="cell-label">Attention</div><div id="cellAttention" class="cell-val">78</div></div>
+          <div class="table-cell bg-pink"><div class="cell-label">Meditation</div><div id="cellMeditation" class="cell-val">65</div></div>
+          <div class="table-cell bg-pink"><div class="cell-label">Quality</div><div id="cellQuality" class="cell-val">0</div></div>
+        </div>
+        <div class="table-row">
+          <div class="table-cell bg-pink"><div class="cell-label">Raw EEG</div><div id="cellRawEeg" class="cell-val">142</div></div>
+          <div class="table-cell bg-cyan"><div class="cell-label">Delta</div><div id="cellDelta" class="cell-val">12450</div></div>
+          <div class="table-cell bg-cyan"><div class="cell-label">Theta</div><div id="cellTheta" class="cell-val">8320</div></div>
+        </div>
+        <div class="table-row">
+          <div class="table-cell bg-cyan"><div class="cell-label">Low Alpha</div><div id="cellLowAlpha" class="cell-val">15300</div></div>
+          <div class="table-cell bg-cyan"><div class="cell-label">High Alpha</div><div id="cellHighAlpha" class="cell-val">21040</div></div>
+          <div class="table-cell bg-yellow"><div class="cell-label">Low Beta</div><div id="cellLowBeta" class="cell-val">18900</div></div>
+        </div>
+        <div class="table-row">
+          <div class="table-cell bg-yellow"><div class="cell-label">High Beta</div><div id="cellHighBeta" class="cell-val">11200</div></div>
+          <div class="table-cell bg-yellow"><div class="cell-label">Low Gamma</div><div id="cellLowGamma" class="cell-val">4600</div></div>
+          <div class="table-cell bg-yellow"><div class="cell-label">Mid Gamma</div><div id="cellMidGamma" class="cell-val">2100</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 板块 8：蓝牙搜索连接弹窗 -->
+    <div id="scanModal" class="modal-mask">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-title">🔍 搜索周围低功耗蓝牙脑电设备</div>
+          <div id="modalCloseBtn" class="modal-close">✕</div>
+        </div>
+        <p style="font-size: 12px; color: #64748b; margin-bottom: 12px;">扫描完成，请选择脑电设备连接：</p>
+        <div class="device-item">
+          <div><strong>ZKBrain-PRO-8801</strong><br><span style="font-size: 11px; color: #64748b;">DC:23:4F:9A:88:01 | -58 dBm</span></div>
+          <button class="btn-item-connect" onclick="connectMock('ZKBrain-PRO-8801', 'DC:23:4F:9A:88:01')">连接</button>
+        </div>
+        <div class="device-item">
+          <div><strong>MindWave Mobile 2</strong><br><span style="font-size: 11px; color: #64748b;">AA:BB:CC:11:22:33 | -72 dBm</span></div>
+          <button class="btn-item-connect" onclick="connectMock('MindWave Mobile 2', 'AA:BB:CC:11:22:33')">连接</button>
+        </div>
+        <button id="btnRescan" class="btn-rescan">重新扫描周边设备</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

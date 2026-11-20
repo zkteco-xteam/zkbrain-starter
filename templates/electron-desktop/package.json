@@ -1,0 +1,24 @@
+{
+  "name": "zkbrain-electron-desktop",
+  "version": "1.0.0",
+  "description": "ZKBrain 脑机接口专业桌面工作站 (Electron + Web Bluetooth) - 支持 Windows/macOS/Linux",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^29.1.5",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.zkteco.zkbrain.desktop",
+    "productName": "ZKBrain Workstation",
+    "directories": {
+      "output": "dist"
+    }
+  }
+}

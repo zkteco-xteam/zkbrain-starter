@@ -2,24 +2,43 @@
 
 > 🚀 **官方开源脚手架** | 面向二次开发者与 AI 编程助手（Cursor, Antigravity, Windsurf, Copilot）的跨平台脑机接口 (BCI) 开箱即用全栈模板。
 
-本项目是 **ZKBrain 跨平台脑机接口 SDK** 的官方公开脚手架，内置 Android Compose、Flutter、华为鸿蒙 (HarmonyOS Next)、iOS SwiftUI、Web H5、微信小程序、Windows 桌面 7 大主流平台的最简运行模板，并深度整合了 **AI 上下文工程（Skill + llms.txt + Cursorrules）**。
+本项目是 **ZKBrain 跨平台脑机接口 SDK** 的官方公开脚手架，全面覆盖 **14 大主流开发平台与生态**（涵盖移动原生、全网跨端、轻应用、专业桌面、Unity 游戏/XR、Python 科研算法与树莓派工业边缘计算），统一采用 **1:1 官方 `DeviceScreen + DeviceShowTable` 标准 UI 视觉**，并深度整合了 **AI 上下文工程（Skill + llms.txt + Cursorrules + 中国主流 AI 开发工具规范）**。
 
 开发者（或您的 AI）无需关心底层复杂的硬件点火包、协议解包与加解密，克隆后**只需对 AI 说一句话，即可秒级生成专属脑电应用**！
 
 ---
 
-## 📂 多端极简模板导航
+## 📂 多端全栈模板导航 (14 大主流生态)
 
+### 1. 📱 移动原生开发 (Mobile Native)
 | 平台 / 技术栈 | 模板目录 | SDK 接入形式 | 核心亮点 |
 | :--- | :--- | :--- | :--- |
-| **Android Compose (推荐)** | [`templates/android-compose/`](templates/android-compose/) | Maven Central (`io.github.zkteco-xteam:zkbrain-android:1.2.1`) | 现代 Jetpack Compose 声明式大屏，内置 8 频段频谱、心流与示波器 |
-| **Android 原生 (Kotlin)** | [`templates/android-native/`](templates/android-native/) | Maven Central (`io.github.zkteco-xteam:zkbrain-android:1.2.1`) | 纯 Kotlin + Lifecycle 极简调用，开箱即用 |
-| **Flutter 跨平台** | [`templates/flutter/`](templates/flutter/) | `flutter_blue_plus` 响应式流 | Dart 跨 Android / iOS 双端，Material 3 脑电交互大屏 |
-| **华为鸿蒙 (HarmonyOS Next)** | [`templates/harmonyos/`](templates/harmonyos/) | ArkTS / Stage 模型 | 鸿蒙原生 ArkUI 声明式大屏，系统级低功耗蓝牙扫描与高帧率 Canvas |
-| **原生 iOS (Swift)** | [`templates/ios-swiftui/`](templates/ios-swiftui/) | Swift Package Manager (SPM) | SwiftUI 现代声明式 UI，原生 `async/await` 消费脑电数据流 |
+| **Android Compose (推荐)** | [`templates/android-compose/`](templates/android-compose/) | Maven Central (`io.github.zkteco-xteam:zkbrain-android:1.2.1`) | 现代 Jetpack Compose 声明式大屏，内置 8 频段频谱、MEMS 姿态与运行时蓝牙权限 |
+| **Android 原生 (Kotlin)** | [`templates/android-native/`](templates/android-native/) | Maven Central (`io.github.zkteco-xteam:zkbrain-android:1.2.1`) | 纯 Kotlin + ViewBinding 极简调用，开箱即用 |
+| **华为鸿蒙 (HarmonyOS Next)** | [`templates/harmonyos/`](templates/harmonyos/) | ArkTS / Stage 模型 | 鸿蒙原生 ArkUI 声明式大屏，系统级低功耗蓝牙扫描与 1:1 三色数据看板 |
+| **原生 iOS (Swift)** | [`templates/ios-swiftui/`](templates/ios-swiftui/) | Swift Package Manager (SPM) | SwiftUI 现代声明式 UI，原生 `async/await` 消费脑电数据流与系统授权拦截 |
+
+### 2. 🚀 跨端与全网小程序 (Cross-Platform & MiniProgram)
+| 平台 / 技术栈 | 模板目录 | SDK 接入形式 | 核心亮点 |
+| :--- | :--- | :--- | :--- |
+| **Flutter 跨平台** | [`templates/flutter/`](templates/flutter/) | `flutter_blue_plus` 响应式流 | Dart 跨 Android / iOS 双端，1:1 克隆三色脑电数据表与指令终端 |
+| **Uni-app (Vue 3 + TS)** | [`templates/uni-app/`](templates/uni-app/) | Vue 3 + TypeScript | **一套代码发布 10+ 平台**：同时支持微信/支付宝/抖音/百度小程序及 iOS/Android App |
+| **React Native (TS)** | [`templates/react-native/`](templates/react-native/) | `react-native-ble-plx` | 跨 iOS/Android 全球主流技术栈，内置动态蓝牙权限与完整控制台 |
+| **微信小程序** | [`templates/miniprogram/`](templates/miniprogram/) | NPM (`@zkteco/zkbrain-miniprogram-sdk`) | 原生微信小程序架构，内置低功耗蓝牙 (BLE) 扫描与 1:1 三色仪表盘 |
 | **Web 浏览器 (H5)** | [`templates/web-ts/`](templates/web-ts/) | NPM (`@zkteco/zkbrain-web-sdk`) | Vite + TypeScript，基于 W3C Web Bluetooth 直连脑电设备 |
-| **微信小程序** | [`templates/miniprogram/`](templates/miniprogram/) | NPM (`@zkteco/zkbrain-miniprogram-sdk`) | 原生小程序架构，内置低功耗蓝牙 (BLE) 扫描与专注度仪表盘 |
-| **Windows 桌面端 (C#/Python)** | [`templates/windows-desktop/`](templates/windows-desktop/) | C++ 动态库 (`zkbrain_sec.dll`) | 原生 BLE/串口直连，支持 Python 算法开发与 C# WinUI 桌面开发 |
+
+### 3. 💻 桌面端与专业工作站 (Desktop Workstation)
+| 平台 / 技术栈 | 模板目录 | SDK 接入形式 | 核心亮点 |
+| :--- | :--- | :--- | :--- |
+| **Electron 跨平台桌面端** | [`templates/electron-desktop/`](templates/electron-desktop/) | Electron + Web Bluetooth | 一键打包 Windows (`.exe`)、macOS (`.dmg`) 与 Linux (`.deb`) 商业分析软件 |
+| **Windows 桌面端 (C#/Python)** | [`templates/windows-desktop/`](templates/windows-desktop/) | C++ 动态库 (`zkbrain_sec.dll`) | 原生 BLE/串口直连，内置 Python Tkinter 可视化大屏与 C# WinUI 桌面工程 |
+
+### 4. 🎮 游戏、XR、科研算法与 AIoT 边缘计算
+| 平台 / 技术栈 | 模板目录 | SDK 接入形式 | 核心亮点 |
+| :--- | :--- | :--- | :--- |
+| **Unity 3D / XR 脑控** | [`templates/unity/`](templates/unity/) | Unity C# 桥接器 | **脑控念力悬浮小球 Demo**：专注度越高物体悬浮越高，支持 Meta Quest / Pico / Vision Pro |
+| **Python 科研算法工作站** | [`templates/python-research/`](templates/python-research/) | MNE-Python / Jupyter | 0.5-50Hz 带通滤波、Welch PSD 功率谱密度分析，一键导出国际标准 **EDF+** 与 CSV 数据集 |
+| **树莓派 / Linux IoT 边缘网关** | [`templates/iot-raspberrypi/`](templates/iot-raspberrypi/) | Python Bleak + RPi.GPIO | 智慧工地/车载预警守护进程，疲劳超限触发硬件 GPIO 蜂鸣器，自带局域网 Web 监控大屏 |
 
 ---
 
