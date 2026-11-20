@@ -3,7 +3,7 @@
     {
       "path": "pages/index/index",
       "style": {
-        "navigationBarTitleText": "设备管理 (DeviceScreen)",
+        "navigationBarTitleText": "Device Management (DeviceScreen)",
         "navigationBarBackgroundColor": "#1e293b",
         "navigationBarTextStyle": "white",
         "backgroundColor": "#f1f5f9"
@@ -12,7 +12,7 @@
   ],
   "globalStyle": {
     "navigationBarTextStyle": "white",
-    "navigationBarTitleText": "ZKBrain 控制台",
+    "navigationBarTitleText": "ZKBrain Console",
     "navigationBarBackgroundColor": "#1e293b",
     "backgroundColor": "#f1f5f9"
   }

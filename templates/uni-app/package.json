@@ -1,7 +1,7 @@
 {
   "name": "zkbrain-uniapp-template",
   "version": "1.0.0",
-  "description": "ZKBrain 跨平台脑机接口 (BCI) SDK - Uni-app (Vue 3 + TypeScript) 全网小程序与 App 脚手架",
+  "description": "ZKBrain Cross-Platform BCI SDK - Uni-app (Vue 3 + TypeScript) Starter Template",
   "scripts": {
     "dev:mp-weixin": "uni -p mp-weixin",
     "build:mp-weixin": "uni build -p mp-weixin",

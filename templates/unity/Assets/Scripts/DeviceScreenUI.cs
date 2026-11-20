@@ -3,7 +3,7 @@ using UnityEngine;
 namespace ZKBrain.Unity
 {
     /// <summary>
-    /// 🌟 1:1 还原 shared1 设备管理控制台 (DeviceScreen + DeviceShowTable) - Unity OnGUI / Canvas 原生版
+    /// 1:1 Recreation of shared1 Device Management Console (DeviceScreen + DeviceShowTable) - Unity OnGUI / Canvas Version
     /// </summary>
     public class DeviceScreenUI : MonoBehaviour
     {
@@ -25,18 +25,18 @@ namespace ZKBrain.Unity
         {
             GUI.skin.box.alignment = TextAnchor.MiddleCenter;
 
-            // 绘制左侧控制台浮窗 / Left panel HUD
+            // Draw left HUD panel
             GUILayout.BeginArea(new Rect(15, 15, 420, Screen.height - 30), GUI.skin.window);
             scrollPos = GUILayout.BeginScrollView(scrollPos);
 
-            // 1. 顶部操作栏 / Section 1: Header Bar
+            // 1. Top Action Bar
             GUILayout.BeginHorizontal();
-            GUILayout.Label("<b>DeviceScreen (设备管理)</b>", GUILayout.Width(180));
-            if (GUILayout.Button("🔍 Scan", GUILayout.Width(60)))
+            GUILayout.Label("<b>DeviceScreen</b>", GUILayout.Width(160));
+            if (GUILayout.Button("🔍 Scan", GUILayout.Width(65)))
             {
                 bridge?.ConnectDevice("ZKBrain-PRO-8801", "DC:23:4F:9A:88:01");
             }
-            if (GUILayout.Button("DFU", GUILayout.Width(65)))
+            if (GUILayout.Button("DFU", GUILayout.Width(60)))
             {
                 bridge?.Log("[DFU] Checking firmware OTA: currently on latest stable v2.4.0");
             }
@@ -45,12 +45,12 @@ namespace ZKBrain.Unity
 
             GUILayout.Space(8);
 
-            // 2. 状态卡片
+            // 2. Status Card
             GUILayout.BeginVertical(GUI.skin.box);
             GUILayout.BeginHorizontal();
             string statusColor = (bridge != null && bridge.isConnected) ? "#22c55e" : "#ef4444";
-            string statusText = (bridge != null && bridge.isConnected) ? "已连接 (CONNECTED)" : "未连接 (DISCONNECTED)";
-            GUILayout.Label($"状态: <color={statusColor}>● {statusText}</color>");
+            string statusText = (bridge != null && bridge.isConnected) ? "CONNECTED" : "DISCONNECTED";
+            GUILayout.Label($"Status: <color={statusColor}>● {statusText}</color>");
             GUILayout.FlexibleSpace();
             GUILayout.Label($"⚡ {bridge?.batteryLevel ?? 0}%");
             GUILayout.EndHorizontal();
@@ -58,7 +58,7 @@ namespace ZKBrain.Unity
             GUILayout.Label($"<b>{bridge?.deviceName}</b>");
             GUILayout.Label($"MAC: {bridge?.deviceMac}");
 
-            if (GUILayout.Button((bridge != null && bridge.isConnected) ? "断开设备" : "连接设备", GUILayout.Height(30)))
+            if (GUILayout.Button((bridge != null && bridge.isConnected) ? "Disconnect Device" : "Connect Device", GUILayout.Height(30)))
             {
                 if (bridge != null && bridge.isConnected) bridge.DisconnectDevice();
                 else bridge?.ConnectDevice("ZKBrain-PRO-8801", "DC:23:4F:9A:88:01");
@@ -67,9 +67,9 @@ namespace ZKBrain.Unity
 
             GUILayout.Space(8);
 
-            // 3. MEMS 6轴姿态
+            // 3. MEMS 6-Axis Attitude
             GUILayout.BeginVertical(GUI.skin.box);
-            GUILayout.Label("<b>🧭 MEMS 传感器 6 轴空间姿态:</b>");
+            GUILayout.Label("<b>🧭 MEMS 6-Axis Spatial Attitude:</b>");
             if (bridge != null)
             {
                 GUILayout.Label($"Roll: {bridge.eulerAngles.x:F1}° | Pitch: {bridge.eulerAngles.y:F1}° | Yaw: {bridge.eulerAngles.z:F1}°");
@@ -79,29 +79,29 @@ namespace ZKBrain.Unity
 
             GUILayout.Space(8);
 
-            // 4. 4x3 三色脑电数据表 (DeviceShowTable)
+            // 4. 4x3 Tri-Color EEG Data Table (DeviceShowTable)
             GUILayout.BeginVertical(GUI.skin.box);
-            GUILayout.Label("<b>📈 4x3 全波段三色脑电数据表 (DeviceShowTable)</b>");
+            GUILayout.Label("<b>📈 4x3 Full-Band Spectrum Matrix (DeviceShowTable)</b>");
 
-            // Row 1 (全粉)
+            // Row 1 (Pink)
             DrawTableRow(
                 ("Attention", $"{bridge?.attention ?? 0}", "#ffe4e1"),
                 ("Meditation", $"{bridge?.meditation ?? 0}", "#ffe4e1"),
                 ("Quality", $"{bridge?.signalQuality ?? 0}", "#ffe4e1")
             );
-            // Row 2 (粉 + 青 + 青)
+            // Row 2 (Pink + Cyan + Cyan)
             DrawTableRow(
                 ("Raw EEG", $"{bridge?.rawEeg ?? 0}", "#ffe4e1"),
                 ("Delta", $"{bridge?.waves.delta ?? 0}", "#e0ffff"),
                 ("Theta", $"{bridge?.waves.theta ?? 0}", "#e0ffff")
             );
-            // Row 3 (青 + 青 + 黄)
+            // Row 3 (Cyan + Cyan + Yellow)
             DrawTableRow(
                 ("Low Alpha", $"{bridge?.waves.lowAlpha ?? 0}", "#e0ffff"),
                 ("High Alpha", $"{bridge?.waves.highAlpha ?? 0}", "#e0ffff"),
                 ("Low Beta", $"{bridge?.waves.lowBeta ?? 0}", "#f0e68c")
             );
-            // Row 4 (全黄)
+            // Row 4 (Yellow)
             DrawTableRow(
                 ("High Beta", $"{bridge?.waves.highBeta ?? 0}", "#f0e68c"),
                 ("Low Gamma", $"{bridge?.waves.lowGamma ?? 0}", "#f0e68c"),
@@ -111,17 +111,17 @@ namespace ZKBrain.Unity
 
             GUILayout.Space(8);
 
-            // 5. 硬件指令控制台
+            // 5. Hardware Command Console
             GUILayout.BeginVertical(GUI.skin.box);
-            GUILayout.Label("<b>🛠️ 硬件协议指令交互:</b>");
+            GUILayout.Label("<b>🛠️ Hardware Protocol Commands:</b>");
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("点火包 (0x15+0x17)")) bridge?.SendIgnitionPacket();
-            if (GUILayout.Button("开启 MEMS (mems_on:1)")) bridge?.SendConfig("mems_on", "1");
+            if (GUILayout.Button("Ignition (0x15+0x17)")) bridge?.SendIgnitionPacket();
+            if (GUILayout.Button("Enable MEMS (mems_on:1)")) bridge?.SendConfig("mems_on", "1");
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             customCmd = GUILayout.TextField(customCmd);
-            if (GUILayout.Button("发送", GUILayout.Width(50)))
+            if (GUILayout.Button("Send", GUILayout.Width(50)))
             {
                 bridge?.Log($"[TX >>] {customCmd}");
             }
@@ -130,11 +130,11 @@ namespace ZKBrain.Unity
 
             GUILayout.Space(8);
 
-            // 6. 终端日志
+            // 6. Terminal Output
             GUILayout.BeginVertical(GUI.skin.box);
             GUILayout.BeginHorizontal();
-            GUILayout.Label("<b>💻 硬件通信终端:</b>");
-            if (GUILayout.Button("清空", GUILayout.Width(45))) terminalLogs = "";
+            GUILayout.Label("<b>💻 Hardware Communication Terminal:</b>");
+            if (GUILayout.Button("Clear", GUILayout.Width(50))) terminalLogs = "";
             GUILayout.EndHorizontal();
             GUILayout.TextArea(terminalLogs, GUILayout.Height(90));
             GUILayout.EndVertical();

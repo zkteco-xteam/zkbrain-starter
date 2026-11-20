@@ -4,19 +4,18 @@
 
 > 🚀 **官方开源脚手架** | 面向二次开发者与 AI 编程助手（Cursor, Antigravity, Windsurf, Copilot）的跨平台脑机接口 (BCI) 开箱即用全栈模板。
 
-本项目是 **ZKBrain 跨平台脑机接口 SDK** 的官方公开脚手架，全面覆盖 **14 大主流开发平台与生态**（涵盖移动原生、全网跨端、轻应用、专业桌面、Unity 游戏/XR、Python 科研算法与树莓派工业边缘计算），统一采用 **1:1 官方 `DeviceScreen + DeviceShowTable` 标准 UI 视觉**，并深度整合了 **AI 上下文工程（Skill + llms.txt + Cursorrules + 中国主流 AI 开发工具规范）**。
+本项目是 **ZKBrain 跨平台脑机接口 SDK** 的官方公开脚手架，全面覆盖 **13 大主流开发平台与生态**（涵盖移动原生、全网跨端、轻应用、专业桌面、Unity 游戏/XR、Python 科研算法与树莓派工业边缘计算），统一采用 **1:1 官方 `DeviceScreen + DeviceShowTable` 标准 UI 视觉**，并深度整合了 **AI 上下文工程（Skill + llms.txt + Cursorrules + 中国主流 AI 开发工具规范）**。
 
 开发者（或您的 AI）无需关心底层复杂的硬件点火包、协议解包与加解密，克隆后**只需对 AI 说一句话，即可秒级生成专属脑电应用**！
 
 ---
 
-## 📂 多端全栈模板导航 (14 大主流生态)
+## 📂 多端全栈模板导航 (13 大主流生态)
 
 ### 1. 📱 移动原生开发 (Mobile Native)
 | 平台 / 技术栈 | 模板目录 | SDK 接入形式 | 核心亮点 |
 | :--- | :--- | :--- | :--- |
 | **Android Compose (推荐)** | [`templates/android-compose/`](templates/android-compose/) | Maven Central (`io.github.zkteco-xteam:zkbrain-android:1.2.1`) | 现代 Jetpack Compose 声明式大屏，内置 8 频段频谱、MEMS 姿态与运行时蓝牙权限 |
-| **Android 原生 (Kotlin)** | [`templates/android-native/`](templates/android-native/) | Maven Central (`io.github.zkteco-xteam:zkbrain-android:1.2.1`) | 纯 Kotlin + ViewBinding 极简调用，开箱即用 |
 | **华为鸿蒙 (HarmonyOS Next)** | [`templates/harmonyos/`](templates/harmonyos/) | ArkTS / Stage 模型 | 鸿蒙原生 ArkUI 声明式大屏，系统级低功耗蓝牙扫描与 1:1 三色数据看板 |
 | **原生 iOS (Swift)** | [`templates/ios-swiftui/`](templates/ios-swiftui/) | Swift Package Manager (SPM) | SwiftUI 现代声明式 UI，原生 `async/await` 消费脑电数据流与系统授权拦截 |
 

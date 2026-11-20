@@ -1,22 +1,22 @@
 <template>
   <view class="container">
-    <!-- 板块 1：顶部操作栏 (Header Bar) -->
+    <!-- Section 1: Header Bar -->
     <view class="header-bar">
-      <view class="header-title">设备管理 (DeviceScreen)</view>
+      <view class="header-title">Device Management (DeviceScreen)</view>
       <view class="header-actions">
-        <button class="btn-top btn-search" @tap="openScanModal">🔍 搜索设备</button>
-        <button class="btn-top btn-dfu" @tap="handleDfuUpgrade">OTA升级</button>
-        <view class="badge-auth">✓ SN就绪</view>
+        <button class="btn-top btn-search" @tap="openScanModal">Search BLE</button>
+        <button class="btn-top btn-dfu" @tap="handleDfuUpgrade">DFU OTA</button>
+        <view class="badge-auth">Authorized</view>
       </view>
     </view>
 
-    <!-- 板块 2：设备链路状态卡片 (Status Card) -->
+    <!-- Section 2: Device Link Status Card -->
     <view class="card">
       <view class="status-row">
         <view class="status-badge-wrap">
           <view class="status-dot" :class="{ connected: isConnected }"></view>
           <text class="status-text" :class="{ connected: isConnected }">
-            {{ isConnected ? "已连接 (CONNECTED)" : "未连接 (DISCONNECTED)" }}
+            {{ isConnected ? "CONNECTED" : "DISCONNECTED" }}
           </text>
         </view>
         <view class="battery-capsule">⚡ {{ batteryLevel }}%</view>
@@ -36,30 +36,30 @@
         :class="{ connected: isConnected }"
         @tap="toggleConnect"
       >
-        {{ isConnected ? "断开当前连接" : "连接设备" }}
+        {{ isConnected ? "Disconnect" : "Connect Device" }}
       </button>
     </view>
 
-    <!-- 板块 3：硬件通道配置 -->
+    <!-- Section 3: EEG Channels -->
     <view class="card">
-      <view class="card-title">🎧 脑电测量通道 (Channels)</view>
-      <view class="card-subtitle">单导联额贴固定使用前额左侧 (FP1) 测量点</view>
+      <view class="card-title">EEG Measurement Channels</view>
+      <view class="card-subtitle">Single-channel forehead placement fixed at front-left (FP1)</view>
       <view class="channel-options">
         <label class="channel-label">
           <switch :checked="isFp1Checked" color="#2563eb" @change="onChannelChange" />
-          <text>Left (FP1) [激活中]</text>
+          <text>Left (FP1) [Active]</text>
         </label>
         <label class="channel-label disabled">
           <switch :checked="false" disabled />
-          <text>Right (FP2) [硬件不支持]</text>
+          <text>Right (FP2) [Unsupported]</text>
         </label>
       </view>
     </view>
 
-    <!-- 板块 4：图表显隐过滤矩阵 -->
+    <!-- Section 4: Chart Display Filter Matrix -->
     <view class="card">
-      <view class="card-title">📊 12项生理指标图表显隐过滤</view>
-      <view class="card-subtitle">实时联动控制下方 4x3 三色脑电指标表格</view>
+      <view class="card-title">12 Metrics Filter Matrix</view>
+      <view class="card-subtitle">Controls the 4x3 spectrum matrix visibility in real time</view>
       <view class="chart-chips">
         <view
           v-for="item in chartToggles"
@@ -73,40 +73,40 @@
       </view>
     </view>
 
-    <!-- 板块 5：NeuroSky XMW 二进制协议硬件控制台 -->
+    <!-- Section 5: NeuroSky XMW Binary Protocol Console -->
     <view class="card">
-      <view class="card-title">⚡ NeuroSky XMW 二进制硬件控制台</view>
-      <view class="card-subtitle">直接控制 TGAM / MindWave 芯片底层寄存器与传输开关</view>
+      <view class="card-title">NeuroSky XMW Binary Hardware Console</view>
+      <view class="card-subtitle">Directly control TGAM / MindWave registers and streaming switches</view>
       <view class="btn-console-grid">
-        <button class="btn-act act-green" @tap="handleIgnition">点火包 (0x15+0x17)</button>
-        <button class="btn-act act-red" @tap="handleStopXmw">停止传输 (0x16+0x18)</button>
-        <button class="btn-act act-blue" @tap="handleFilter50Hz">50Hz 陷波 (0x1B)</button>
-        <button class="btn-act act-blue" @tap="handleFilter60Hz">60Hz 陷波 (0x1C)</button>
-        <button class="btn-act act-orange" @tap="handleQueryBatterySky">读电量 (0x06)</button>
-        <button class="btn-act act-gray" @tap="handleQuerySn">查询 SN (0xF4)</button>
-        <button class="btn-act act-teal" @tap="handleDetectMac">探测经典MAC (0xFC)</button>
+        <button class="btn-act act-green" @tap="handleIgnition">Ignition (0x15+0x17)</button>
+        <button class="btn-act act-red" @tap="handleStopXmw">Stop (0x16+0x18)</button>
+        <button class="btn-act act-blue" @tap="handleFilter50Hz">50Hz Notch (0x1B)</button>
+        <button class="btn-act act-blue" @tap="handleFilter60Hz">60Hz Notch (0x1C)</button>
+        <button class="btn-act act-orange" @tap="handleQueryBatterySky">Battery (0x06)</button>
+        <button class="btn-act act-gray" @tap="handleQuerySn">Query SN (0xF4)</button>
+        <button class="btn-act act-teal" @tap="handleDetectMac">Probe Classic MAC (0xFC)</button>
       </view>
 
       <view class="input-row">
         <input
           v-model="writeSnInput"
           class="input-field"
-          placeholder="输入新设备 SN (例如: ZK20261120001)"
+          placeholder="Enter device SN (e.g. ZK20261120001)"
         />
-        <button class="btn-sn-send" @tap="handleWriteSn">写入 SN (0xF2)</button>
+        <button class="btn-sn-send" @tap="handleWriteSn">Write SN (0xF2)</button>
       </view>
     </view>
 
-    <!-- 板块 6：ZKBrain 自研脑电设备官方控制台 -->
+    <!-- Section 6: ZKBrain Native Device Official Console -->
     <view class="card">
-      <view class="card-title">🧠 ZKBrain 自研脑电设备官方控制台</view>
-      <view class="card-subtitle">支持 ASCII 控制指令与 MEMS 6轴姿态惯导流</view>
-
-      <!-- MEMS 传感器姿态看板 -->
+      <view class="card-title">ZKBrain Native Device Official Console</view>
+      <view class="card-subtitle">Supports ASCII control commands and MEMS 6-axis motion stream</view>
+      
+      <!-- MEMS Spatial Attitude -->
       <view class="mems-box">
-        <view class="mems-header">🧭 MEMS 传感器 6 轴空间姿态 (Euler 欧拉角 & 四元数):</view>
+        <view class="mems-header">MEMS 6-Axis Spatial Attitude (Euler Angles & Quaternions):</view>
         <view class="mems-text">
-          Roll(横滚): {{ memsRoll }}° | Pitch(俯仰): {{ memsPitch }}° | Yaw(偏航): {{ memsYaw }}°
+          Roll: {{ memsRoll }}° | Pitch: {{ memsPitch }}° | Yaw: {{ memsYaw }}°
         </view>
         <view class="mems-text text-dim">
           Q0: {{ memsQ0 }} | Q1: {{ memsQ1 }} | Q2: {{ memsQ2 }} | Q3: {{ memsQ3 }}
@@ -121,136 +121,138 @@
         <button class="btn-act act-red" @tap="handleEegOff">eeg_data_on:0</button>
         <button class="btn-act act-blue" @tap="handleRate256">256Hz (rate:2)</button>
         <button class="btn-act act-blue" @tap="handleRate512">512Hz (rate:1)</button>
-        <button class="btn-act act-purple" @tap="handleMemsOn">开启 MEMS (mems_on:1)</button>
-        <button class="btn-act act-gray" @tap="handleMemsOff">关闭 MEMS (mems_on:0)</button>
-        <button class="btn-act act-orange" @tap="handleDfuScan">空中升级 (dfu_scan:1)</button>
+        <button class="btn-act act-purple" @tap="handleMemsOn">MEMS ON (mems_on:1)</button>
+        <button class="btn-act act-gray" @tap="handleMemsOff">MEMS OFF (mems_on:0)</button>
+        <button class="btn-act act-orange" @tap="handleDfuScan">DFU Scan (dfu_scan:1)</button>
       </view>
 
       <view class="input-row">
         <input
           v-model="customCmdInput"
           class="input-field"
-          placeholder="自定义指令 (例如: mems_on:1 或 led:1)"
+          placeholder="Custom command (e.g. mems_on:1 or led:1)"
         />
-        <button class="btn-input-send" @tap="handleSendCustomCmd">发送指令</button>
+        <button class="btn-input-send" @tap="handleSendCustomCmd">Send Command</button>
       </view>
 
-      <!-- 终端回包监控 -->
+      <!-- Terminal Output Monitor -->
       <view class="terminal-box">
         <view class="terminal-header">
-          <text>💻 指令下发与硬件回包监控终端:</text>
-          <text class="btn-clear" @tap="clearLogs">清空</text>
+          <text>Command Transmission & Feedback Terminal:</text>
+          <text class="btn-clear" @tap="clearLogs">Clear</text>
         </view>
-        <scroll-view scroll-y class="terminal-logs" :scroll-top="9999">
-          <text>{{ commandLogs }}</text>
+        <scroll-view class="terminal-logs" scroll-y>
+          <text class="terminal-text">{{ commandLogs }}</text>
         </scroll-view>
       </view>
     </view>
 
-    <!-- 板块 7：DeviceShowTable 4x3 三色脑电指标表格 -->
+    <!-- Section 7: DeviceShowTable 4x3 Spectrum Metrics Table -->
     <view class="card">
-      <view class="card-title">📈 4x3 全波段三色脑电数据表 (DeviceShowTable)</view>
+      <view class="card-title">4x3 Full-Band Spectrum Metrics (DeviceShowTable)</view>
       <view class="card-subtitle">
-        1:1 逐项还原 shared1 测量看板；粉色：认知与信号，青色：慢波与Alpha，黄色：高频能谱
+        1:1 realization of shared1 console; Pink: Cognitive & Quality, Cyan: Slow & Alpha, Yellow: High Frequency
       </view>
 
-      <view class="table-mac-header">MAC: {{ deviceMac }}</view>
+      <view class="table-mac-header">
+        <text class="table-mac-text">MAC: {{ deviceMac }}</text>
+      </view>
 
       <view class="table-container">
-        <!-- Row 1: Attention(粉) | Meditation(粉) | SignalQuality(粉) -->
+        <!-- Row 1: Attention | Meditation | SignalQuality -->
         <view class="table-row">
           <view class="table-cell bg-pink">
-            <view class="cell-label">Attention</view>
-            <view class="cell-val">{{ attention }}</view>
+            <text class="cell-label">Attention</text>
+            <text class="cell-val">{{ attention }}</text>
           </view>
           <view class="table-cell bg-pink">
-            <view class="cell-label">Meditation</view>
-            <view class="cell-val">{{ meditation }}</view>
+            <text class="cell-label">Meditation</text>
+            <text class="cell-val">{{ meditation }}</text>
           </view>
           <view class="table-cell bg-pink">
-            <view class="cell-label">Quality</view>
-            <view class="cell-val">{{ signalQuality }}</view>
+            <text class="cell-label">Quality</text>
+            <text class="cell-val">{{ signalQuality }}</text>
           </view>
         </view>
 
-        <!-- Row 2: Raw EEG(粉) | Delta(青) | Theta(青) -->
+        <!-- Row 2: Raw EEG | Delta | Theta -->
         <view class="table-row">
           <view class="table-cell bg-pink">
-            <view class="cell-label">Raw EEG</view>
-            <view class="cell-val">{{ rawEeg }}</view>
+            <text class="cell-label">Raw EEG</text>
+            <text class="cell-val">{{ rawEeg }}</text>
           </view>
           <view class="table-cell bg-cyan">
-            <view class="cell-label">Delta</view>
-            <view class="cell-val">{{ waves.delta }}</view>
+            <text class="cell-label">Delta</text>
+            <text class="cell-val">{{ waves.delta }}</text>
           </view>
           <view class="table-cell bg-cyan">
-            <view class="cell-label">Theta</view>
-            <view class="cell-val">{{ waves.theta }}</view>
+            <text class="cell-label">Theta</text>
+            <text class="cell-val">{{ waves.theta }}</text>
           </view>
         </view>
 
-        <!-- Row 3: Low Alpha(青) | High Alpha(青) | Low Beta(黄) -->
+        <!-- Row 3: Low Alpha | High Alpha | Low Beta -->
         <view class="table-row">
           <view class="table-cell bg-cyan">
-            <view class="cell-label">Low Alpha</view>
-            <view class="cell-val">{{ waves.lowAlpha }}</view>
+            <text class="cell-label">Low Alpha</text>
+            <text class="cell-val">{{ waves.lowAlpha }}</text>
           </view>
           <view class="table-cell bg-cyan">
-            <view class="cell-label">High Alpha</view>
-            <view class="cell-val">{{ waves.highAlpha }}</view>
+            <text class="cell-label">High Alpha</text>
+            <text class="cell-val">{{ waves.highAlpha }}</text>
           </view>
           <view class="table-cell bg-yellow">
-            <view class="cell-label">Low Beta</view>
-            <view class="cell-val">{{ waves.lowBeta }}</view>
+            <text class="cell-label">Low Beta</text>
+            <text class="cell-val">{{ waves.lowBeta }}</text>
           </view>
         </view>
 
-        <!-- Row 4: High Beta(黄) | Low Gamma(黄) | Mid Gamma(黄) -->
+        <!-- Row 4: High Beta | Low Gamma | Mid Gamma -->
         <view class="table-row">
           <view class="table-cell bg-yellow">
-            <view class="cell-label">High Beta</view>
-            <view class="cell-val">{{ waves.highBeta }}</view>
+            <text class="cell-label">High Beta</text>
+            <text class="cell-val">{{ waves.highBeta }}</text>
           </view>
           <view class="table-cell bg-yellow">
-            <view class="cell-label">Low Gamma</view>
-            <view class="cell-val">{{ waves.lowGamma }}</view>
+            <text class="cell-label">Low Gamma</text>
+            <text class="cell-val">{{ waves.lowGamma }}</text>
           </view>
           <view class="table-cell bg-yellow">
-            <view class="cell-label">Mid Gamma</view>
-            <view class="cell-val">{{ waves.middleGamma }}</view>
+            <text class="cell-label">Mid Gamma</text>
+            <text class="cell-val">{{ waves.middleGamma }}</text>
           </view>
         </view>
       </view>
     </view>
 
-    <!-- 板块 8：蓝牙搜索连接弹窗 (Scan Modal) -->
-    <view v-if="showScanModal" class="modal-mask" @tap="closeScanModal">
-      <view class="modal-content" @tap.stop>
+    <!-- Section 8: Bluetooth Scan Dialog -->
+    <view v-if="showScanModal" class="modal-mask">
+      <view class="modal-content">
         <view class="modal-header">
-          <text class="modal-title">🔍 搜索周围低功耗蓝牙脑电设备</text>
+          <text class="modal-title">Search Nearby BLE BCI Devices</text>
           <text class="modal-close" @tap="closeScanModal">✕</text>
         </view>
 
         <view class="modal-status">
-          <text>{{ isScanning ? "正在扫描周围 BLE 设备..." : "扫描完成，请点击连接" }}</text>
+          <text>{{ isScanning ? "Scanning nearby BLE devices..." : "Scan complete, tap to connect" }}</text>
         </view>
 
-        <scroll-view scroll-y class="device-list">
+        <scroll-view class="device-list" scroll-y>
           <view
-            v-for="item in scannedDevices"
-            :key="item.mac"
+            v-for="(item, index) in scannedDevices"
+            :key="index"
             class="device-item"
           >
             <view class="device-info">
-              <text class="item-name">{{ item.name }}</text>
-              <text class="item-mac">{{ item.mac }} | RSSI: {{ item.rssi }} dBm</text>
+              <text class="device-item-name">{{ item.name }}</text>
+              <text class="device-item-mac">{{ item.mac }} | {{ item.rssi }} dBm</text>
             </view>
-            <button class="btn-item-connect" @tap="connectScannedDevice(item)">连接</button>
+            <button class="btn-item-connect" @tap="connectScannedDevice(item)">Connect</button>
           </view>
         </scroll-view>
 
         <button class="btn-rescan" :disabled="isScanning" @tap="startScan">
-          {{ isScanning ? "正在搜索中..." : "重新扫描周边设备" }}
+          {{ isScanning ? "Searching..." : "Rescan Nearby Devices" }}
         </button>
       </view>
     </view>
@@ -260,13 +262,13 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, onUnmounted } from "vue";
 
-// 链路与设备状态
+// Connection and device status
 const isConnected = ref(false);
 const deviceName = ref("ZKBrain Headband PRO");
 const deviceMac = ref("DC:23:4F:9A:88:01");
 const batteryLevel = ref(85);
 
-// 12项生理指标
+// 12 physiological metrics
 const attention = ref(78);
 const meditation = ref(65);
 const signalQuality = ref(0);
@@ -283,7 +285,7 @@ const waves = reactive({
   middleGamma: 2200,
 });
 
-// MEMS 姿态与欧拉角
+// MEMS attitude & Euler angles
 const memsRoll = ref(1.2);
 const memsPitch = ref(-0.5);
 const memsYaw = ref(14.8);
@@ -292,7 +294,7 @@ const memsQ1 = ref(0.01);
 const memsQ2 = ref(-0.004);
 const memsQ3 = ref(0.129);
 
-// 通道与图表显隐
+// Channels & chart visibility
 const isFp1Checked = ref(true);
 
 const chartToggles = reactive([
@@ -310,12 +312,12 @@ const chartToggles = reactive([
   { key: "Middle Gamma", checked: true },
 ]);
 
-// 终端监控与指令
+// Terminal & commands
 const writeSnInput = ref("");
 const customCmdInput = ref("");
 const commandLogs = ref("[SYSTEM] ZKBrain Uni-app (Vue 3 + TS) console initialized\n");
 
-// 弹窗与蓝牙扫描 / Scan & Bluetooth dialog
+// Scan & Bluetooth dialog
 const showScanModal = ref(false);
 const isScanning = ref(false);
 const scannedDevices = reactive([
@@ -328,7 +330,6 @@ let mockTimer: any = null;
 
 onMounted(() => {
   appendLog("[BLE] Bluetooth engine ready, supporting WeChat, Alipay, ByteDance & native Apps");
-  // 模拟心跳脑电数据流
   mockTimer = setInterval(() => {
     if (isConnected.value) {
       attention.value = Math.min(100, Math.max(10, attention.value + Math.floor((Math.random() - 0.5) * 6)));
@@ -350,7 +351,7 @@ function clearLogs() {
   commandLogs.value = "";
 }
 
-// 🌟 统一运行时蓝牙权限与蓝牙适配器核验
+// Runtime Bluetooth permissions check
 async function ensureBluetoothPermission(): Promise<boolean> {
   return new Promise((resolve) => {
     // #ifdef MP-WEIXIN
@@ -358,9 +359,9 @@ async function ensureBluetoothPermission(): Promise<boolean> {
       success: (res) => {
         if (res.authSetting["scope.bluetooth"] === false) {
           uni.showModal({
-            title: "需要蓝牙权限",
-            content: "连接脑电设备需要系统蓝牙权限，请在设置中开启",
-            confirmText: "去开启",
+            title: "Bluetooth Permission Required",
+            content: "Connecting to BCI hardware requires Bluetooth access. Please enable it in Settings.",
+            confirmText: "Settings",
             success: (modalRes) => {
               if (modalRes.confirm) uni.openSetting();
               resolve(false);
@@ -455,7 +456,7 @@ function toggleChartItem(key: string) {
   }
 }
 
-// NeuroSky XMW 指令 / NeuroSky XMW commands
+// NeuroSky XMW commands
 function handleIgnition() {
   appendLog("[TX >> XMW] Ignition Packet: 0x15 (Raw) + 0x17 (Band)");
 }
@@ -485,7 +486,7 @@ function handleWriteSn() {
   }
 }
 
-// ZKBrain 指令 / ZKBrain commands
+// ZKBrain commands
 function handleQueryLicense() {
   appendLog("[TX >>] license:?");
 }
@@ -532,7 +533,7 @@ function handleSendCustomCmd() {
   margin: 0 auto;
 }
 
-/* 顶部操作栏 */
+/* Header bar */
 .header-bar {
   display: flex;
   justify-content: space-between;
@@ -550,13 +551,13 @@ function handleSendCustomCmd() {
   gap: 12rpx;
 }
 .btn-top {
-  font-size: 22rpx;
-  padding: 6rpx 16rpx;
-  height: 52rpx;
-  line-height: 52rpx;
   margin: 0;
+  padding: 8rpx 18rpx;
+  font-size: 24rpx;
+  font-weight: 500;
   border-radius: 8rpx;
-  color: white;
+  line-height: 1.5;
+  color: #ffffff;
 }
 .btn-search {
   background-color: #2563eb;
@@ -565,22 +566,22 @@ function handleSendCustomCmd() {
   background-color: #475569;
 }
 .badge-auth {
-  font-size: 20rpx;
+  font-size: 22rpx;
   font-weight: bold;
   color: #16a34a;
   background-color: #dcfce7;
-  border: 1rpx solid #86efac;
-  padding: 4rpx 10rpx;
-  border-radius: 6rpx;
+  border: 1px solid #86efac;
+  padding: 6rpx 14rpx;
+  border-radius: 8rpx;
 }
 
-/* 卡片基类 */
+/* Base Card */
 .card {
   background-color: #ffffff;
   border-radius: 16rpx;
   padding: 24rpx;
   margin-bottom: 20rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.04);
 }
 .card-title {
   font-size: 28rpx;
@@ -594,7 +595,7 @@ function handleSendCustomCmd() {
   margin-bottom: 16rpx;
 }
 
-/* 状态卡片 */
+/* Status Card */
 .status-row {
   display: flex;
   justify-content: space-between;
@@ -616,162 +617,159 @@ function handleSendCustomCmd() {
 }
 .status-text {
   font-size: 26rpx;
-  font-weight: bold;
-  color: #dc2626;
+  font-weight: 600;
+  color: #ef4444;
 }
 .status-text.connected {
   color: #16a34a;
 }
 .battery-capsule {
-  background-color: #dcfce7;
-  border: 1rpx solid #86efac;
-  border-radius: 20rpx;
-  padding: 4rpx 14rpx;
   font-size: 22rpx;
-  font-weight: bold;
-  color: #16a34a;
+  font-weight: 600;
+  color: #334155;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
 }
 .device-name {
   font-size: 32rpx;
   font-weight: bold;
   color: #0f172a;
-  margin-top: 12rpx;
+  margin-top: 14rpx;
 }
 .device-mac {
   font-size: 22rpx;
-  color: #64748b;
-  margin: 6rpx 0 16rpx 0;
   font-family: monospace;
+  color: #64748b;
+  margin-top: 4rpx;
 }
 .badges-row {
   display: flex;
   gap: 12rpx;
-  margin-bottom: 20rpx;
+  margin-top: 14rpx;
 }
 .chip {
   font-size: 20rpx;
-  font-weight: 600;
-  padding: 4rpx 12rpx;
+  padding: 4rpx 14rpx;
   border-radius: 6rpx;
+  font-weight: 500;
 }
 .chip-blue {
-  background: rgba(2, 132, 199, 0.12);
-  color: #0284c7;
-  border: 1rpx solid rgba(2, 132, 199, 0.3);
+  background-color: #dbeafe;
+  color: #1d4ed8;
 }
 .chip-teal {
-  background: rgba(13, 148, 136, 0.12);
-  color: #0d9488;
-  border: 1rpx solid rgba(13, 148, 136, 0.3);
+  background-color: #ccfbf1;
+  color: #0f766e;
 }
 .chip-purple {
-  background: rgba(124, 58, 237, 0.12);
-  color: #7c3aed;
-  border: 1rpx solid rgba(124, 58, 237, 0.3);
+  background-color: #f3e8ff;
+  color: #7e22ce;
 }
 .btn-connect {
   width: 100%;
-  height: 72rpx;
-  line-height: 72rpx;
-  font-size: 26rpx;
-  font-weight: bold;
-  border-radius: 12rpx;
+  margin-top: 20rpx;
   background-color: #2563eb;
-  color: white;
+  color: #ffffff;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  font-weight: 600;
 }
 .btn-connect.connected {
   background-color: #dc2626;
 }
 
-/* 通道 */
+/* Channels */
 .channel-options {
   display: flex;
-  gap: 30rpx;
+  gap: 32rpx;
 }
 .channel-label {
   display: flex;
   align-items: center;
   gap: 10rpx;
-  font-size: 24rpx;
-  color: #1e293b;
+  font-size: 26rpx;
+  color: #334155;
 }
 .channel-label.disabled {
   color: #94a3b8;
 }
 
-/* 图表芯片 */
+/* Chart Chips */
 .chart-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 12rpx;
 }
 .chart-chip-btn {
-  padding: 8rpx 16rpx;
   font-size: 22rpx;
-  border-radius: 10rpx;
-  border: 1rpx solid #cbd5e1;
-  background-color: #f1f5f9;
-  color: #334155;
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx;
+  border: 1px solid #cbd5e1;
+  background-color: #f8fafc;
+  color: #475569;
 }
 .chart-chip-btn.active {
-  background-color: #2563eb;
-  color: white;
-  border-color: #2563eb;
+  background-color: #eff6ff;
+  border-color: #3b82f6;
+  color: #1d4ed8;
+  font-weight: 600;
 }
 
-/* 按钮网格 */
+/* Button Grid */
 .btn-console-grid {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 12rpx;
   margin-bottom: 16rpx;
 }
 .btn-act {
-  font-size: 22rpx;
-  height: 56rpx;
-  line-height: 56rpx;
-  padding: 0 18rpx;
   margin: 0;
-  border-radius: 10rpx;
-  border: 1rpx solid transparent;
+  padding: 12rpx 8rpx;
+  font-size: 22rpx;
+  font-weight: 500;
+  border-radius: 8rpx;
+  line-height: 1.4;
+  border: 1px solid transparent;
 }
 .act-green {
-  background-color: rgba(22, 163, 74, 0.12);
-  color: #16a34a;
-  border-color: rgba(22, 163, 74, 0.3);
+  background-color: #dcfce7;
+  color: #15803d;
+  border-color: #86efac;
 }
 .act-red {
-  background-color: rgba(220, 38, 38, 0.12);
-  color: #dc2626;
-  border-color: rgba(220, 38, 38, 0.3);
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border-color: #fca5a5;
 }
 .act-blue {
-  background-color: rgba(2, 132, 199, 0.12);
-  color: #0284c7;
-  border-color: rgba(2, 132, 199, 0.3);
+  background-color: #dbeafe;
+  color: #1d4ed8;
+  border-color: #93c5fd;
 }
 .act-orange {
-  background-color: rgba(217, 119, 6, 0.12);
-  color: #d97706;
-  border-color: rgba(217, 119, 6, 0.3);
-}
-.act-gray {
-  background-color: rgba(71, 85, 105, 0.1);
-  color: #475569;
-  border-color: rgba(71, 85, 105, 0.3);
-}
-.act-purple {
-  background-color: rgba(124, 58, 237, 0.12);
-  color: #7c3aed;
-  border-color: rgba(124, 58, 237, 0.3);
+  background-color: #ffedd5;
+  color: #c2410c;
+  border-color: #fed7aa;
 }
 .act-teal {
-  background-color: rgba(13, 148, 136, 0.12);
-  color: #0d9488;
-  border-color: rgba(13, 148, 136, 0.3);
+  background-color: #ccfbf1;
+  color: #0f766e;
+  border-color: #5eead4;
+}
+.act-purple {
+  background-color: #f3e8ff;
+  color: #7e22ce;
+  border-color: #d8b4fe;
+}
+.act-gray {
+  background-color: #f1f5f9;
+  color: #475569;
+  border-color: #cbd5e1;
 }
 
-/* 输入行 */
+/* Input Row */
 .input-row {
   display: flex;
   gap: 12rpx;
@@ -779,104 +777,108 @@ function handleSendCustomCmd() {
 }
 .input-field {
   flex: 1;
-  height: 64rpx;
   background-color: #f8fafc;
-  border: 1rpx solid #cbd5e1;
-  border-radius: 10rpx;
-  padding: 0 16rpx;
+  border: 1px solid #cbd5e1;
+  border-radius: 8rpx;
+  padding: 10rpx 16rpx;
   font-size: 24rpx;
 }
+.btn-sn-send,
 .btn-input-send {
-  font-size: 22rpx;
-  height: 64rpx;
-  line-height: 64rpx;
-  background-color: #2563eb;
-  color: white;
-  padding: 0 24rpx;
   margin: 0;
-  border-radius: 10rpx;
+  padding: 0 24rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+  border-radius: 8rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
 }
 .btn-sn-send {
-  font-size: 22rpx;
-  height: 64rpx;
-  line-height: 64rpx;
-  background-color: #0f172a;
-  color: white;
-  padding: 0 24rpx;
-  margin: 0;
-  border-radius: 10rpx;
+  background-color: #7c3aed;
+}
+.btn-input-send {
+  background-color: #2563eb;
 }
 
-/* MEMS 姿态卡片 */
+/* MEMS attitude card */
 .mems-box {
   background-color: #f8fafc;
-  border: 1rpx solid #e2e8f0;
-  border-radius: 12rpx;
-  padding: 16rpx;
+  border: 1px solid #e2e8f0;
+  border-radius: 10rpx;
+  padding: 14rpx;
   margin-bottom: 16rpx;
 }
 .mems-header {
-  font-size: 24rpx;
+  font-size: 22rpx;
   font-weight: bold;
   color: #334155;
-  margin-bottom: 8rpx;
+  margin-bottom: 6rpx;
 }
 .mems-text {
   font-family: monospace;
   font-size: 22rpx;
-  color: #1e293b;
-  line-height: 1.5;
+  color: #0f172a;
 }
 .text-dim {
   color: #64748b;
+  margin-top: 4rpx;
 }
 
-/* 终端监控 */
+/* Terminal Monitor */
 .terminal-box {
   background-color: #0f172a;
-  border-radius: 14rpx;
-  padding: 18rpx;
-  margin-top: 18rpx;
+  border-radius: 12rpx;
+  padding: 16rpx;
+  margin-top: 16rpx;
 }
 .terminal-header {
   display: flex;
   justify-content: space-between;
-  font-size: 22rpx;
+  align-items: center;
   color: #94a3b8;
-  margin-bottom: 10rpx;
+  font-size: 20rpx;
+  margin-bottom: 8rpx;
 }
 .btn-clear {
-  color: #38bdf8;
+  color: #60a5fa;
   cursor: pointer;
 }
 .terminal-logs {
-  height: 180rpx;
+  height: 140rpx;
+}
+.terminal-text {
   font-family: monospace;
   font-size: 20rpx;
-  color: #4ade80;
-  line-height: 1.4;
+  color: #38bdf8;
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 
-/* DeviceShowTable 4x3 三色表格 */
+/* DeviceShowTable 4x3 Spectrum Table */
 .table-mac-header {
-  background-color: #1e293b;
-  color: white;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-bottom: none;
+  border-radius: 12rpx 12rpx 0 0;
+  padding: 10rpx;
   text-align: center;
+}
+.table-mac-text {
   font-family: monospace;
   font-size: 24rpx;
   font-weight: bold;
-  padding: 12rpx 0;
-  border-radius: 10rpx;
-  margin-bottom: 14rpx;
+  color: #1e293b;
 }
 .table-container {
-  border: 1rpx solid #cbd5e1;
-  border-radius: 6rpx;
-  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 0 0 12rpx 12rpx;
+  background-color: #ffffff;
 }
 .table-row {
   display: flex;
-  border-bottom: 1rpx solid #cbd5e1;
+  border-bottom: 1px solid #e2e8f0;
 }
 .table-row:last-child {
   border-bottom: none;
@@ -884,8 +886,10 @@ function handleSendCustomCmd() {
 .table-cell {
   flex: 1;
   padding: 14rpx 6rpx;
-  text-align: center;
-  border-right: 1rpx solid #cbd5e1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-right: 1px solid #e2e8f0;
 }
 .table-cell:last-child {
   border-right: none;
@@ -898,7 +902,7 @@ function handleSendCustomCmd() {
 }
 .cell-val {
   font-family: monospace;
-  font-size: 24rpx;
+  font-size: 26rpx;
   font-weight: bold;
   color: #0f172a;
 }
@@ -912,7 +916,7 @@ function handleSendCustomCmd() {
   background-color: #f0e68c;
 }
 
-/* 弹窗遮罩 */
+/* Modal */
 .modal-mask {
   position: fixed;
   top: 0;
@@ -926,27 +930,27 @@ function handleSendCustomCmd() {
   z-index: 999;
 }
 .modal-content {
-  width: 88%;
-  background-color: white;
-  border-radius: 18rpx;
-  padding: 28rpx;
-  box-sizing: border-box;
+  background-color: #ffffff;
+  border-radius: 20rpx;
+  width: 85%;
+  max-width: 620rpx;
+  padding: 24rpx;
 }
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10rpx;
+  margin-bottom: 12rpx;
 }
 .modal-title {
-  font-size: 30rpx;
+  font-size: 28rpx;
   font-weight: bold;
-  color: #1e293b;
+  color: #0f172a;
 }
 .modal-close {
   font-size: 32rpx;
   color: #64748b;
-  padding: 8rpx;
+  padding: 0 8rpx;
 }
 .modal-status {
   font-size: 22rpx;
@@ -954,8 +958,7 @@ function handleSendCustomCmd() {
   margin-bottom: 16rpx;
 }
 .device-list {
-  max-height: 480rpx;
-  margin-bottom: 16rpx;
+  max-height: 380rpx;
 }
 .device-item {
   display: flex;
@@ -963,6 +966,7 @@ function handleSendCustomCmd() {
   align-items: center;
   padding: 16rpx;
   background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 10rpx;
   margin-bottom: 12rpx;
 }
@@ -970,33 +974,32 @@ function handleSendCustomCmd() {
   display: flex;
   flex-direction: column;
 }
-.item-name {
+.device-item-name {
   font-size: 26rpx;
   font-weight: bold;
   color: #0f172a;
 }
-.item-mac {
+.device-item-mac {
   font-size: 20rpx;
+  font-family: monospace;
   color: #64748b;
   margin-top: 4rpx;
 }
 .btn-item-connect {
-  font-size: 22rpx;
-  height: 52rpx;
-  line-height: 52rpx;
-  background-color: #16a34a;
-  color: white;
-  padding: 0 18rpx;
   margin: 0;
-  border-radius: 8rpx;
+  padding: 6rpx 20rpx;
+  font-size: 22rpx;
+  font-weight: 600;
+  background-color: #2563eb;
+  color: #ffffff;
+  border-radius: 6rpx;
 }
 .btn-rescan {
-  width: 100%;
-  height: 64rpx;
-  line-height: 64rpx;
+  margin-top: 16rpx;
+  background-color: #f1f5f9;
+  color: #334155;
   font-size: 24rpx;
-  background-color: #2563eb;
-  color: white;
-  border-radius: 10rpx;
+  font-weight: 600;
+  border-radius: 8rpx;
 }
 </style>

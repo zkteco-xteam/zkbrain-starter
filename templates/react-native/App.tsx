@@ -17,8 +17,8 @@ import {
 } from "react-native";
 
 /**
- * 🌟 1:1 完整逐项克隆 shared1 设备管理控制台 (DeviceScreen + DeviceShowTable) - React Native TypeScript 原生版
- * 技术支持：熵基科技脑机事业部 (ZKTeco Brain-Computer Interface Division)
+ * 1:1 Complete Device Management Console (DeviceScreen + DeviceShowTable) - React Native TypeScript
+ * Technical Support: ZKTeco Brain-Computer Interface Division
  */
 
 interface DeviceItem {
@@ -28,13 +28,13 @@ interface DeviceItem {
 }
 
 export default function App(): React.JSX.Element {
-  // 链路与设备状态
+  // Connection and device status
   const [isConnected, setIsConnected] = useState(false);
   const [deviceName, setDeviceName] = useState("ZKBrain Headband PRO");
   const [deviceMac, setDeviceMac] = useState("DC:23:4F:9A:88:01");
   const [batteryLevel, setBatteryLevel] = useState(85);
 
-  // 12 项核心生理指标
+  // 12 core physiological metrics
   const [attention, setAttention] = useState(78);
   const [meditation, setMeditation] = useState(65);
   const [signalQuality, setSignalQuality] = useState(0);
@@ -51,7 +51,7 @@ export default function App(): React.JSX.Element {
     middleGamma: 2200,
   });
 
-  // MEMS 6 轴空间姿态 (欧拉角 & 四元数)
+  // MEMS 6-axis spatial attitude (Euler angles & Quaternions)
   const [memsRoll, setMemsRoll] = useState(1.2);
   const [memsPitch, setMemsPitch] = useState(-0.5);
   const [memsYaw, setMemsYaw] = useState(14.8);
@@ -60,7 +60,7 @@ export default function App(): React.JSX.Element {
   const [memsQ2, setMemsQ2] = useState(-0.004);
   const [memsQ3, setMemsQ3] = useState(0.129);
 
-  // 通道与显隐矩阵
+  // Channels and visibility matrix
   const [isFp1Checked, setIsFp1Checked] = useState(true);
   const [chartToggles, setChartToggles] = useState([
     { key: "Raw EEG", checked: true },
@@ -77,14 +77,14 @@ export default function App(): React.JSX.Element {
     { key: "Middle Gamma", checked: true },
   ]);
 
-  // 控制台与终端 / Console & Terminal
+  // Console & Terminal
   const [writeSnInput, setWriteSnInput] = useState("");
   const [customCmdInput, setCustomCmdInput] = useState("");
   const [terminalLogs, setTerminalLogs] = useState(
     "[SYSTEM] ZKBrain React Native console initialized\n"
   );
 
-  // 弹窗与蓝牙扫描 / Scan & Modal
+  // Scan & Modal
   const [showScanModal, setShowScanModal] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [scannedDevices, setScannedDevices] = useState<DeviceItem[]>([
@@ -98,30 +98,30 @@ export default function App(): React.JSX.Element {
   };
 
   useEffect(() => {
-    addLog("[BLE] React Native cross-platform BLE driver ready (Android 12+ / iOS 13+)");
-    const interval = setInterval(() => {
-      if (isConnected) {
-        setAttention((prev) => Math.min(100, Math.max(10, prev + Math.floor((Math.random() - 0.5) * 6))));
-        setMeditation((prev) => Math.min(100, Math.max(10, prev + Math.floor((Math.random() - 0.5) * 6))));
-        setRawEeg(Math.floor((Math.random() - 0.5) * 240));
-      }
-    }, 1000);
-    return () => clearInterval(interval);
+    let timer: any;
+    if (isConnected) {
+      timer = setInterval(() => {
+        setAttention((prev) => Math.max(10, Math.min(100, prev + Math.floor(Math.random() * 7 - 3))));
+        setMeditation((prev) => Math.max(10, Math.min(100, prev + Math.floor(Math.random() * 7 - 3))));
+        setRawEeg(Math.floor(Math.random() * 300 - 150));
+      }, 1000);
+    }
+    return () => clearInterval(timer);
   }, [isConnected]);
 
-  // 🌟 统一运行时蓝牙权限核验
-  const requestBluetoothPermissions = async (): Promise<boolean> => {
+  // Runtime Bluetooth permissions check
+  const requestBlePermissions = async () => {
     if (Platform.OS === "android") {
       if (Platform.Version >= 31) {
-        const result = await PermissionsAndroid.requestMultiple([
+        const granted = await PermissionsAndroid.requestMultiple([
           PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
           PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
         ]);
-        const granted =
-          result[PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN] === PermissionsAndroid.RESULTS.GRANTED &&
-          result[PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT] === PermissionsAndroid.RESULTS.GRANTED;
-        return granted;
+        return (
+          granted["android.permission.BLUETOOTH_SCAN"] === PermissionsAndroid.RESULTS.GRANTED &&
+          granted["android.permission.BLUETOOTH_CONNECT"] === PermissionsAndroid.RESULTS.GRANTED
+        );
       } else {
         const granted = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
@@ -132,33 +132,31 @@ export default function App(): React.JSX.Element {
     return true;
   };
 
-  const startScan = async () => {
-    const ok = await requestBluetoothPermissions();
-    if (!ok) {
-      Alert.alert("Permissions Required", "Bluetooth scan and connect permissions are required.");
-      addLog("[BLE] Bluetooth runtime permissions denied");
+  const openScanModal = async () => {
+    const hasPerm = await requestBlePermissions();
+    if (!hasPerm) {
+      Alert.alert("Permission Error", "Bluetooth and Location permissions required to scan devices.");
       return;
     }
-    setIsScanning(true);
-    addLog("[BLE] Scanning for nearby BLE BCI devices...");
-    setTimeout(() => {
-      setIsScanning(false);
-      addLog("[BLE] Scan complete, found 3 available devices");
-    }, 2500);
-  };
-
-  const openScanModal = () => {
     setShowScanModal(true);
     startScan();
   };
 
-  const connectDevice = (item: DeviceItem) => {
-    setDeviceName(item.name);
-    setDeviceMac(item.mac);
+  const startScan = () => {
+    setIsScanning(true);
+    addLog("[BLE] Scanning for nearby BLE BCI devices...");
+    setTimeout(() => {
+      setIsScanning(false);
+      addLog("[BLE] Scan complete, discovered 3 BCI devices.");
+    }, 2000);
+  };
+
+  const connectDevice = (dev: DeviceItem) => {
+    setDeviceName(dev.name);
+    setDeviceMac(dev.mac);
     setIsConnected(true);
     setShowScanModal(false);
-    setIsScanning(false);
-    addLog(`[BLE] Connected to device: ${item.name} (${item.mac})`);
+    addLog(`[BLE] Successfully connected to: ${dev.name} (${dev.mac})`);
   };
 
   const toggleConnect = () => {
@@ -172,18 +170,20 @@ export default function App(): React.JSX.Element {
 
   const toggleChart = (key: string) => {
     setChartToggles((prev) =>
-      prev.map((item) => (item.key === key ? { ...item, checked: !item.checked } : item))
+      prev.map((item) =>
+        item.key === key ? { ...item, checked: !item.checked } : item
+      )
     );
-    addLog(`[CHART] Toggle display: ${key}`);
+    addLog(`[CHART] Toggle ${key}`);
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor="#1e293b" />
       <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
-        {/* 板块 1：顶部操作栏 / Section 1: Header Bar */}
+        {/* Section 1: Header Bar */}
         <View style={styles.headerBar}>
-          <Text style={styles.headerTitle}>DeviceScreen (设备管理)</Text>
+          <Text style={styles.headerTitle}>Device Management (DeviceScreen)</Text>
           <View style={styles.headerActions}>
             <TouchableOpacity style={[styles.btnTop, styles.btnSearch]} onPress={openScanModal}>
               <Text style={styles.btnTopText}>🔍 Scan</Text>
@@ -198,18 +198,18 @@ export default function App(): React.JSX.Element {
               <Text style={styles.btnTopText}>DFU</Text>
             </TouchableOpacity>
             <View style={styles.badgeAuth}>
-              <Text style={styles.badgeAuthText}>✓ SN就绪</Text>
+              <Text style={styles.badgeAuthText}>Authorized</Text>
             </View>
           </View>
         </View>
 
-        {/* 板块 2：设备状态卡片 */}
+        {/* Section 2: Device Link Status Card */}
         <View style={styles.card}>
           <View style={styles.statusRow}>
             <View style={styles.statusBadgeWrap}>
               <View style={[styles.statusDot, isConnected && styles.statusDotConnected]} />
               <Text style={[styles.statusText, isConnected && styles.statusTextConnected]}>
-                {isConnected ? "已连接 (CONNECTED)" : "未连接 (DISCONNECTED)"}
+                {isConnected ? "CONNECTED" : "DISCONNECTED"}
               </Text>
             </View>
             <View style={styles.batteryCapsule}>
@@ -236,37 +236,37 @@ export default function App(): React.JSX.Element {
             style={[styles.btnConnect, isConnected && styles.btnConnectDisconnect]}
             onPress={toggleConnect}
           >
-            <Text style={styles.btnConnectText}>{isConnected ? "断开当前连接" : "连接设备"}</Text>
+            <Text style={styles.btnConnectText}>{isConnected ? "Disconnect" : "Connect Device"}</Text>
           </TouchableOpacity>
         </View>
 
-        {/* 板块 3：硬件通道配置 */}
+        {/* Section 3: Channel Settings */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>🎧 脑电测量通道 (Channels)</Text>
-          <Text style={styles.cardSubtitle}>单导联额贴固定使用前额左侧 (FP1) 测量点</Text>
+          <Text style={styles.cardTitle}>EEG Channels</Text>
+          <Text style={styles.cardSubtitle}>Single-channel forehead placement fixed at front-left (FP1)</Text>
           <View style={styles.channelRow}>
             <View style={styles.channelItem}>
               <Switch
                 value={isFp1Checked}
                 onValueChange={(val) => {
                   setIsFp1Checked(val);
-                  addLog(`[通道配置] Left (FP1): ${val}`);
+                  addLog(`[Channel] Left (FP1): ${val}`);
                 }}
                 trackColor={{ true: "#2563eb", false: "#cbd5e1" }}
               />
-              <Text style={styles.channelLabel}>Left (FP1) [激活中]</Text>
+              <Text style={styles.channelLabel}>Left (FP1) [Active]</Text>
             </View>
             <View style={styles.channelItem}>
               <Switch value={false} disabled trackColor={{ false: "#e2e8f0" }} />
-              <Text style={[styles.channelLabel, { color: "#94a3b8" }]}>Right (FP2) [硬件不支持]</Text>
+              <Text style={[styles.channelLabel, { color: "#94a3b8" }]}>Right (FP2) [Unsupported]</Text>
             </View>
           </View>
         </View>
 
-        {/* 板块 4：图表显隐过滤矩阵 */}
+        {/* Section 4: Chart Display Filter Matrix */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>📊 12项生理指标图表显隐过滤</Text>
-          <Text style={styles.cardSubtitle}>实时联动控制下方 4x3 三色脑电指标表格</Text>
+          <Text style={styles.cardTitle}>12 Metrics Filter Matrix</Text>
+          <Text style={styles.cardSubtitle}>Controls the 4x3 spectrum matrix visibility in real time</Text>
           <View style={styles.chipGrid}>
             {chartToggles.map((item) => (
               <TouchableOpacity
@@ -283,10 +283,10 @@ export default function App(): React.JSX.Element {
           </View>
         </View>
 
-        {/* 板块 5：NeuroSky XMW 二进制硬件控制台 */}
+        {/* Section 5: NeuroSky XMW Binary Protocol Console */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>⚡ NeuroSky XMW 二进制硬件控制台</Text>
-          <Text style={styles.cardSubtitle}>直接控制 TGAM / MindWave 芯片底层寄存器与传输开关</Text>
+          <Text style={styles.cardTitle}>NeuroSky XMW Binary Console</Text>
+          <Text style={styles.cardSubtitle}>Directly control TGAM / MindWave registers and streaming switches</Text>
           <View style={styles.btnGrid}>
             <TouchableOpacity
               style={[styles.btnAct, styles.actGreen]}
@@ -343,21 +343,21 @@ export default function App(): React.JSX.Element {
                 }
               }}
             >
-              <Text style={styles.btnSendText}>写入 SN</Text>
+              <Text style={styles.btnSendText}>Write SN</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* 板块 6：ZKBrain 自研脑电设备官方控制台 */}
+        {/* Section 6: ZKBrain Native Device Official Console */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>🧠 ZKBrain 自研脑电设备官方控制台</Text>
-          <Text style={styles.cardSubtitle}>支持 ASCII 控制指令与 MEMS 6轴姿态惯导流</Text>
+          <Text style={styles.cardTitle}>ZKBrain Native Device Official Console</Text>
+          <Text style={styles.cardSubtitle}>Supports ASCII control commands and MEMS 6-axis motion stream</Text>
 
-          {/* MEMS 传感器姿态看板 */}
+          {/* MEMS 6-Axis Spatial Attitude */}
           <View style={styles.memsBox}>
-            <Text style={styles.memsHeader}>🧭 MEMS 传感器 6 轴空间姿态 (Euler 欧拉角 & 四元数):</Text>
+            <Text style={styles.memsHeader}>MEMS 6-Axis Spatial Attitude (Euler Angles & Quaternions):</Text>
             <Text style={styles.memsText}>
-              Roll(横滚): {memsRoll}° | Pitch(俯仰): {memsPitch}° | Yaw(偏航): {memsYaw}°
+              Roll: {memsRoll}° | Pitch: {memsPitch}° | Yaw: {memsYaw}°
             </Text>
             <Text style={[styles.memsText, { color: "#64748b" }]}>
               Q0: {memsQ0} | Q1: {memsQ1} | Q2: {memsQ2} | Q3: {memsQ3}
@@ -412,7 +412,7 @@ export default function App(): React.JSX.Element {
           <View style={styles.inputRow}>
             <TextInput
               style={styles.inputField}
-              placeholder="自定义指令 (例如: mems_on:1)"
+              placeholder="Custom command (e.g. mems_on:1)"
               value={customCmdInput}
               onChangeText={setCustomCmdInput}
             />
@@ -425,16 +425,16 @@ export default function App(): React.JSX.Element {
                 }
               }}
             >
-              <Text style={styles.btnSendText}>发送指令</Text>
+              <Text style={styles.btnSendText}>Send Command</Text>
             </TouchableOpacity>
           </View>
 
-          {/* 终端监控 */}
+          {/* Terminal Monitor */}
           <View style={styles.terminalBox}>
             <View style={styles.terminalHeader}>
-              <Text style={styles.terminalTitle}>💻 指令下发与硬件回包监控终端:</Text>
+              <Text style={styles.terminalTitle}>Command Transmission & Feedback Terminal:</Text>
               <TouchableOpacity onPress={() => setTerminalLogs("")}>
-                <Text style={styles.btnClear}>清空</Text>
+                <Text style={styles.btnClear}>Clear</Text>
               </TouchableOpacity>
             </View>
             <ScrollView style={styles.terminalLogs} nestedScrollEnabled>
@@ -443,11 +443,11 @@ export default function App(): React.JSX.Element {
           </View>
         </View>
 
-        {/* 板块 7：DeviceShowTable 4x3 三色脑电指标表格 */}
+        {/* Section 7: DeviceShowTable 4x3 Spectrum Metrics Table */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>📈 4x3 全波段三色脑电数据表 (DeviceShowTable)</Text>
+          <Text style={styles.cardTitle}>4x3 Full-Band Spectrum Metrics (DeviceShowTable)</Text>
           <Text style={styles.cardSubtitle}>
-            1:1 逐项还原 shared1 测量看板；粉色：认知与信号，青色：慢波与Alpha，黄色：高频能谱
+            1:1 realization of shared1 console; Pink: Cognitive & Quality, Cyan: Slow & Alpha, Yellow: High Frequency
           </Text>
 
           <View style={styles.tableMacHeader}>
@@ -518,18 +518,18 @@ export default function App(): React.JSX.Element {
           </View>
         </View>
 
-        {/* 板块 8：蓝牙搜索连接弹窗 */}
+        {/* Section 8: Bluetooth Scan Dialog */}
         <Modal visible={showScanModal} transparent animationType="fade">
           <View style={styles.modalMask}>
             <View style={styles.modalContent}>
               <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>🔍 搜索周围脑电设备</Text>
+                <Text style={styles.modalTitle}>Search Nearby BLE BCI Devices</Text>
                 <TouchableOpacity onPress={() => setShowScanModal(false)}>
                   <Text style={styles.modalClose}>✕</Text>
                 </TouchableOpacity>
               </View>
               <Text style={styles.modalStatus}>
-                {isScanning ? "正在扫描周围 BLE 设备..." : "扫描完成，请点击连接"}
+                {isScanning ? "Scanning nearby BLE devices..." : "Scan complete, tap to connect"}
               </Text>
               <FlatList
                 data={scannedDevices}
@@ -547,7 +547,7 @@ export default function App(): React.JSX.Element {
                       style={styles.btnItemConnect}
                       onPress={() => connectDevice(item)}
                     >
-                      <Text style={styles.btnItemConnectText}>连接</Text>
+                      <Text style={styles.btnItemConnectText}>Connect</Text>
                     </TouchableOpacity>
                   </View>
                 )}
@@ -558,7 +558,7 @@ export default function App(): React.JSX.Element {
                 onPress={startScan}
               >
                 <Text style={styles.btnRescanText}>
-                  {isScanning ? "正在搜索中..." : "重新扫描周边设备"}
+                  {isScanning ? "Searching..." : "Rescan Nearby Devices"}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -570,79 +570,82 @@ export default function App(): React.JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#1e293b" },
-  container: { flex: 1, backgroundColor: "#f1f5f9", padding: 14 },
+  safeArea: { flex: 1, backgroundColor: "#f1f5f9" },
+  container: { flex: 1, paddingHorizontal: 16, paddingTop: 12 },
   headerBar: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 12,
   },
-  headerTitle: { fontSize: 18, fontWeight: "bold", color: "#0f172a" },
+  headerTitle: { fontSize: 17, fontWeight: "bold", color: "#0f172a" },
   headerActions: { flexDirection: "row", alignItems: "center", gap: 6 },
-  btnTop: { paddingHorizontal: 8, paddingVertical: 5, borderRadius: 6 },
+  btnTop: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6 },
   btnSearch: { backgroundColor: "#2563eb" },
   btnDfu: { backgroundColor: "#475569" },
-  btnTopText: { color: "white", fontSize: 11, fontWeight: "bold" },
+  btnTopText: { color: "white", fontSize: 12, fontWeight: "600" },
   badgeAuth: {
     backgroundColor: "#dcfce7",
-    borderColor: "#86efac",
-    borderWidth: 1,
-    paddingHorizontal: 6,
-    paddingVertical: 3,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
     borderRadius: 4,
+    borderWidth: 1,
+    borderColor: "#86efac",
   },
-  badgeAuthText: { color: "#16a34a", fontSize: 10, fontWeight: "bold" },
+  badgeAuthText: { color: "#16a34a", fontSize: 11, fontWeight: "bold" },
   card: {
-    backgroundColor: "#ffffff",
+    backgroundColor: "white",
     borderRadius: 12,
     padding: 14,
     marginBottom: 12,
     shadowColor: "#000",
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 3,
+    elevation: 2,
   },
-  cardTitle: { fontSize: 15, fontWeight: "bold", color: "#1e293b", marginBottom: 3 },
+  cardTitle: { fontSize: 14, fontWeight: "bold", color: "#1e293b", marginBottom: 2 },
   cardSubtitle: { fontSize: 11, color: "#64748b", marginBottom: 10 },
-  statusRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  statusRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
   statusBadgeWrap: { flexDirection: "row", alignItems: "center", gap: 6 },
   statusDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: "#ef4444" },
   statusDotConnected: { backgroundColor: "#22c55e" },
-  statusText: { fontSize: 13, fontWeight: "bold", color: "#dc2626" },
+  statusText: { fontSize: 13, fontWeight: "600", color: "#ef4444" },
   statusTextConnected: { color: "#16a34a" },
   batteryCapsule: {
-    backgroundColor: "#dcfce7",
-    borderColor: "#86efac",
-    borderWidth: 1,
-    borderRadius: 10,
+    backgroundColor: "#f8fafc",
     paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingVertical: 3,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
   },
-  batteryText: { color: "#16a34a", fontSize: 11, fontWeight: "bold" },
+  batteryText: { fontSize: 12, fontWeight: "600", color: "#334155" },
   deviceName: { fontSize: 17, fontWeight: "bold", color: "#0f172a", marginTop: 8 },
-  deviceMac: { fontSize: 11, color: "#64748b", fontFamily: Platform.OS === "ios" ? "Courier" : "monospace", marginVertical: 3 },
-  badgesRow: { flexDirection: "row", gap: 6, marginVertical: 8 },
+  deviceMac: { fontSize: 11, fontFamily: "monospace", color: "#64748b", marginTop: 2 },
+  badgesRow: { flexDirection: "row", gap: 6, marginVertical: 10 },
   chip: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
-  chipBlue: { backgroundColor: "rgba(2, 132, 199, 0.12)" },
-  chipBlueText: { color: "#0284c7", fontSize: 10, fontWeight: "600" },
-  chipTeal: { backgroundColor: "rgba(13, 148, 136, 0.12)" },
-  chipTealText: { color: "#0d9488", fontSize: 10, fontWeight: "600" },
-  chipPurple: { backgroundColor: "rgba(124, 58, 237, 0.12)" },
-  chipPurpleText: { color: "#7c3aed", fontSize: 10, fontWeight: "600" },
+  chipBlue: { backgroundColor: "#dbeafe" },
+  chipBlueText: { color: "#1d4ed8", fontSize: 10, fontWeight: "600" },
+  chipTeal: { backgroundColor: "#ccfbf1" },
+  chipTealText: { color: "#0f766e", fontSize: 10, fontWeight: "600" },
+  chipPurple: { backgroundColor: "#f3e8ff" },
+  chipPurpleText: { color: "#7e22ce", fontSize: 10, fontWeight: "600" },
   btnConnect: {
     backgroundColor: "#2563eb",
-    height: 40,
-    justifyContent: "center",
+    paddingVertical: 8,
+    borderRadius: 6,
     alignItems: "center",
-    borderRadius: 8,
-    marginTop: 6,
   },
   btnConnectDisconnect: { backgroundColor: "#dc2626" },
   btnConnectText: { color: "white", fontSize: 13, fontWeight: "bold" },
-  channelRow: { flexDirection: "row", gap: 16 },
+  channelRow: { flexDirection: "row", gap: 20 },
   channelItem: { flexDirection: "row", alignItems: "center", gap: 6 },
-  channelLabel: { fontSize: 12, color: "#1e293b" },
+  channelLabel: { fontSize: 13, color: "#334155" },
   chipGrid: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
   chartChip: {
     paddingHorizontal: 8,
@@ -650,90 +653,108 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     borderWidth: 1,
     borderColor: "#cbd5e1",
-    backgroundColor: "#f1f5f9",
+    backgroundColor: "#f8fafc",
   },
-  chartChipActive: { backgroundColor: "#2563eb", borderColor: "#2563eb" },
-  chartChipText: { fontSize: 11, color: "#334155" },
-  chartChipTextActive: { color: "white" },
-  btnGrid: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 8 },
-  btnAct: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6 },
-  actGreen: { backgroundColor: "rgba(22, 163, 74, 0.12)" },
-  actGreenText: { color: "#16a34a", fontSize: 11, fontWeight: "600" },
-  actRed: { backgroundColor: "rgba(220, 38, 38, 0.12)" },
-  actRedText: { color: "#dc2626", fontSize: 11, fontWeight: "600" },
-  actBlue: { backgroundColor: "rgba(2, 132, 199, 0.12)" },
-  actBlueText: { color: "#0284c7", fontSize: 11, fontWeight: "600" },
-  actOrange: { backgroundColor: "rgba(217, 119, 6, 0.12)" },
-  actOrangeText: { color: "#d97706", fontSize: 11, fontWeight: "600" },
-  actGray: { backgroundColor: "rgba(71, 85, 105, 0.1)" },
+  chartChipActive: {
+    backgroundColor: "#eff6ff",
+    borderColor: "#3b82f6",
+  },
+  chartChipText: { fontSize: 11, color: "#475569" },
+  chartChipTextActive: { color: "#1d4ed8", fontWeight: "600" },
+  btnGrid: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 10 },
+  btnAct: {
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 6,
+    borderWidth: 1,
+    minWidth: "30%",
+    alignItems: "center",
+  },
+  actGreen: { backgroundColor: "#dcfce7", borderColor: "#86efac" },
+  actGreenText: { color: "#15803d", fontSize: 11, fontWeight: "600" },
+  actRed: { backgroundColor: "#fee2e2", borderColor: "#fca5a5" },
+  actRedText: { color: "#b91c1c", fontSize: 11, fontWeight: "600" },
+  actBlue: { backgroundColor: "#dbeafe", borderColor: "#93c5fd" },
+  actBlueText: { color: "#1d4ed8", fontSize: 11, fontWeight: "600" },
+  actOrange: { backgroundColor: "#ffedd5", borderColor: "#fed7aa" },
+  actOrangeText: { color: "#c2410c", fontSize: 11, fontWeight: "600" },
+  actPurple: { backgroundColor: "#f3e8ff", borderColor: "#d8b4fe" },
+  actPurpleText: { color: "#7e22ce", fontSize: 11, fontWeight: "600" },
+  actGray: { backgroundColor: "#f1f5f9", borderColor: "#cbd5e1" },
   actGrayText: { color: "#475569", fontSize: 11, fontWeight: "600" },
-  actPurple: { backgroundColor: "rgba(124, 58, 237, 0.12)" },
-  actPurpleText: { color: "#7c3aed", fontSize: 11, fontWeight: "600" },
-  inputRow: { flexDirection: "row", gap: 6, marginTop: 4 },
+  inputRow: { flexDirection: "row", gap: 6 },
   inputField: {
     flex: 1,
-    height: 38,
     backgroundColor: "#f8fafc",
-    borderColor: "#cbd5e1",
     borderWidth: 1,
+    borderColor: "#cbd5e1",
     borderRadius: 6,
     paddingHorizontal: 10,
+    paddingVertical: 4,
     fontSize: 12,
   },
   btnSnSend: {
-    backgroundColor: "#0f172a",
-    paddingHorizontal: 14,
+    backgroundColor: "#7c3aed",
+    paddingHorizontal: 12,
     justifyContent: "center",
     borderRadius: 6,
   },
   btnCmdSend: {
     backgroundColor: "#2563eb",
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     justifyContent: "center",
     borderRadius: 6,
   },
-  btnSendText: { color: "white", fontSize: 11, fontWeight: "bold" },
+  btnSendText: { color: "white", fontSize: 12, fontWeight: "bold" },
   memsBox: {
     backgroundColor: "#f8fafc",
-    borderColor: "#e2e8f0",
     borderWidth: 1,
-    borderRadius: 8,
-    padding: 10,
+    borderColor: "#e2e8f0",
+    borderRadius: 6,
+    padding: 8,
     marginBottom: 10,
   },
-  memsHeader: { fontSize: 12, fontWeight: "bold", color: "#334155", marginBottom: 4 },
-  memsText: { fontSize: 11, color: "#1e293b", fontFamily: Platform.OS === "ios" ? "Courier" : "monospace" },
+  memsHeader: { fontSize: 11, fontWeight: "bold", color: "#334155", marginBottom: 2 },
+  memsText: { fontSize: 11, fontFamily: "monospace", color: "#0f172a" },
   terminalBox: {
     backgroundColor: "#0f172a",
     borderRadius: 8,
-    padding: 10,
+    padding: 8,
     marginTop: 10,
   },
-  terminalHeader: { flexDirection: "row", justifyContent: "space-between", marginBottom: 6 },
-  terminalTitle: { fontSize: 11, color: "#94a3b8" },
-  btnClear: { color: "#38bdf8", fontSize: 11 },
-  terminalLogs: { maxHeight: 110 },
-  terminalText: {
-    color: "#4ade80",
-    fontSize: 10,
-    fontFamily: Platform.OS === "ios" ? "Courier" : "monospace",
+  terminalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 4,
   },
+  terminalTitle: { color: "#94a3b8", fontSize: 10 },
+  btnClear: { color: "#60a5fa", fontSize: 10 },
+  terminalLogs: { maxHeight: 80 },
+  terminalText: { color: "#38bdf8", fontFamily: "monospace", fontSize: 10 },
   tableMacHeader: {
-    backgroundColor: "#1e293b",
+    backgroundColor: "#f8fafc",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderBottomWidth: 0,
+    borderTopLeftRadius: 6,
+    borderTopRightRadius: 6,
     paddingVertical: 6,
-    borderRadius: 6,
     alignItems: "center",
-    marginBottom: 8,
   },
-  tableMacText: { color: "white", fontSize: 12, fontWeight: "bold", fontFamily: Platform.OS === "ios" ? "Courier" : "monospace" },
-  tableContainer: { borderWidth: 1, borderColor: "#cbd5e1", borderRadius: 4, overflow: "hidden" },
-  tableRow: { flexDirection: "row", borderBottomWidth: 1, borderColor: "#cbd5e1" },
-  tableCell: { flex: 1, paddingVertical: 8, alignItems: "center", borderRightWidth: 1, borderColor: "#cbd5e1" },
-  cellLabel: { fontSize: 10, fontWeight: "bold", color: "#334155", marginBottom: 2 },
-  cellVal: { fontSize: 12, fontWeight: "bold", color: "#0f172a", fontFamily: Platform.OS === "ios" ? "Courier" : "monospace" },
+  tableMacText: { fontSize: 12, fontWeight: "bold", fontFamily: "monospace", color: "#1e293b" },
+  tableContainer: {
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderBottomLeftRadius: 6,
+    borderBottomRightRadius: 6,
+  },
+  tableRow: { flexDirection: "row", borderBottomWidth: 1, borderColor: "#e2e8f0" },
+  tableCell: { flex: 1, paddingVertical: 8, alignItems: "center", borderRightWidth: 1, borderColor: "#e2e8f0" },
   bgPink: { backgroundColor: "#ffe4e1" },
   bgCyan: { backgroundColor: "#e0ffff" },
   bgYellow: { backgroundColor: "#f0e68c" },
+  cellLabel: { fontSize: 10, fontWeight: "600", color: "#334155", marginBottom: 2 },
+  cellVal: { fontSize: 13, fontWeight: "bold", fontFamily: "monospace", color: "#0f172a" },
   modalMask: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
@@ -742,28 +763,46 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modalContent: {
-    width: "100%",
     backgroundColor: "white",
+    width: "100%",
     borderRadius: 12,
     padding: 16,
   },
-  modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 6 },
-  modalTitle: { fontSize: 16, fontWeight: "bold", color: "#1e293b" },
-  modalClose: { fontSize: 18, color: "#64748b", padding: 4 },
-  modalStatus: { fontSize: 11, color: "#64748b", marginBottom: 10 },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 6,
+  },
+  modalTitle: { fontSize: 15, fontWeight: "bold", color: "#0f172a" },
+  modalClose: { fontSize: 16, color: "#64748b" },
+  modalStatus: { fontSize: 11, color: "#64748b", marginBottom: 12 },
   deviceItem: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    padding: 8,
     backgroundColor: "#f8fafc",
-    padding: 10,
-    borderRadius: 8,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
     marginBottom: 8,
   },
   itemName: { fontSize: 13, fontWeight: "bold", color: "#0f172a" },
-  itemMac: { fontSize: 10, color: "#64748b", marginTop: 2 },
-  btnItemConnect: { backgroundColor: "#16a34a", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6 },
-  btnItemConnectText: { color: "white", fontSize: 11, fontWeight: "bold" },
-  btnRescan: { backgroundColor: "#2563eb", height: 38, justifyContent: "center", alignItems: "center", borderRadius: 8, marginTop: 8 },
-  btnRescanText: { color: "white", fontSize: 12, fontWeight: "bold" },
+  itemMac: { fontSize: 11, fontFamily: "monospace", color: "#64748b" },
+  btnItemConnect: {
+    backgroundColor: "#2563eb",
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  btnItemConnectText: { color: "white", fontSize: 12, fontWeight: "600" },
+  btnRescan: {
+    backgroundColor: "#f1f5f9",
+    paddingVertical: 8,
+    borderRadius: 6,
+    alignItems: "center",
+    marginTop: 8,
+  },
+  btnRescanText: { color: "#334155", fontSize: 12, fontWeight: "bold" },
 });

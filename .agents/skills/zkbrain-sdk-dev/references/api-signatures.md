@@ -1,121 +1,128 @@
-# ZKBrain SDK 官方纯契约签名速查 (api-signatures.md)
+# ZKBrain SDK Official API Signatures Reference (api-signatures.md)
+# ZKBrain SDK 官方纯契约签名速查
 
-> **版本**：v1.2.0
-> **说明**：本文档包含 ZKBrain SDK 对外公开的全部核心接口与 Flow 数据通道签名，剥离所有底层实现与私有字段，供开发者查阅及 AI 零幻觉直接调用。
+> **Version / 版本**：v1.2.1 (Maven Central)
+> **Description / 说明**：This document contains all public core interfaces, data structures, and Flow reactive streams of the ZKBrain SDK, stripped of internal private fields for zero-hallucination developer reference and AI direct code generation.
+> 本文档包含 ZKBrain SDK 对外公开的全部核心接口与 Flow 数据通道签名，剥离所有底层实现与私有字段，供开发者查阅及 AI 零幻觉直接调用。
 
 ---
 
-## 1. 核心控制器：`ZKBrainManager`
+## 1. Core Controller: `ZKBrainManager` / 核心控制器
 
-包路径：`com.zkteco.zkbrain.ZKBrainManager`
+Package / 包路径：`com.zkteco.zkbrain.ZKBrainManager`
 
 ```kotlin
 object ZKBrainManager {
-    // ---------------- 核心状态与响应式数据流 ----------------
-    val connState: StateFlow<ZKBrainConnectionState>          // 当前连接状态 (DISCONNECTED, CONNECTING, CONNECTED)
-    val connectedDevice: StateFlow<ZKBrainDevice?>            // 当前已连接成功的脑机设备信息
-    val scanState: StateFlow<ZKBrainScanState>                // 扫描雷达状态 (IDLE, SCANNING)
-    val scannedDevices: StateFlow<List<ZKBrainDevice>>        // 扫描发现的外设列表
+    // ---------------- Reactive Streams & State / 核心状态与响应式数据流 ----------------
+    val connState: StateFlow<ZKBrainConnectionState>          // Current connection state / 当前连接状态 (DISCONNECTED, CONNECTING, CONNECTED)
+    val connectedDevice: StateFlow<ZKBrainDevice?>            // Current connected device info / 当前已连接成功的脑机设备信息
+    val scanState: StateFlow<ZKBrainScanState>                // BLE scanner radar state / 扫描雷达状态 (IDLE, SCANNING)
+    val scannedDevices: StateFlow<List<ZKBrainDevice>>        // List of discovered peripheral devices / 扫描发现的外设列表
     
-    val brainData: SharedFlow<MultiBrainEeg>                  // 1Hz 综合脑电数据包 (专注度, 放松度, 8频段能量, 信号质量)
-    val rawdata: SharedFlow<Int>                              // 512Hz 原始脑电采样点 (Raw EEG 微伏采样，用于绘制波形)
-    val disconnectedEvent: SharedFlow<ZKBrainDisconnectEvent> // 异常掉线事件 (用于业务弹窗提示)
+    val brainData: SharedFlow<MultiBrainEeg>                  // 1Hz comprehensive BCI packet (attention, meditation, 8-band, signal quality)
+    val rawdata: SharedFlow<Int>                              // 512Hz raw EEG microvolt sample points (for waveform rendering)
+    val disconnectedEvent: SharedFlow<ZKBrainDisconnectEvent> // Abnormal disconnection event (for alert dialogs)
+    val quaternionData: SharedFlow<Quaternion>                // 6-axis MEMS spatial posture (q0, q1, q2, q3)
+    val commandResponse: SharedFlow<String>                   // Hardware ASCII / OpCode response stream
     
-    // ---------------- 设备扫描与连接控制 ----------------
+    // ---------------- Device Scan & Connection / 设备扫描与连接控制 ----------------
     fun startScan(timeoutMillis: Long = 10000L, isContinuous: Boolean = false)
     fun stopScan()
     
     fun connect(device: ZKBrainDevice)
     fun connect(address: String)
     fun connectBySn(sn: String)
-    fun disconnect()                                          // 断开当前连接
+    fun disconnect()                                          // Disconnect current physical link / 断开当前连接
     
-    // ---------------- 录制子系统入口 ----------------
-    val recordManager: ZKBrainRecordManager                   // 本地离线录制管理器
+    // ---------------- Hardware Commands / 硬件指令下发 ----------------
+    fun sendConfigCommand(config: Map<String, String>)        // Config map with 2s deduplication shield / 推荐配置字典
+    fun writeCommand(address: String, command: ByteArray)     // Direct byte array dispatch / 底层透传字节流
+    
+    // ---------------- Local Recording Entry / 录制子系统入口 ----------------
+    val recordManager: ZKBrainRecordManager                   // Local offline session recorder
 }
 ```
 
 ---
 
-## 2. 脑电数据结构：`MultiBrainEeg`
+## 2. BCI Data Model: `MultiBrainEeg` / 脑电数据结构
 
-包路径：`com.zkteco.zkbrain.bean.MultiBrainEeg`
+Package / 包路径：`com.zkteco.zkbrain.bean.MultiBrainEeg`
 
 ```kotlin
 data class MultiBrainEeg(
-    val attentionLevel: Int = 0,    // 专注度指数 (0 ~ 100，便捷别名: attention)
-    val meditationDepth: Int = 0,   // 放松度/冥想指数 (0 ~ 100，便捷别名: meditation)
-    val signal: Int = 200,          // 接触信号质量 (0: 信号极佳良好佩戴, 200: 完全脱落/未接触皮肤)
-    val batteryCapacity: Int = 0,   // 电池电量 (0 ~ 100)
-    val heartRateBPM: Int = 0,      // 心率 (若设备支持心率传感器)
+    val attentionLevel: Int = 0,    // Attention / Focus index (0 ~ 100, alias: attention)
+    val meditationDepth: Int = 0,   // Meditation / Relaxation index (0 ~ 100, alias: meditation)
+    val signal: Int = 200,          // Contact quality (0: Good contact, 200: Off-head / Detached)
+    val batteryCapacity: Int = 0,   // Battery level percentage (0 ~ 100)
+    val heartRateBPM: Int = 0,      // Heart rate BPM (if supported by hardware)
     
-    // 脑波 8 频段绝对功率 (封装于 brainWaves 实体中)
+    // 8-Band Power Spectrum / 脑波 8 频段绝对功率 (Encapsulated in brainWaves)
     val brainWaves: BrainWaves = BrainWaves(
-        val delta: Int = 0,         // Delta 波 (0.5 ~ 2.75Hz，深度睡眠)
-        val theta: Int = 0,         // Theta 波 (3.5 ~ 6.75Hz，浅睡、潜意识、创意)
-        val lowAlpha: Int = 0,      // 低 Alpha 波 (7.5 ~ 9.25Hz，放松、冥想)
-        val highAlpha: Int = 0,     // 高 Alpha 波 (10 ~ 11.75Hz，安静闭眼、心流)
-        val lowBeta: Int = 0,       // 低 Beta 波 (13 ~ 16.75Hz，警觉、轻度专注)
-        val highBeta: Int = 0,      // 高 Beta 波 (17 ~ 29.75Hz，高度警觉、焦虑、计算)
-        val lowGamma: Int = 0,      // 低 Gamma 波 (31 ~ 39.75Hz，认知加工)
-        val middleGamma: Int = 0    // 中 Gamma 波 (41 ~ 49.75Hz，高阶多感官整合)
+        val delta: Int = 0,         // Delta (0.5 ~ 2.75Hz: Deep sleep / 深度睡眠)
+        val theta: Int = 0,         // Theta (3.5 ~ 6.75Hz: Drowsiness, meditation, creativity / 浅睡、潜意识)
+        val lowAlpha: Int = 0,      // Low Alpha (7.5 ~ 9.25Hz: Relaxed, calm / 放松)
+        val highAlpha: Int = 0,     // High Alpha (10 ~ 11.75Hz: Flow state, eyes closed / 安静闭眼、心流)
+        val lowBeta: Int = 0,       // Low Beta (13 ~ 16.75Hz: Alertness, active thinking / 警觉、轻度专注)
+        val highBeta: Int = 0,      // High Beta (17 ~ 29.75Hz: High focus, anxiety, computing / 高度专注、计算)
+        val lowGamma: Int = 0,      // Low Gamma (31 ~ 39.75Hz: Cognitive processing / 认知加工)
+        val middleGamma: Int = 0    // Mid Gamma (41 ~ 49.75Hz: Multisensory integration / 高阶感知整合)
     )
 )
 ```
 
 ---
 
-## 3. 设备信息结构：`ZKBrainDevice`
+## 3. Device Info: `ZKBrainDevice` / 设备信息结构
 
-包路径：`com.zkteco.zkbrain.bean.ZKBrainDevice`
+Package / 包路径：`com.zkteco.zkbrain.bean.ZKBrainDevice`
 
 ```kotlin
 data class ZKBrainDevice(
-    val address: String,            // 硬件 MAC 地址 (Android) 或 UUID 标识 (iOS)
-    val name: String?,              // 蓝牙广播广播名称 (例如 "MindWave Mobile", "BrainLink", "ZK-EEG")
-    val rssi: Int = 0,              // 蓝牙信号强度 (dBm)
-    val sn: String? = null,         // 设备唯一序列号 (若硬件支持广播解析)
-    val isNeuroSky: Boolean = false // 是否属于 NeuroSky XMW 协议设备
+    val address: String,            // Hardware MAC address (Android/Win) or UUID string (iOS/macOS)
+    val name: String?,              // Advertising Bluetooth name (e.g. "ZKBrain-PRO-8801", "MindWave Mobile")
+    val rssi: Int = 0,              // Signal RSSI (dBm)
+    val sn: String? = null,         // Hardware Serial Number SN
+    val isNeuroSky: Boolean = false // Whether device uses NeuroSky XMW protocol
 )
 ```
 
 ---
 
-## 4. 连接状态枚举：`ZKBrainConnectionState`
+## 4. Connection State Enum: `ZKBrainConnectionState` / 连接状态枚举
 
-包路径：`com.zkteco.zkbrain.bean.ZKBrainConnectionState`
+Package / 包路径：`com.zkteco.zkbrain.bean.ZKBrainConnectionState`
 
 ```kotlin
 enum class ZKBrainConnectionState {
-    DISCONNECTED,   // 未连接 / 空闲
-    CONNECTING,     // 正在进行物理链路连接与协议握手
-    CONNECTED,      // 已完全连接就绪，数据流开始供给
-    RECONNECTING    // 异常断开，底层自愈看门狗正在静默重连
+    DISCONNECTED,   // Idle / Disconnected / 未连接
+    CONNECTING,     // Handshake & GATT discovery in progress / 建立物理链路与服务发现中
+    CONNECTED,      // Fully ready, data streaming / 设备完全就绪，开始供应脑电数据流
+    RECONNECTING    // Link interrupted, watchdog auto-healing / 底层自愈重连中
 }
 ```
 
 ---
 
-## 5. 云端标准化录制管理器：`ZKBrainCloudRecordManager`
+## 5. Cloud Recording Manager: `ZKBrainCloudRecordManager` / 云端标准化录制管理器
 
-包路径：`com.zkteco.zkbrain.record.ZKBrainCloudRecordManager`
+Package / 包路径：`com.zkteco.zkbrain.record.ZKBrainCloudRecordManager`
 
 ```kotlin
 object ZKBrainCloudRecordManager {
-    // ---------------- 录制状态与控制 ----------------
     val isRecording: StateFlow<Boolean>
     val currentDurationSeconds: StateFlow<Int>
     
-    // 开始标准化录制会话
+    // Start standard recording session / 启动标准化录制会话
     suspend fun startRecording(
-        sessionType: String = "attention_task", // 会话类型
-        reusedBaselineSessionId: String? = null // 可选：复用已标定的基线会话 ID
-    ): String                                   // 返回当前会话 ID
+        sessionType: String = "attention_task", // Session type / 会话类型
+        reusedBaselineSessionId: String? = null // Optional baseline session ID to reuse / 可选基线复用 ID
+    ): String                                   // Returns active sessionId / 返回会话 ID
     
-    // 插入结构化事件打标 (events.csv)
+    // Append structured event tag / 写入结构化事件 (events.csv)
     fun appendEvent(eventCode: Int, eventName: String)
     
-    // 结束录制、执行三表缝合、国密数字信封加密并直传云端分析服务
+    // End session, stitch 3-table format, encrypt envelope, and upload to cloud analysis
     suspend fun stopAndUpload(
         serverUrl: String,
         apiKey: String
@@ -125,36 +132,33 @@ object ZKBrainCloudRecordManager {
 
 ---
 
-## 6. 硬件指令下发 API 与协议标准规范
+## 6. Hardware Command Dispatch API & Protocols / 硬件指令下发 API 与协议标准
 
-参考文档：[`ZKBrain_设备指令下发与硬件协议集成指南.md`](file:///e:/zkt_git_project/blink/project_kpm/ZKBrain_设备指令下发与硬件协议集成指南.md)
-
-### 6.1 指令发送接口
+### 6.1 Dispatch Interfaces / 指令下发接口
 ```kotlin
-// 方式 A：下发标准配置字典 (推荐，内置 2 秒防重复拦截护盾)
+// Mode A: Standard configuration map (Recommended, 2-second anti-repetition shield)
 fun sendConfigCommand(config: Map<String, String>)
 
-// 方式 B：底层透传字节流 (用于下发特定 OpCode 固件包或点火包)
+// Mode B: Transparent byte stream (Used for OpCode firmware or ignition packets)
 fun writeCommand(address: String, command: ByteArray)
 
-// 响应监听通道
+// Response channel
 val commandResponse: SharedFlow<String>
 ```
 
-### 6.2 硬件协议划分与标准指令
-1. **ZKTeco (自研脑电/MEMS) 协议**:
-   - `mems_on:1` / `mems_on:0`: 开启 / 关闭 6 轴惯导姿态流
-   - `eeg_data_on:1` / `eeg_data_on:0`: 开启 / 关闭脑电数据流
-   - `eeg_data_rate:512` / `256` / `128`: 设置采样率档位
-   - `battery:?`: 查询电池电量百分比
-   - `version:?`: 查询硬件固件版本号
-2. **Sky (NeuroSky / MindWave / TGAM) 20B 二进制 XMW 协议**:
-   - `0x15` (`CMD_XMW_RAW_ON`): 开启 Raw 512Hz 原始波
-   - `0x16` (`CMD_XMW_RAW_OFF`): 关闭 Raw 512Hz 原始波
-   - `0x17` (`CMD_XMW_BAND_ON`): 开启 8 频段数据
-   - `0x18` (`CMD_XMW_BAND_OFF`): 关闭 8 频段数据
-   - `0x1B` (`CMD_XMW_50HZ`): 50Hz 工频陷波滤波
-   - `0x1C` (`CMD_XMW_60HZ`): 60Hz 工频陷波滤波
-   - `0x06` (`CMD_XMW_BATTERY`): 读取静态电量
-   - `0xF4` (`CMD_XMW_READ_SN`): 读取设备 SN
-
+### 6.2 Hardware Protocol Specifications / 硬件协议划分与标准指令
+1. **ZKTeco Proprietary Protocol (ASCII / MEMS)**:
+   - `mems_on:1` / `mems_on:0`: Enable / disable 6-axis MEMS IMU stream
+   - `eeg_data_on:1` / `eeg_data_on:0`: Enable / disable EEG data streaming
+   - `eeg_data_rate:512` / `256` / `128`: Set sampling rate
+   - `battery:?`: Query battery level percentage
+   - `version:?`: Query hardware firmware version
+2. **NeuroSky XMW 20B Binary Protocol**:
+   - `0x15` (`CMD_XMW_RAW_ON`): Start Raw 512Hz stream
+   - `0x16` (`CMD_XMW_RAW_OFF`): Stop Raw 512Hz stream
+   - `0x17` (`CMD_XMW_BAND_ON`): Start 8-band power spectrum
+   - `0x18` (`CMD_XMW_BAND_OFF`): Stop 8-band power spectrum
+   - `0x1B` (`CMD_XMW_50HZ`): 50Hz notch filter
+   - `0x1C` (`CMD_XMW_60HZ`): 60Hz notch filter
+   - `0x06` (`CMD_XMW_BATTERY`): Read hardware battery level
+   - `0xF4` (`CMD_XMW_READ_SN`): Read device serial number SN

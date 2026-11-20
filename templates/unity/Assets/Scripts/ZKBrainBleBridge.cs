@@ -6,24 +6,24 @@ using UnityEngine;
 namespace ZKBrain.Unity
 {
     /// <summary>
-    /// 🌟 ZKBrain Unity 跨平台脑机接口 (BCI) C# 通信与数据桥梁
-    /// 适用于 PC Standalone、Meta Quest、Pico VR、Apple Vision Pro 与 Android/iOS 游戏
-    /// 技术支持：熵基科技脑机事业部 (ZKTeco Brain-Computer Interface Division)
+    /// ZKBrain Unity Cross-Platform BCI C# Bridge
+    /// Suitable for PC Standalone, Meta Quest, Pico VR, Apple Vision Pro, Android and iOS games.
+    /// Technical Support: ZKTeco Brain-Computer Interface Division
     /// </summary>
     public class ZKBrainBleBridge : MonoBehaviour
     {
         public static ZKBrainBleBridge Instance { get; private set; }
 
-        [Header("链路连接状态")]
+        [Header("Connection Status")]
         public bool isConnected = false;
         public string deviceName = "ZKBrain Headband PRO";
         public string deviceMac = "DC:23:4F:9A:88:01";
         public int batteryLevel = 85;
 
-        [Header("12 项生理指标")]
+        [Header("12 Physiological Metrics")]
         [Range(0, 100)] public int attention = 75;
         [Range(0, 100)] public int meditation = 68;
-        public int signalQuality = 0; // 0: 佩戴良好, 200: 接触不良
+        public int signalQuality = 0; // 0: Good contact, 200: Poor contact / off-head
         public int rawEeg = 128;
 
         [System.Serializable]
@@ -51,11 +51,11 @@ namespace ZKBrain.Unity
             middleGamma = 2200
         };
 
-        [Header("6 轴 MEMS 姿态传感")]
+        [Header("6-Axis MEMS Attitude")]
         public Vector3 eulerAngles = new Vector3(1.2f, -0.5f, 14.8f);
         public Quaternion quaternion = new Quaternion(0.010f, -0.004f, 0.129f, 0.992f);
 
-        // 回调事件
+        // Callbacks
         public event Action<int, int> OnBrainMetricsUpdated; // attention, meditation
         public event Action<string> OnCommandLogEmitted;
 

@@ -3,12 +3,12 @@ using UnityEngine;
 namespace ZKBrain.Unity
 {
     /// <summary>
-    /// 🎮 脑控念力悬浮小球控制器 (Force Levitation Demo)
-    /// 专注度 (Attention) 越高，物体悬浮越高，伴随粒子发光与色彩变化
+    /// Mind-Controlled Telekinesis Levitation Sphere Controller (Force Levitation Demo)
+    /// Higher Attention floats the object higher with aura emission and color transitions.
     /// </summary>
     public class ForceLevitationController : MonoBehaviour
     {
-        [Header("悬浮参数配置")]
+        [Header("Levitation Configuration")]
         public float baseHeight = 0.5f;
         public float maxHeight = 4.0f;
         public float smoothSpeed = 3.0f;
@@ -38,11 +38,11 @@ namespace ZKBrain.Unity
 
         private void OnBrainMetrics(int attention, int meditation)
         {
-            // 归一化注意力 (0~100) -> 目标悬浮高度
+            // Normalize attention (0-100) -> Target levitation height
             float t = Mathf.Clamp01(attention / 100f);
             targetHeight = Mathf.Lerp(baseHeight, maxHeight, t);
 
-            // 光源与发光材质反馈
+            // Light and emissive material feedback
             if (auraLight != null)
             {
                 auraLight.intensity = t * 3.5f;
@@ -58,13 +58,13 @@ namespace ZKBrain.Unity
 
         private void Update()
         {
-            // 平滑插值模拟物体悬浮与呼吸浮动
+            // Smooth interpolation simulating levitation and floating breath
             Vector3 pos = transform.position;
             float floating = Mathf.Sin(Time.time * 2f) * 0.08f;
             pos.y = Mathf.Lerp(pos.y, targetHeight + floating, Time.deltaTime * smoothSpeed);
             transform.position = pos;
 
-            // 缓慢旋转展示 3D 念力质感
+            // Slow rotation for 3D telekinesis aesthetic
             transform.Rotate(Vector3.up * (20f + targetHeight * 15f) * Time.deltaTime);
         }
     }

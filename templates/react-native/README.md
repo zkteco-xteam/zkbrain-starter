@@ -1,33 +1,33 @@
-# ZKBrain React Native (TypeScript) 跨端脚手架
+# ZKBrain React Native (TypeScript) Cross-Platform Starter
 
-> 🚀 **跨 iOS 与 Android 原生双端**：基于 `react-native-ble-plx`，具备纯原生 BLE 驱动支持与 Android 12+ / iOS 13+ 运行时蓝牙权限核验。
-
----
-
-## 🌟 核心特性
-
-1. **1:1 逐项还原官方 `DeviceScreen` + `DeviceShowTable` 控制台**：
-   - 顶部操作栏（搜索设备、OTA升级与 SN 鉴权）；
-   - 12 项生理指标 4x3 三色数据表（粉色、青色、黄色标准配色）；
-   - 6 轴 MEMS 姿态传感看板（欧拉角 Roll/Pitch/Yaw 与四元数 Q0~Q3）；
-   - NeuroSky XMW 二进制点火包（`0x15`/`0x17`）与 ZKTeco 硬件配置指令控制台；
-   - 终端监控与双向回包日志。
-2. **移动双端蓝牙动态权限**：
-   - Android 12+ 动态申请 `BLUETOOTH_SCAN` 与 `BLUETOOTH_CONNECT`；
-   - iOS 自动弹窗提示开启蓝牙系统设置。
+> Cross-platform iOS and Android starter based on `react-native-ble-plx`, supporting native BLE communication with Android 12+ and iOS 13+ runtime permissions.
 
 ---
 
-## 🛠️ 快速启动
+## Key Features
+
+1. **1:1 Realization of official `DeviceScreen` + `DeviceShowTable` Console**:
+   - Header action bar (device scan, OTA check, and license badge);
+   - 12-metric 4x3 color-coded table (Pink, Cyan, Yellow standard palette);
+   - 6-axis MEMS spatial attitude board (Euler angles Roll/Pitch/Yaw & Quaternions Q0~Q3);
+   - NeuroSky XMW binary ignition packet (`0x15`/`0x17`) and ZKTeco hardware configuration console;
+   - Terminal monitor with bidirectional packet logs.
+2. **Dynamic Mobile Bluetooth Permissions**:
+   - Android 12+ dynamic request for `BLUETOOTH_SCAN` and `BLUETOOTH_CONNECT`;
+   - iOS automatic system prompt for Bluetooth authorization.
+
+---
+
+## Quickstart
 
 ```bash
-# 1. 安装依赖
+# 1. Install dependencies
 npm install
 
-# 2. 运行 Android
+# 2. Run on Android
 npm run android
 
-# 3. 运行 iOS (需在 macOS 下执行 pod install)
+# 3. Run on iOS (requires macOS and pod install)
 cd ios && pod install && cd ..
 npm run ios
 ```

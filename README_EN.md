@@ -4,19 +4,18 @@
 
 > 🚀 **Official Open-Source Scaffolding** | Ready-to-use cross-platform Brain-Computer Interface (BCI) templates for secondary developers and AI coding assistants (Cursor, Antigravity, Windsurf, Copilot).
 
-This repository is the official starter kit for the **ZKBrain Cross-Platform BCI SDK**, fully covering **14 major developer ecosystems** (Mobile Native, Cross-Platform Mobile & MiniProgram, Web & Light Apps, Professional Desktop, Unity 3D / XR, Python Neuroscience Research, and Linux IoT Edge Computing). All templates adhere to the unified **1:1 `DeviceScreen + DeviceShowTable` standard UI visual architecture**, and are deeply integrated with **AI context engineering (Skills + llms.txt + Cursorrules + Chinese/Global AI guidelines)**.
+This repository is the official starter kit for the **ZKBrain Cross-Platform BCI SDK**, fully covering **13 major developer ecosystems** (Mobile Native, Cross-Platform Mobile & MiniProgram, Web & Light Apps, Professional Desktop, Unity 3D / XR, Python Neuroscience Research, and Linux IoT Edge Computing). All templates adhere to the unified **1:1 `DeviceScreen + DeviceShowTable` standard UI visual architecture**, and are deeply integrated with **AI context engineering (Skills + llms.txt + Cursorrules + Chinese/Global AI guidelines)**.
 
 Developers (or your AI assistants) do not need to deal with low-level binary ignition packets, protocol decoding, or cryptography. Simply clone and give your AI a single prompt to generate production-ready BCI applications!
 
 ---
 
-## 📂 Cross-Platform Template Directory (14 Major Ecosystems)
+## 📂 Cross-Platform Template Directory (13 Major Ecosystems)
 
 ### 1. 📱 Mobile Native Development
 | Platform / Stack | Directory | SDK Integration | Key Highlights |
 | :--- | :--- | :--- | :--- |
 | **Android Compose (Recommended)** | [`templates/android-compose/`](templates/android-compose/) | Maven Central (`io.github.zkteco-xteam:zkbrain-android:1.2.1`) | Modern Jetpack Compose declarative dashboard with 8-band spectrum, MEMS motion, and runtime permissions |
-| **Android Native (Kotlin)** | [`templates/android-native/`](templates/android-native/) | Maven Central (`io.github.zkteco-xteam:zkbrain-android:1.2.1`) | Pure Kotlin + ViewBinding, zero boilerplate, plug-and-play |
 | **Huawei HarmonyOS (Next)** | [`templates/harmonyos/`](templates/harmonyos/) | ArkTS / Stage Model | Native ArkUI declarative dashboard, system-level BLE scanning, 1:1 tricolor data table |
 | **Apple iOS (Swift)** | [`templates/ios-swiftui/`](templates/ios-swiftui/) | Swift Package Manager (SPM) | Modern SwiftUI, native `async/await` stream consumption, and CoreBluetooth permission alerts |
 

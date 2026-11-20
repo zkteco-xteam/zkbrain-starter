@@ -9,7 +9,7 @@ onHide(() => {});
 </script>
 
 <style>
-/* 全局页面浅灰底色，贴合 shared1 原生质感 */
+/* Global light slate background */
 page {
   background-color: #f1f5f9;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
