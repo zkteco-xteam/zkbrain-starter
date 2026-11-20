@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key>
+    <string>ZKBrain iOS Demo</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.zkteco.zkbrain.iosstarter</string>
+    <key>CFBundleVersion</key>
+    <string>1.0.0</string>
+    
+    <!-- 🌟 核心：iOS 13+ 必填蓝牙访问权限 (缺少会导致 App 启动扫描即闪退) -->
+    <key>NSBluetoothAlwaysUsageDescription</key>
+    <string>ZKBrain 应用需要使用系统低功耗蓝牙 (BLE) 扫描并连接脑机接口头箍以采集脑电生理数据。</string>
+    <key>NSBluetoothPeripheralUsageDescription</key>
+    <string>ZKBrain 应用需要使用蓝牙与脑电设备进行实时双向数据通信。</string>
+    
+    <!-- 后台蓝牙通信支持 (可选) -->
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>bluetooth-central</string>
+    </array>
+</dict>
+</plist>

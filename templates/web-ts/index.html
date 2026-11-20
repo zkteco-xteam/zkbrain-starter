@@ -28,7 +28,11 @@
     </div>
 
     <div class="card">
-      <h2>实时脑波指标 (1Hz)</h2>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="margin: 0;">实时脑波生理指标 (1Hz)</h2>
+        <span id="flowBadge" style="background: #f59e0b; color: #000; padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: bold;">平静日常</span>
+      </div>
+
       <div class="metric">
         <span>专注度 (Attention):</span>
         <span id="attentionVal" style="color: #60a5fa; font-weight: bold;">0 / 100</span>
@@ -41,9 +45,24 @@
       </div>
       <div class="bar"><div id="meditationBar" class="progress" style="background: #22c55e;"></div></div>
 
-      <div class="metric" style="margin-top: 20px; font-size: 15px; color: #94a3b8;">
+      <div class="metric" style="margin-top: 20px; font-size: 14px; color: #94a3b8;">
         <span>电极接触状态:</span>
         <span id="contactStatus">未知</span>
+      </div>
+    </div>
+
+    <!-- 🌟 新增：脑电 8 频段绝对功率谱 -->
+    <div class="card">
+      <h2>脑电 8 频段功率谱能量分布 (Band Powers)</h2>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px;">
+        <div><small style="color:#818cf8;">Delta (深度睡眠):</small> <span id="pDelta">0</span></div>
+        <div><small style="color:#38bdf8;">Theta (潜意识):</small> <span id="pTheta">0</span></div>
+        <div><small style="color:#34d399;">Low Alpha (心流):</small> <span id="pLowAlpha">0</span></div>
+        <div><small style="color:#a7f3d0;">High Alpha (静定):</small> <span id="pHighAlpha">0</span></div>
+        <div><small style="color:#fbbf24;">Low Beta (专注):</small> <span id="pLowBeta">0</span></div>
+        <div><small style="color:#fb923c;">High Beta (焦虑):</small> <span id="pHighBeta">0</span></div>
+        <div><small style="color:#f472b6;">Low Gamma (认知):</small> <span id="pLowGamma">0</span></div>
+        <div><small style="color:#e879f9;">Mid Gamma (感知):</small> <span id="pMidGamma">0</span></div>
       </div>
     </div>
 

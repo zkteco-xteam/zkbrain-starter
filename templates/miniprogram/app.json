@@ -8,5 +8,10 @@
     "navigationBarTitleText": "ZKBrain 脑机交互",
     "navigationBarTextStyle": "white"
   },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "用于搜索并连接周围的低功耗脑机接口设备"
+    }
+  },
   "sitemapLocation": "sitemap.json"
 }

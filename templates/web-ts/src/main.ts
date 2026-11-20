@@ -40,6 +40,28 @@ sdk.on('brain_data', (eeg: any) => {
   contactStatus.innerHTML = eeg.poorSignal === 0 
     ? '<span style="color: #4ade80;">🟢 良好佩戴 (0)</span>' 
     : `<span style="color: #f87171;">🔴 接触不良 (${eeg.poorSignal})</span>`;
+
+  // 8 频段功率展示
+  document.getElementById('pDelta')!.innerText = eeg.delta;
+  document.getElementById('pTheta')!.innerText = eeg.theta;
+  document.getElementById('pLowAlpha')!.innerText = eeg.lowAlpha;
+  document.getElementById('pHighAlpha')!.innerText = eeg.highAlpha;
+  document.getElementById('pLowBeta')!.innerText = eeg.lowBeta;
+  document.getElementById('pHighBeta')!.innerText = eeg.highBeta;
+  document.getElementById('pLowGamma')!.innerText = eeg.lowGamma;
+  document.getElementById('pMidGamma')!.innerText = eeg.midGamma;
+
+  const flowBadge = document.getElementById('flowBadge')!;
+  if (eeg.attention >= 75 && eeg.meditation >= 60) {
+    flowBadge.innerText = '✨ 深度心流';
+    flowBadge.style.background = '#22c55e';
+  } else if (eeg.attention >= 65) {
+    flowBadge.innerText = '🎯 高度专注';
+    flowBadge.style.background = '#3b82f6';
+  } else {
+    flowBadge.innerText = '平静日常';
+    flowBadge.style.background = '#f59e0b';
+  }
 });
 
 // 3. 监听 512Hz 原始脑波
