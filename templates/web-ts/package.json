@@ -1,0 +1,17 @@
+{
+  "name": "zkbrain-web-starter",
+  "version": "1.0.0",
+  "description": "ZKBrain Web 浏览器端 (Web Bluetooth) 脑机极简开发样板",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@zkteco/zkbrain-web-sdk": "^1.0.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5",
+    "vite": "^5.2.0"
+  }
+}

@@ -1,0 +1,40 @@
+# ZKBrain 脑机接口跨平台 SDK (AI 入口契约索引)
+
+> 项目名称: ZKBrain Multiplatform SDK  
+> 核心定位: 针对 NeuroSky 与自研脑电设备的跨平台 BCI (脑机接口) 核心 SDK，支持 Android, iOS (SPM), Web (H5), 微信小程序。  
+> 官方版本: v1.2.0
+
+## 核心接口契约索引
+- [公共 API 纯契约速查 (Kotlin / Swift)](../.agents/skills/zkbrain-sdk-dev/references/api-signatures.md): 包含 ZKBrainManager 核心门面、MultiBrainEeg 脑电数据结构、StateFlow/SharedFlow 数据通道。
+- [20 行黄金代码样板 (开箱即用)](../.agents/skills/zkbrain-sdk-dev/references/recipes.md): 包含设备极简建连、1Hz 专注度监听、512Hz 原始波 Compose 绘制、原生 Swift async/await 消费。
+- [跨端开发避坑与 DO/DON'T 铁律](../.agents/skills/zkbrain-sdk-dev/references/gotchas.md): 避坑指南，涵盖 NeuroSky 20字节点火包、电容放电防锁死、BLE 状态机防抖、Compose 高频防掉帧。
+- [多端一行依赖接入指南](SDK_ONE_LINE_IMPORT_GUIDE.md): 涵盖 Maven (Android/KMP), SPM (iOS), NPM (Web/小程序) 的一行引入配置。
+
+## 核心 API 快速范式 (Kotlin Multiplatform)
+```kotlin
+// 1. 开始扫描
+ZKBrainManager.startScan(timeoutMillis = 10000L)
+
+// 2. 连接指定脑机设备
+ZKBrainManager.connect(device)
+
+// 3. 响应式消费专注度与放松度 (1Hz)
+scope.launch {
+    ZKBrainManager.brainData.collect { eeg ->
+        println("专注度: ${eeg.attention}, 放松度: ${eeg.meditation}, 信号质量: ${eeg.poorSignal}")
+    }
+}
+
+// 4. 消费 512Hz 原始微伏脑电波用于绘制曲线
+scope.launch {
+    ZKBrainManager.rawdata.collect { raw ->
+        chartBuffer.add(raw)
+    }
+}
+```
+
+## 平台分发坐标
+- Maven: `implementation("com.zkteco.zkbrain:core:1.2.0")`
+- iOS SPM: `https://github.com/zkteco-xteam/zkbrain.git`
+- Web NPM: `npm install @zkteco/zkbrain-web-sdk`
+- 小程序 NPM: `npm install @zkteco/zkbrain-miniprogram-sdk`

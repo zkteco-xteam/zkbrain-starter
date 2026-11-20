@@ -1,0 +1,16 @@
+# Build & Dependencies
+.gradle/
+build/
+node_modules/
+dist/
+.idea/
+.vscode/
+*.iml
+.DS_Store
+*.pyc
+__pycache__/
+
+# Local properties & Secrets
+local.properties
+.env
+.env.local

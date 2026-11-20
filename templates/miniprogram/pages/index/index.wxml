@@ -1,0 +1,31 @@
+<view class="container">
+  <!-- 1. 连接状态卡片 -->
+  <view class="card">
+    <view class="status-row">
+      <view class="dot {{isConnected ? 'green' : 'orange'}}"></view>
+      <text class="status-title">{{statusText}}</text>
+    </view>
+    <button class="btn" bindtap="toggleScan">{{isScanning ? '正在搜索...' : '搜索并连接脑电设备'}}</button>
+  </view>
+
+  <!-- 2. 生理指标仪表 -->
+  <view class="card">
+    <view class="metric-title">实时脑波指标 (1Hz)</view>
+    
+    <view class="metric-item">
+      <text>专注度 (Attention)</text>
+      <text class="metric-val text-blue">{{attention}} / 100</text>
+    </view>
+    <progress percent="{{attention}}" stroke-width="8" activeColor="#3b82f6" backgroundColor="#334155" border-radius="4" />
+
+    <view class="metric-item" style="margin-top: 24rpx;">
+      <text>放松度 (Meditation)</text>
+      <text class="metric-val text-green">{{meditation}} / 100</text>
+    </view>
+    <progress percent="{{meditation}}" stroke-width="8" activeColor="#22c55e" backgroundColor="#334155" border-radius="4" />
+
+    <view class="signal-tag">
+      <text>电极接触状态: {{poorSignal === 0 ? '🟢 接触良好' : '🔴 接触不良或脱落'}}</text>
+    </view>
+  </view>
+</view>

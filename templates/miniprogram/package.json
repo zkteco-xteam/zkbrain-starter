@@ -1,0 +1,8 @@
+{
+  "name": "zkbrain-miniprogram-starter",
+  "version": "1.0.0",
+  "description": "ZKBrain 微信小程序脑机接口极简开发样板",
+  "dependencies": {
+    "@zkteco/zkbrain-miniprogram-sdk": "^1.0.1"
+  }
+}
