@@ -50,6 +50,6 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 
-    // 方式 B (远程 Maven 发布依赖，需在 ~/.gradle/gradle.properties 配置 gpr.user 与 gpr.key)：
-    // implementation("com.zkteco.zkbrain:zkbrain-android:1.2.0")
+    // 方式 B (国际 Maven Central 官方直连，免 Token 零配置全球加速)：
+    // implementation("io.github.zkteco-xteam:zkbrain-android:1.2.0")
 }

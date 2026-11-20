@@ -17,8 +17,8 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
 
-            // 🌟 远程 Maven 依赖引入 (若配置了 GitHub Packages 凭据可取消注释)：
-            // implementation("com.zkteco.zkbrain:zkbrain-android:1.2.0")
+            // 🌟 国际 Maven Central 官方依赖直连 (免 Token 零配置全球加速)：
+            // implementation("io.github.zkteco-xteam:zkbrain-android:1.2.0")
             
             // 协程支持
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
