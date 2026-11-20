@@ -39,6 +39,17 @@ dependencies {
     // 方式 A (推荐开箱即用)：内置预编译官方 AAR，克隆即可离线编译跑通
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.aar", "*.jar"))))
 
-    // 方式 B (远程 Maven 发布依赖)：
+    // 🌟 ZKBrain 运行时必需底层依赖 (若采用本地 AAR 方式，需保留以下传递依赖)：
+    implementation("no.nordicsemi.android.kotlin.ble:scanner:1.0.1")
+    implementation("no.nordicsemi.android.kotlin.ble:client:1.0.1")
+    implementation("no.nordicsemi.android.kotlin.ble:core:1.0.1")
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    implementation("co.touchlab:kermit:2.0.4")
+    implementation("com.squareup.okio:okio:3.17.0")
+    implementation("org.korge:korlibs-crypto:6.1.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+
+    // 方式 B (远程 Maven 发布依赖，需在 ~/.gradle/gradle.properties 配置 gpr.user 与 gpr.key)：
     // implementation("com.zkteco.zkbrain:zkbrain-android:1.2.0")
 }
