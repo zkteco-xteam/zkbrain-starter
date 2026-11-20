@@ -1,75 +1,247 @@
+<!-- 🌟 1:1 完整逐项克隆 shared1 设备管理控制台 (DeviceScreen + DeviceShowTable) - 微信小程序版 -->
 <view class="container">
-  <!-- 1. 连接状态卡片 -->
-  <view class="card">
-    <view class="status-row">
-      <view class="dot {{isConnected ? 'green' : 'orange'}}"></view>
-      <text class="status-title">{{statusText}}</text>
+  <!-- 板块 1：顶部操作栏 -->
+  <view class="header-bar">
+    <text class="page-title">设备管理 (DeviceScreen)</text>
+    <view class="header-actions">
+      <button class="top-btn btn-search" bindtap="openScanModal">🔍 搜索</button>
+      <button class="top-btn btn-dfu" bindtap="handleDfuUpgrade">🚀 DFU升级</button>
+      <view class="badge-authorized">Authorized</view>
     </view>
-    <button class="btn" bindtap="toggleScan">{{isScanning ? '正在搜索...' : '搜索并连接脑电设备'}}</button>
   </view>
 
-  <!-- 2. 生理指标仪表 -->
+  <!-- 板块 2：统一设备连接状态卡片 -->
   <view class="card">
-    <view class="metric-title">实时脑波指标 (1Hz)</view>
+    <view class="status-header">
+      <view class="status-left">
+        <view class="status-dot {{isConnected ? 'dot-green' : 'dot-red'}}"></view>
+        <text class="status-text {{isConnected ? 'text-green' : 'text-red'}}">{{connectionStatusText}}</text>
+      </view>
+      <view class="battery-capsule">
+        <text class="battery-icon">🔋</text>
+        <text class="battery-val">{{batteryLevel}}%</text>
+      </view>
+    </view>
+
+    <view class="device-name">{{deviceName}}</view>
+    <view class="device-meta">MAC: {{deviceMac}}  |  SN: ZK-2026-DEV001</view>
+
+    <view class="badge-group">
+      <view class="chip-badge chip-blue">ZKBrain Core</view>
+      <view class="chip-badge chip-teal">Single-Ch (FP1)</view>
+      <view class="chip-badge chip-purple">ASCII + MEMS</view>
+    </view>
+
+    <button class="btn-primary {{isConnected ? 'btn-danger' : 'btn-connect'}}" bindtap="toggleConnect">
+      {{isConnected ? '断开设备' : '搜索连接'}}
+    </button>
+  </view>
+
+  <!-- 板块 3：Channel Settings 通道配置卡片 -->
+  <view class="card">
+    <view class="card-title">
+      <text class="card-title-icon">⚙️</text>
+      <text>Channel Settings (通道配置)</text>
+    </view>
+    <view class="channel-row">
+      <checkbox-group bindchange="onChannelChange">
+        <label class="checkbox-label">
+          <checkbox value="fp1" checked="{{isFp1Checked}}" color="#2563eb" />
+          <text>Left (FP1)</text>
+        </label>
+        <label class="checkbox-label disabled">
+          <checkbox value="fp2" disabled color="#94a3b8" />
+          <text>Right (FP2) [硬件不支持]</text>
+        </label>
+      </checkbox-group>
+    </view>
+  </view>
+
+  <!-- 板块 4：Chart Display Settings 图表显隐卡片 -->
+  <view class="card">
+    <view class="card-title">
+      <text class="card-title-icon">📈</text>
+      <text>Chart Display Settings (图表显隐配置)</text>
+    </view>
+    <view class="chart-chips-grid">
+      <view 
+        wx:for="{{chartToggles}}" 
+        wx:key="key" 
+        class="chart-chip {{item.checked ? 'chip-active' : ''}}"
+        bindtap="toggleChartItem"
+        data-key="{{item.key}}"
+      >
+        {{item.key}}
+      </view>
+    </view>
+  </view>
+
+  <!-- 板块 5：⚙️ NeuroSky / MindWave 专属 20 字节协议控制台 -->
+  <view class="card">
+    <view class="card-title">
+      <text class="card-title-icon">⚙️</text>
+      <text>NeuroSky / MindWave 专属协议控制台</text>
+    </view>
+    <view class="card-subtitle">支持 20 字节二进制点火帧、工频滤波、SN 读写与经典 MAC 探测</view>
     
-    <view class="metric-item">
-      <text>专注度 (Attention)</text>
-      <text class="metric-val text-blue">{{attention}} / 100</text>
+    <view class="btn-grid">
+      <button class="action-btn btn-green" bindtap="handleIgnition">🚀 点火(0x15/17)</button>
+      <button class="action-btn btn-red" bindtap="handleStopXmw">🛑 停止(0x16/18)</button>
+      <button class="action-btn btn-gray" bindtap="handleFilter50">50Hz滤波(0x1B)</button>
+      <button class="action-btn btn-gray" bindtap="handleFilter60">60Hz滤波(0x1C)</button>
+      <button class="action-btn btn-orange" bindtap="handleBatterySky">读电量(0x06)</button>
+      <button class="action-btn btn-orange" bindtap="handleReadSn">读SN(0xF4)</button>
+      <button class="action-btn btn-purple" bindtap="handleDetectMac">探测MAC(0xFC)</button>
     </view>
-    <progress percent="{{attention}}" stroke-width="8" activeColor="#3b82f6" backgroundColor="#334155" border-radius="4" />
 
-    <view class="metric-item" style="margin-top: 24rpx;">
-      <text>放松度 (Meditation)</text>
-      <text class="metric-val text-green">{{meditation}} / 100</text>
-    </view>
-    <progress percent="{{meditation}}" stroke-width="8" activeColor="#22c55e" backgroundColor="#334155" border-radius="4" />
-
-    <view class="signal-tag">
-      <text>电极接触状态: {{poorSignal === 0 ? '🟢 接触良好' : '🔴 接触不良或脱落'}}</text>
+    <view class="sn-input-row">
+      <input class="mini-input" value="{{writeSnInput}}" bindinput="onWriteSnInput" placeholder="输入写入序列号 SN..." />
+      <button class="btn-sn" bindtap="handleWriteSn">写入 SN (0xF2)</button>
     </view>
   </view>
 
-  <!-- 3. 脑电 8 频段功率谱能量分布 -->
+  <!-- 板块 6：🧠 ZKBrain 自研脑电设备官方控制台 -->
   <view class="card">
-    <view class="metric-title">8 频段脑电功率谱能量 (Band Powers)</view>
-    <view class="band-grid">
-      <view class="band-item"><text class="band-name text-indigo">Delta (深度睡眠):</text><text class="band-val">{{waves.delta}}</text></view>
-      <view class="band-item"><text class="band-name text-cyan">Theta (潜意识):</text><text class="band-val">{{waves.theta}}</text></view>
-      <view class="band-item"><text class="band-name text-teal">Low Alpha (闭目放松):</text><text class="band-val">{{waves.lowAlpha}}</text></view>
-      <view class="band-item"><text class="band-name text-emerald">High Alpha (静定心流):</text><text class="band-val">{{waves.highAlpha}}</text></view>
-      <view class="band-item"><text class="band-name text-amber">Low Beta (轻度专注):</text><text class="band-val">{{waves.lowBeta}}</text></view>
-      <view class="band-item"><text class="band-name text-orange">High Beta (计算紧张):</text><text class="band-val">{{waves.highBeta}}</text></view>
-      <view class="band-item"><text class="band-name text-rose">Low Gamma (认知加工):</text><text class="band-val">{{waves.lowGamma}}</text></view>
-      <view class="band-item"><text class="band-name text-pink">Mid Gamma (多感官整合):</text><text class="band-val">{{waves.middleGamma}}</text></view>
+    <view class="card-title">
+      <text class="card-title-icon">🧠</text>
+      <text>ZKBrain 自研脑电设备官方控制台</text>
+    </view>
+    <view class="card-subtitle">支持 ASCII 控制、MEMS 姿态传感、采样率切换与终端实时回显</view>
+
+    <view class="btn-grid">
+      <button class="action-btn btn-blue" bindtap="handleLicenseQuery">查询授权</button>
+      <button class="action-btn btn-blue" bindtap="handleBatteryQuery">读电量</button>
+      <button class="action-btn btn-blue" bindtap="handleVersionQuery">固件版本</button>
+      <button class="action-btn btn-green" bindtap="handleEegOn">开启脑电</button>
+      <button class="action-btn btn-red" bindtap="handleEegOff">关闭脑电</button>
+      <button class="action-btn btn-gray" bindtap="handleRate256">256Hz采样率</button>
+      <button class="action-btn btn-gray" bindtap="handleRate512">512Hz采样率</button>
+      <button class="action-btn btn-teal" bindtap="handleMemsOn">开启MEMS</button>
+      <button class="action-btn btn-gray" bindtap="handleMemsOff">关闭MEMS</button>
+      <button class="action-btn btn-purple" bindtap="handleDfuScan">DFU 扫描</button>
+    </view>
+
+    <!-- MEMS 实时姿态卡片 -->
+    <view class="mems-box">
+      <view class="mems-header">📐 实时 MEMS 空间姿态 (Euler & Quaternion)</view>
+      <view class="mems-text">Euler:  Roll: {{memsRoll}}°   Pitch: {{memsPitch}}°   Yaw: {{memsYaw}}°</view>
+      <view class="mems-text text-dim">Quat:   Q0: {{memsQ0}}  Q1: {{memsQ1}}  Q2: {{memsQ2}}  Q3: {{memsQ3}}</view>
+    </view>
+
+    <!-- 自定义指令输入行 -->
+    <view class="cmd-input-row">
+      <input class="mini-input" value="{{customCmdInput}}" bindinput="onCustomCmdInput" placeholder="自定义指令 (如 mems_on:1)" />
+      <button class="btn-send-cmd" bindtap="handleSendCustomCmd">发送指令</button>
+    </view>
+
+    <!-- 黑底终端回显监控窗口 -->
+    <view class="terminal-box">
+      <view class="terminal-header">
+        <text>终端响应监控 (Terminal Monitor):</text>
+        <text class="btn-clear" bindtap="clearLogs">清空</text>
+      </view>
+      <scroll-view scroll-y class="terminal-logs">
+        <text>{{commandLogs}}</text>
+      </scroll-view>
     </view>
   </view>
 
-  <!-- 4. 硬件指令下发与 MEMS 控制台 (遵循《硬件协议集成指南》) -->
+  <!-- 板块 7：Spectrum Data 详细数据表格 (DeviceShowTable 4x3 三色) -->
   <view class="card">
-    <view class="metric-title">🛠️ 硬件指令下发与 MEMS 控制台</view>
-    
-    <view class="sub-group-title text-cyan">1. ZKTeco (自研脑电/MEMS) ASCII 协议:</view>
-    <view class="preset-buttons">
-      <button class="sub-btn" bindtap="handleMemsOn">开启 MEMS (mems_on:1)</button>
-      <button class="sub-btn" bindtap="handleMemsOff">关闭 MEMS (mems_on:0)</button>
-      <button class="sub-btn" bindtap="handleRate512">512Hz采样率</button>
-      <button class="sub-btn" bindtap="handleBatteryZk">查电量 (battery:?)</button>
-    </view>
+    <view class="table-mac-header">Device MAC: {{deviceMac}}</view>
 
-    <view class="sub-group-title text-orange">2. Sky (NeuroSky/MindWave) XMW 二进制协议:</view>
-    <view class="preset-buttons">
-      <button class="sub-btn" bindtap="handleIgnition">点火 (0x15/0x17)</button>
-      <button class="sub-btn" bindtap="handle50Hz">50Hz工频滤波 (0x1B)</button>
-      <button class="sub-btn" bindtap="handleBatterySky">查电量 (0x06)</button>
-    </view>
+    <view class="table-container">
+      <!-- Row 1: 粉色 #FFE4E1 -->
+      <view class="table-row">
+        <view class="table-cell bg-pink">
+          <view class="cell-label">Attention</view>
+          <view class="cell-val">{{attention}}</view>
+        </view>
+        <view class="table-cell bg-pink">
+          <view class="cell-label">Meditation</view>
+          <view class="cell-val">{{meditation}}</view>
+        </view>
+        <view class="table-cell bg-pink">
+          <view class="cell-label">Quality</view>
+          <view class="cell-val">{{signalQuality}}</view>
+        </view>
+      </view>
 
-    <view class="input-row">
-      <input class="cmd-input" value="{{commandInput}}" bindinput="onCommandInput" placeholder="输入键值对 (如 mems_on:1) 或指令" />
-      <button class="send-btn" bindtap="handleSendCommand">下发</button>
+      <!-- Row 2: 粉 + 青 + 青 -->
+      <view class="table-row">
+        <view class="table-cell bg-pink">
+          <view class="cell-label">Raw EEG</view>
+          <view class="cell-val">{{rawEeg}}</view>
+        </view>
+        <view class="table-cell bg-cyan">
+          <view class="cell-label">Delta</view>
+          <view class="cell-val">{{waves.delta}}</view>
+        </view>
+        <view class="table-cell bg-cyan">
+          <view class="cell-label">Theta</view>
+          <view class="cell-val">{{waves.theta}}</view>
+        </view>
+      </view>
+
+      <!-- Row 3: 青 + 青 + 黄 -->
+      <view class="table-row">
+        <view class="table-cell bg-cyan">
+          <view class="cell-label">Low Alpha</view>
+          <view class="cell-val">{{waves.lowAlpha}}</view>
+        </view>
+        <view class="table-cell bg-cyan">
+          <view class="cell-label">High Alpha</view>
+          <view class="cell-val">{{waves.highAlpha}}</view>
+        </view>
+        <view class="table-cell bg-yellow">
+          <view class="cell-label">Low Beta</view>
+          <view class="cell-val">{{waves.lowBeta}}</view>
+        </view>
+      </view>
+
+      <!-- Row 4: 全黄 #F0E68C -->
+      <view class="table-row">
+        <view class="table-cell bg-yellow">
+          <view class="cell-label">High Beta</view>
+          <view class="cell-val">{{waves.highBeta}}</view>
+        </view>
+        <view class="table-cell bg-yellow">
+          <view class="cell-label">Low Gamma</view>
+          <view class="cell-val">{{waves.lowGamma}}</view>
+        </view>
+        <view class="table-cell bg-yellow">
+          <view class="cell-label">Mid Gamma</view>
+          <view class="cell-val">{{waves.middleGamma}}</view>
+        </view>
+      </view>
     </view>
-    <view class="log-label">指令收发终端交互日志:</view>
-    <scroll-view scroll-y class="log-box">
-      <text>{{commandLogs}}</text>
-    </scroll-view>
+  </view>
+
+  <view style="height: 48rpx;"></view>
+
+  <!-- 板块 8：蓝牙搜索连接弹窗 (BleScanModal) -->
+  <view class="modal-mask" wx:if="{{showScanModal}}" bindtap="closeScanModal">
+    <view class="modal-content" catchtap="stopBubble">
+      <view class="modal-header">
+        <text class="modal-title">🔍 搜索周围脑电设备</text>
+        <view class="modal-close" bindtap="closeScanModal">✕</view>
+      </view>
+      <view class="modal-status">{{isScanning ? '正在扫描低功耗蓝牙 (BLE) 脑电设备...' : '扫描完成'}}</view>
+
+      <scroll-view scroll-y class="device-list">
+        <view class="device-item" wx:for="{{scannedDevices}}" wx:key="mac">
+          <view class="device-info">
+            <text class="item-name">{{item.name}}</text>
+            <text class="item-mac">{{item.mac}} | RSSI: {{item.rssi}} dBm</text>
+          </view>
+          <button class="btn-item-connect" bindtap="connectScannedDevice" data-item="{{item}}">连接</button>
+        </view>
+        <view class="empty-tip" wx:if="{{scannedDevices.length === 0}}">
+          暂未发现设备，请确认设备已开机并靠近手机
+        </view>
+      </scroll-view>
+
+      <button class="btn-rescan" bindtap="startScan">{{isScanning ? '扫描中...' : '重新扫描'}}</button>
+    </view>
   </view>
 </view>
