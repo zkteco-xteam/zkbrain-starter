@@ -175,24 +175,62 @@ class DashboardScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text("🛠️ MEMS 传感器与指令下发控制台", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 12),
-                  Row(
+                  const Text("🛠️ 硬件指令下发与 MEMS 控制台", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  const Text("1. ZKTeco (自研脑电/MEMS) ASCII 协议:", style: TextStyle(color: Color(0xFF38BDF8), fontSize: 12, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
                     children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () => ble.sendCommandString("mems_enable=1;\n"),
-                          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0284C7)),
-                          child: const Text("📡 开启 MEMS", style: TextStyle(color: Colors.white, fontSize: 12)),
-                        ),
+                      ElevatedButton(
+                        onPressed: () => ble.sendConfigCommand({"mems_on": "1"}),
+                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0284C7), padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6)),
+                        child: const Text("开启 MEMS (mems_on:1)", style: TextStyle(color: Colors.white, fontSize: 11)),
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () => ble.sendCommandBytes([0x02, 0x15, 0x17], "0x15/0x17 点火包"),
-                          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEA580C)),
-                          child: const Text("🔥 点火指令", style: TextStyle(color: Colors.white, fontSize: 12)),
-                        ),
+                      ElevatedButton(
+                        onPressed: () => ble.sendConfigCommand({"mems_on": "0"}),
+                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF475569), padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6)),
+                        child: const Text("关闭 MEMS", style: TextStyle(color: Colors.white, fontSize: 11)),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => ble.sendConfigCommand({"eeg_data_rate": "512"}),
+                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0D9488), padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6)),
+                        child: const Text("512Hz采样率", style: TextStyle(color: Colors.white, fontSize: 11)),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => ble.sendConfigCommand({"battery": "?"}),
+                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF334155), padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6)),
+                        child: const Text("查电量(battery:?)", style: TextStyle(color: Colors.white, fontSize: 11)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  const Text("2. Sky (NeuroSky / MindWave) XMW 二进制协议:", style: TextStyle(color: Color(0xFFFBBF24), fontSize: 12, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () => ble.sendXmwCommand(0x15, "开启 Raw 512Hz (0x15)"),
+                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEA580C), padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6)),
+                        child: const Text("点火Raw (0x15)", style: TextStyle(color: Colors.white, fontSize: 11)),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => ble.sendXmwCommand(0x17, "开启 8 频段 (0x17)"),
+                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFD97706), padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6)),
+                        child: const Text("8频段 (0x17)", style: TextStyle(color: Colors.white, fontSize: 11)),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => ble.sendXmwCommand(0x1B, "50Hz工频滤波 (0x1B)"),
+                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF475569), padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6)),
+                        child: const Text("50Hz滤波 (0x1B)", style: TextStyle(color: Colors.white, fontSize: 11)),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => ble.sendXmwCommand(0x06, "读取静态电量 (0x06)"),
+                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF334155), padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6)),
+                        child: const Text("查电量 (0x06)", style: TextStyle(color: Colors.white, fontSize: 11)),
                       ),
                     ],
                   ),
@@ -205,7 +243,7 @@ class DashboardScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
-                      "最新指令响应: ${ble.lastCommandResponse}",
+                      "指令终端交互日志:\n${ble.lastCommandResponse}",
                       style: const TextStyle(color: Color(0xFF4ADE80), fontSize: 12, fontFamily: 'monospace'),
                     ),
                   ),

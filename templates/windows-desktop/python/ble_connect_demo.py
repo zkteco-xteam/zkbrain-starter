@@ -268,10 +268,14 @@ async def run_ble_workflow():
 
         if write_char:
             print(f"📡 发现硬件指令写通道: {write_char.uuid}")
-            # 示例：开启 MEMS 惯导流指令下发
-            # await client.write_gatt_char(write_char.uuid, b"mems_enable=1;\n")
-            # 示例：NeuroSky 点火包 [0x02, 0x15, 0x17]
-            # await client.write_gatt_char(write_char.uuid, bytearray([0x02, 0x15, 0x17]))
+            print("   [硬件协议集成指南快速调用]:")
+            print("   1. ZKTeco (自研脑电/MEMS) ASCII 协议:")
+            print("      - 开启 MEMS 惯导流: await client.write_gatt_char(write_char.uuid, b'mems_on:1;\\n')")
+            print("      - 切换 512Hz 采样率: await client.write_gatt_char(write_char.uuid, b'eeg_data_rate:512;\\n')")
+            print("      - 查询电池电量:     await client.write_gatt_char(write_char.uuid, b'battery:?\\n')")
+            print("   2. Sky (NeuroSky / MindWave) XMW 20B 二进制协议:")
+            print("      - 点火包 (0x15 Raw + 0x17 Band): await client.write_gatt_char(write_char.uuid, bytearray([0x02, 0x15, 0x17]))")
+            print("      - 50Hz 工频陷波滤波 (0x1B):       await client.write_gatt_char(write_char.uuid, bytearray([0x02, 0x1B]))")
 
         print("\n🚀 数据解调已点火！正在实时接收脑电波...")
         print("提示: 脑电算法需要约 3~5 秒滑动窗口进行初次基线校准。按 Ctrl+C 可停止采集。\n")

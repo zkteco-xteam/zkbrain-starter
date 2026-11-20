@@ -122,3 +122,39 @@ object ZKBrainCloudRecordManager {
     ): Result<CloudAnalysisResult>
 }
 ```
+
+---
+
+## 6. 硬件指令下发 API 与协议标准规范
+
+参考文档：[`ZKBrain_设备指令下发与硬件协议集成指南.md`](file:///e:/zkt_git_project/blink/project_kpm/ZKBrain_设备指令下发与硬件协议集成指南.md)
+
+### 6.1 指令发送接口
+```kotlin
+// 方式 A：下发标准配置字典 (推荐，内置 2 秒防重复拦截护盾)
+fun sendConfigCommand(config: Map<String, String>)
+
+// 方式 B：底层透传字节流 (用于下发特定 OpCode 固件包或点火包)
+fun writeCommand(address: String, command: ByteArray)
+
+// 响应监听通道
+val commandResponse: SharedFlow<String>
+```
+
+### 6.2 硬件协议划分与标准指令
+1. **ZKTeco (自研脑电/MEMS) 协议**:
+   - `mems_on:1` / `mems_on:0`: 开启 / 关闭 6 轴惯导姿态流
+   - `eeg_data_on:1` / `eeg_data_on:0`: 开启 / 关闭脑电数据流
+   - `eeg_data_rate:512` / `256` / `128`: 设置采样率档位
+   - `battery:?`: 查询电池电量百分比
+   - `version:?`: 查询硬件固件版本号
+2. **Sky (NeuroSky / MindWave / TGAM) 20B 二进制 XMW 协议**:
+   - `0x15` (`CMD_XMW_RAW_ON`): 开启 Raw 512Hz 原始波
+   - `0x16` (`CMD_XMW_RAW_OFF`): 关闭 Raw 512Hz 原始波
+   - `0x17` (`CMD_XMW_BAND_ON`): 开启 8 频段数据
+   - `0x18` (`CMD_XMW_BAND_OFF`): 关闭 8 频段数据
+   - `0x1B` (`CMD_XMW_50HZ`): 50Hz 工频陷波滤波
+   - `0x1C` (`CMD_XMW_60HZ`): 60Hz 工频陷波滤波
+   - `0x06` (`CMD_XMW_BATTERY`): 读取静态电量
+   - `0xF4` (`CMD_XMW_READ_SN`): 读取设备 SN
+

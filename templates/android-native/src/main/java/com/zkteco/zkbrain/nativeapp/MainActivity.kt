@@ -132,7 +132,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // 3. 🌟 MEMS 与指令下发逻辑
+        // 3. 🌟 硬件指令下发逻辑 (严格遵循《ZKBrain 设备指令下发与硬件协议集成指南》)
         fun sendDeviceCommand(bytes: ByteArray, desc: String) {
             val dev = ZKBrainManager.connectedDevice.value
             if (dev == null) {
@@ -141,31 +141,43 @@ class MainActivity : AppCompatActivity() {
             }
             ZKBrainManager.writeCommand(dev.address, bytes)
             Toast.makeText(this, "已发送: $desc", Toast.LENGTH_SHORT).show()
+            tvCmdLog.text = "[TX >>] $desc\n${tvCmdLog.text}"
+        }
+
+        fun sendConfig(key: String, value: String) {
+            // 采用官方推荐的 sendConfigCommand，内置 2 秒防重护盾
+            ZKBrainManager.sendConfigCommand(mapOf(key to value))
+            Toast.makeText(this, "已下发配置: $key:$value", Toast.LENGTH_SHORT).show()
+            tvCmdLog.text = "[TX >> sendConfig] $key:$value\n${tvCmdLog.text}"
         }
 
         btnMemsStream.setOnClickListener {
-            // 下发 MEMS 传感器流开启指令
-            val memsCmd = "mems_enable=1;\n".toByteArray(Charsets.UTF_8)
-            sendDeviceCommand(memsCmd, "开启 MEMS 惯导流")
+            // 1. ZKTeco 开启 MEMS 惯导流 (mems_on:1)
+            sendConfig("mems_on", "1")
         }
 
         btnIgnite.setOnClickListener {
-            // 下发 NeuroSky 标准 20 字节点火包 (0x15 Raw + 0x17 Band)
+            // 2. Sky (NeuroSky) 标准 20 字节点火包 (0x15 Raw + 0x17 Band)
             val ignitionBytes = byteArrayOf(0x02, 0x15, 0x17)
-            sendDeviceCommand(ignitionBytes, "点火指令")
+            sendDeviceCommand(ignitionBytes, "点火包 (0x15 Raw + 0x17 Band)")
         }
 
         btnSendCustom.setOnClickListener {
             val input = etCustomCmd.text.toString().trim()
             if (input.isNotEmpty()) {
-                sendDeviceCommand(input.toByteArray(Charsets.UTF_8), input)
+                if (input.contains(":")) {
+                    val parts = input.split(":", limit = 2)
+                    sendConfig(parts[0].trim(), parts[1].trim())
+                } else {
+                    sendDeviceCommand("$input\n".toByteArray(Charsets.UTF_8), input)
+                }
             }
         }
 
         // 4. 监听设备指令回包与响应
         lifecycleScope.launch {
             ZKBrainManager.commandResponse.collectLatest { resp ->
-                tvCmdLog.text = "指令回包监控 [最新]:\n$resp"
+                tvCmdLog.text = "[RX << 硬件回包] $resp\n${tvCmdLog.text}"
             }
         }
     }

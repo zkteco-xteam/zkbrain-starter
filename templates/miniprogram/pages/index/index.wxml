@@ -44,20 +44,30 @@
     </view>
   </view>
 
-  <!-- 4. MEMS 传感器与硬件指令控制台 -->
+  <!-- 4. 硬件指令下发与 MEMS 控制台 (遵循《硬件协议集成指南》) -->
   <view class="card">
-    <view class="metric-title">MEMS 传感器与硬件指令控制台</view>
+    <view class="metric-title">🛠️ 硬件指令下发与 MEMS 控制台</view>
+    
+    <view class="sub-group-title text-cyan">1. ZKTeco (自研脑电/MEMS) ASCII 协议:</view>
     <view class="preset-buttons">
-      <button class="sub-btn" bindtap="handleMemsOn">开启 MEMS 惯导流</button>
-      <button class="sub-btn" bindtap="handleMemsOff">关闭 MEMS</button>
-      <button class="sub-btn" bindtap="handleIgnition">点火包 (0x15/0x17)</button>
-      <button class="sub-btn" bindtap="handleRate512">采样率 512Hz</button>
+      <button class="sub-btn" bindtap="handleMemsOn">开启 MEMS (mems_on:1)</button>
+      <button class="sub-btn" bindtap="handleMemsOff">关闭 MEMS (mems_on:0)</button>
+      <button class="sub-btn" bindtap="handleRate512">512Hz采样率</button>
+      <button class="sub-btn" bindtap="handleBatteryZk">查电量 (battery:?)</button>
     </view>
+
+    <view class="sub-group-title text-orange">2. Sky (NeuroSky/MindWave) XMW 二进制协议:</view>
+    <view class="preset-buttons">
+      <button class="sub-btn" bindtap="handleIgnition">点火 (0x15/0x17)</button>
+      <button class="sub-btn" bindtap="handle50Hz">50Hz工频滤波 (0x1B)</button>
+      <button class="sub-btn" bindtap="handleBatterySky">查电量 (0x06)</button>
+    </view>
+
     <view class="input-row">
-      <input class="cmd-input" value="{{commandInput}}" bindinput="onCommandInput" placeholder="输入 ASCII 指令 (如 mems_enable=1;\n)" />
-      <button class="send-btn" bindtap="handleSendCommand">发送</button>
+      <input class="cmd-input" value="{{commandInput}}" bindinput="onCommandInput" placeholder="输入键值对 (如 mems_on:1) 或指令" />
+      <button class="send-btn" bindtap="handleSendCommand">下发</button>
     </view>
-    <view class="log-label">指令收发终端日志:</view>
+    <view class="log-label">指令收发终端交互日志:</view>
     <scroll-view scroll-y class="log-box">
       <text>{{commandLogs}}</text>
     </scroll-view>

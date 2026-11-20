@@ -59,5 +59,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 
     // 方式 B (国际 Maven Central 官方直连，免 Token 零配置全球加速)：
-    // implementation("io.github.zkteco-xteam:zkbrain-android:1.2.0")
+    // implementation("io.github.zkteco-xteam:zkbrain-android:1.2.1")
+    // 若使用 1.2.0 遇到 scanner-android 找不到，可配置 exclude 或直接升级到 1.2.1:
+    // implementation("io.github.zkteco-xteam:zkbrain-android:1.2.0") { exclude(group = "no.nordicsemi.android.kotlin.ble") }
 }

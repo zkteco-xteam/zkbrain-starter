@@ -20,7 +20,7 @@ Page({
       lowGamma: 0,
       middleGamma: 0
     },
-    commandInput: 'mems_enable=1;\n',
+    commandInput: 'mems_on:1',
     commandLogs: '等待下发指令...\n'
   },
 
@@ -75,7 +75,7 @@ Page({
 
   appendLog(msg: string) {
     this.setData({
-      commandLogs: this.data.commandLogs + msg + '\n'
+      commandLogs: msg + '\n' + this.data.commandLogs
     });
   },
 
@@ -83,19 +83,43 @@ Page({
     this.setData({ commandInput: e.detail.value });
   },
 
-  async sendCmd(cmd: string) {
+  async sendConfig(key: string, value: string) {
     if (!this.data.isConnected) {
-      this.appendLog(`[错误] 设备未连接，无法下发: ${cmd.trim()}`);
+      this.appendLog(`[错误] 设备未连接，无法下发: ${key}:${value}`);
       return;
     }
-    this.appendLog(`[TX >>] ${cmd.trim()}`);
+    this.appendLog(`[TX >> sendConfig] ${key}:${value}`);
+    try {
+      if (typeof (sdk as any).sendConfigCommand === 'function') {
+        await (sdk as any).sendConfigCommand({ [key]: value });
+      } else if (typeof (sdk as any).sendAsciiCommand === 'function') {
+        await (sdk as any).sendAsciiCommand(`${key}:${value};\n`);
+      }
+      this.appendLog(`[RX <<] 下发成功: ${key}:${value}`);
+    } catch (err: any) {
+      this.appendLog(`[错误] 下发异常: ${err.message}`);
+    }
+  },
+
+  async sendCmd(cmd: string) {
+    const trimmed = cmd.trim();
+    if (trimmed.includes(':')) {
+      const [k, v] = trimmed.split(':');
+      await this.sendConfig(k.trim(), v ? v.trim() : '');
+      return;
+    }
+    if (!this.data.isConnected) {
+      this.appendLog(`[错误] 设备未连接，无法下发: ${trimmed}`);
+      return;
+    }
+    this.appendLog(`[TX >>] ${trimmed}`);
     try {
       if (typeof (sdk as any).sendAsciiCommand === 'function') {
-        await (sdk as any).sendAsciiCommand(cmd);
+        await (sdk as any).sendAsciiCommand(`${trimmed};\n`);
       } else if (typeof (sdk as any).writeCommand === 'function') {
-        await (sdk as any).writeCommand(cmd);
+        await (sdk as any).writeCommand(`${trimmed};\n`);
       }
-      this.appendLog(`[RX <<] 下发成功: ${cmd.trim()}`);
+      this.appendLog(`[RX <<] 指令已送达`);
     } catch (err: any) {
       this.appendLog(`[错误] 下发异常: ${err.message}`);
     }
@@ -106,17 +130,27 @@ Page({
   },
 
   handleMemsOn() {
-    this.setData({ commandInput: 'mems_enable=1;\n' });
-    this.sendCmd('mems_enable=1;\n');
+    this.setData({ commandInput: 'mems_on:1' });
+    this.sendConfig('mems_on', '1');
   },
 
   handleMemsOff() {
-    this.setData({ commandInput: 'mems_enable=0;\n' });
-    this.sendCmd('mems_enable=0;\n');
+    this.setData({ commandInput: 'mems_on:0' });
+    this.sendConfig('mems_on', '0');
+  },
+
+  handleRate512() {
+    this.setData({ commandInput: 'eeg_data_rate:512' });
+    this.sendConfig('eeg_data_rate', '512');
+  },
+
+  handleBatteryZk() {
+    this.setData({ commandInput: 'battery:?' });
+    this.sendConfig('battery', '?');
   },
 
   handleIgnition() {
-    this.appendLog('[TX >>] 点火包: [0x02, 0x15, 0x17]');
+    this.appendLog('[TX >> XMW] 点火包 0x15(Raw) + 0x17(Band)');
     if (typeof (sdk as any).writeCommand === 'function') {
       const buf = new Uint8Array([0x02, 0x15, 0x17]).buffer;
       (sdk as any).writeCommand(buf);
@@ -124,8 +158,21 @@ Page({
     }
   },
 
-  handleRate512() {
-    this.setData({ commandInput: 'eeg_data_rate=1;\n' });
-    this.sendCmd('eeg_data_rate=1;\n');
+  handle50Hz() {
+    this.appendLog('[TX >> XMW] 0x1B (设置50Hz工频滤波)');
+    if (typeof (sdk as any).writeCommand === 'function') {
+      const buf = new Uint8Array([0x02, 0x1B]).buffer;
+      (sdk as any).writeCommand(buf);
+      this.appendLog('[RX <<] 50Hz滤波指令已下发');
+    }
+  },
+
+  handleBatterySky() {
+    this.appendLog('[TX >> XMW] 0x06 (读取静态电量)');
+    if (typeof (sdk as any).writeCommand === 'function') {
+      const buf = new Uint8Array([0x02, 0x06]).buffer;
+      (sdk as any).writeCommand(buf);
+      this.appendLog('[RX <<] 电量查询包已下发');
+    }
   }
 });

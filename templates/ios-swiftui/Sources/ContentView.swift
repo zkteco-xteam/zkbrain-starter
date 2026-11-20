@@ -24,17 +24,43 @@ class BrainMonitorViewModel: ObservableObject {
 
     @Published var scannedDevices: [ZKBrainDevice] = []
 
-    // MEMS 与硬件指令控制
-    @Published var commandInput: String = "mems_enable=1;\n"
+    // MEMS 与硬件指令控制 (遵循《硬件协议集成指南》)
+    @Published var commandInput: String = "mems_on:1"
     @Published var commandLogs: String = "等待下发硬件指令...\n"
 
+    func sendConfig(key: String, value: String) {
+        commandLogs += "[TX >> sendConfig] \(key):\(value)\n"
+        // 采用内置 2 秒防重护盾的标准配置下发
+        ZKBrainManager.shared.sendConfigCommand(config: [key: value])
+    }
+
+    func sendXmwCommand(opCode: UInt8, desc: String) {
+        guard let dev = ZKBrainManager.shared.connectedDevice.value, connectionStatus == "CONNECTED" else {
+            commandLogs += "[错误] 设备未连接，无法下发 XMW 指令\n"
+            return
+        }
+        let bytes: [UInt8] = [0x02, opCode]
+        commandLogs += "[TX >> XMW] \(desc) (0x\(String(format: "%02X", opCode)))\n"
+        let kBytes = KotlinByteArray(size: Int32(bytes.count))
+        for (i, b) in bytes.enumerated() {
+            kBytes.set(index: Int32(i), value: Int8(bitPattern: b))
+        }
+        ZKBrainManager.shared.writeCommand(address: dev.address, command: kBytes)
+    }
+
     func sendCommand(_ cmd: String) {
+        let trimmed = cmd.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.contains(":") {
+            let parts = trimmed.split(separator: ":", maxSplits: 1).map(String.init)
+            sendConfig(key: parts[0].trimmingCharacters(in: .whitespaces), value: parts.count > 1 ? parts[1].trimmingCharacters(in: .whitespaces) : "")
+            return
+        }
         guard let dev = ZKBrainManager.shared.connectedDevice.value, connectionStatus == "CONNECTED" else {
             commandLogs += "[错误] 设备未连接，无法下发指令\n"
             return
         }
-        commandLogs += "[TX >>] \(cmd.trimmingCharacters(in: .whitespacesAndNewlines))\n"
-        let bytes = Array(cmd.utf8)
+        commandLogs += "[TX >>] \(trimmed)\n"
+        let bytes = Array("\(trimmed)\n".utf8)
         let kBytes = KotlinByteArray(size: Int32(bytes.count))
         for (i, b) in bytes.enumerated() {
             kBytes.set(index: Int32(i), value: Int8(bitPattern: b))
@@ -48,7 +74,7 @@ class BrainMonitorViewModel: ObservableObject {
             return
         }
         let bytes: [UInt8] = [0x02, 0x15, 0x17]
-        commandLogs += "[TX >>] 点火包: [0x02, 0x15, 0x17]\n"
+        commandLogs += "[TX >>] 点火包: [0x15 Raw + 0x17 Band]\n"
         let kBytes = KotlinByteArray(size: Int32(bytes.count))
         for (i, b) in bytes.enumerated() {
             kBytes.set(index: Int32(i), value: Int8(bitPattern: b))
@@ -252,38 +278,64 @@ struct ContentView: View {
                     .cornerRadius(12)
 
                     // ==========================================
-                    // 4. MEMS 惯导与硬件指令下发控制台
+                    // 4. 硬件指令下发与 MEMS 控制台 (遵循《硬件协议集成指南》)
                     // ==========================================
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("MEMS 传感器与硬件指令控制台")
+                        Text("🛠️ 硬件指令下发与 MEMS 控制台")
                             .font(.headline)
 
-                        Text("预设常用指令:")
-                            .font(.caption).foregroundColor(.secondary)
+                        Text("1. ZKTeco (自研脑电/MEMS) ASCII 协议:")
+                            .font(.caption).bold().foregroundColor(.blue)
 
-                        HStack(spacing: 8) {
+                        HStack(spacing: 6) {
                             Button("开启 MEMS") {
-                                vm.sendCommand("mems_enable=1;\n")
+                                vm.sendConfig(key: "mems_on", value: "1")
                             }
                             .buttonStyle(.borderedProminent)
                             .tint(.blue)
 
                             Button("关闭 MEMS") {
-                                vm.sendCommand("mems_enable=0;\n")
+                                vm.sendConfig(key: "mems_on", value: "0")
                             }
                             .buttonStyle(.bordered)
 
-                            Button("点火包 (0x15/0x17)") {
+                            Button("512Hz采样率") {
+                                vm.sendConfig(key: "eeg_data_rate", value: "512")
+                            }
+                            .buttonStyle(.bordered)
+
+                            Button("查电量") {
+                                vm.sendConfig(key: "battery", value: "?")
+                            }
+                            .buttonStyle(.bordered)
+                        }
+
+                        Text("2. Sky (NeuroSky/MindWave) XMW 二进制协议:")
+                            .font(.caption).bold().foregroundColor(.orange)
+
+                        HStack(spacing: 6) {
+                            Button("点火(0x15/17)") {
                                 vm.sendIgnitionBytes()
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(.orange)
+
+                            Button("50Hz滤波") {
+                                vm.sendXmwCommand(opCode: 0x1B, desc: "50Hz工频滤波")
+                            }
+                            .buttonStyle(.bordered)
+
+                            Button("Sky电量(0x06)") {
+                                vm.sendXmwCommand(opCode: 0x06, desc: "读取电量")
                             }
                             .buttonStyle(.bordered)
                         }
 
                         HStack(spacing: 8) {
-                            TextField("输入硬件 ASCII 控制指令", text: $vm.commandInput)
+                            TextField("输入键值对 (如 mems_on:1) 或指令", text: $vm.commandInput)
                                 .textFieldStyle(.roundedBorder)
 
-                            Button("发送") {
+                            Button("下发") {
                                 vm.sendCommand(vm.commandInput)
                             }
                             .buttonStyle(.borderedProminent)
@@ -299,7 +351,7 @@ struct ContentView: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(8)
                         }
-                        .frame(height: 80)
+                        .frame(height: 85)
                         .background(Color.black.opacity(0.85))
                         .cornerRadius(6)
                     }

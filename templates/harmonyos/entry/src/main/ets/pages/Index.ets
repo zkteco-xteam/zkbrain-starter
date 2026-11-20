@@ -231,53 +231,97 @@ struct Index {
         .backgroundColor("#1E293B")
         .borderRadius(12)
 
-        // 5. 硬件指令下发与 MEMS 传感器交互控制台
+        // 5. 硬件指令下发与 MEMS 传感器交互控制台 (遵循官方《硬件协议集成指南》)
         Column({ space: 10 }) {
           Text("硬件指令下发与 MEMS 传感器控制台")
             .fontSize(16)
             .fontWeight(FontWeight.Bold)
             .fontColor(Color.White)
 
-          Text("预设常用指令 (一键注入):")
+          Text("1. ZKTeco (自研脑电/MEMS) ASCII 协议:")
             .fontSize(13)
-            .fontColor("#94A3B8")
+            .fontColor("#38BDF8")
 
           Flex({ wrap: FlexWrap.Wrap }) {
-            Button("开启 MEMS 惯导流")
-              .fontSize(12)
-              .backgroundColor("#334155")
-              .margin(4)
+            Button("开启 MEMS (mems_on:1)")
+              .fontSize(11)
+              .backgroundColor("#0284C7")
+              .margin(3)
               .onClick(() => {
-                this.commandInput = "mems_enable=1;\n";
-                this.sendCommand(this.commandInput);
+                this.commandInput = "mems_on:1";
+                this.sendCommand("mems_on:1");
               })
-            Button("关闭 MEMS 惯导流")
-              .fontSize(12)
-              .backgroundColor("#334155")
-              .margin(4)
+            Button("关闭 MEMS (mems_on:0)")
+              .fontSize(11)
+              .backgroundColor("#475569")
+              .margin(3)
               .onClick(() => {
-                this.commandInput = "mems_enable=0;\n";
-                this.sendCommand(this.commandInput);
+                this.commandInput = "mems_on:0";
+                this.sendCommand("mems_on:0");
               })
-            Button("点火包 (0x15, 0x17)")
-              .fontSize(12)
-              .backgroundColor("#334155")
-              .margin(4)
+            Button("512Hz采样率 (eeg_data_rate:512)")
+              .fontSize(11)
+              .backgroundColor("#0D9488")
+              .margin(3)
               .onClick(() => {
-                this.sendCommand("点火包: [0x02, 0x15, 0x17]");
+                this.commandInput = "eeg_data_rate:512";
+                this.sendCommand("eeg_data_rate:512");
               })
-            Button("切换 512Hz 采样率")
-              .fontSize(12)
+            Button("查电量 (battery:?)")
+              .fontSize(11)
               .backgroundColor("#334155")
-              .margin(4)
+              .margin(3)
               .onClick(() => {
-                this.commandInput = "eeg_data_rate=1;\n";
-                this.sendCommand(this.commandInput);
+                this.commandInput = "battery:?";
+                this.sendCommand("battery:?");
+              })
+            Button("查版本 (version:?)")
+              .fontSize(11)
+              .backgroundColor("#334155")
+              .margin(3)
+              .onClick(() => {
+                this.commandInput = "version:?";
+                this.sendCommand("version:?");
+              })
+          }
+
+          Text("2. Sky (NeuroSky / MindWave) XMW 二进制协议:")
+            .fontSize(13)
+            .fontColor("#FBBF24")
+
+          Flex({ wrap: FlexWrap.Wrap }) {
+            Button("点火Raw (0x15)")
+              .fontSize(11)
+              .backgroundColor("#EA580C")
+              .margin(3)
+              .onClick(() => {
+                this.sendCommand("XMW 0x15 (开启Raw 512Hz)");
+              })
+            Button("8频段 (0x17)")
+              .fontSize(11)
+              .backgroundColor("#D97706")
+              .margin(3)
+              .onClick(() => {
+                this.sendCommand("XMW 0x17 (开启8频段)");
+              })
+            Button("50Hz工频滤波 (0x1B)")
+              .fontSize(11)
+              .backgroundColor("#475569")
+              .margin(3)
+              .onClick(() => {
+                this.sendCommand("XMW 0x1B (设置50Hz工频滤波)");
+              })
+            Button("Sky查电量 (0x06)")
+              .fontSize(11)
+              .backgroundColor("#334155")
+              .margin(3)
+              .onClick(() => {
+                this.sendCommand("XMW 0x06 (读取静态电量)");
               })
           }
 
           Row({ space: 8 }) {
-            TextInput({ text: this.commandInput, placeholder: "输入 ASCII 硬件控制指令" })
+            TextInput({ text: this.commandInput, placeholder: "输入键值对 (如 mems_on:1) 或指令" })
               .layoutWeight(1)
               .backgroundColor("#0F172A")
               .fontColor(Color.White)
@@ -307,7 +351,7 @@ struct Index {
               .padding(8)
           }
           .width('100%')
-          .height(90)
+          .height(95)
           .backgroundColor("#0F172A")
           .borderRadius(6)
         }

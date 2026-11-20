@@ -147,6 +147,16 @@ namespace ZKBrain.Windows.Demo
                 // 自动扫描周围包含 brain, mind, eeg, tgam, zkt 关键字的设备并自动连接
                 await bleManager.StartAutoScanAndConnectAsync(timeoutSeconds: 15);
 
+                if (bleManager.CanWrite)
+                {
+                    Console.WriteLine("\n[硬件协议集成指南调用示例]:");
+                    Console.WriteLine("  1. ZKTeco 开启 MEMS 惯导流: await bleManager.SendCommandAsync(\"mems_on:1;\\n\");");
+                    Console.WriteLine("  2. ZKTeco 设置 512Hz 采样率: await bleManager.SendCommandAsync(\"eeg_data_rate:512;\\n\");");
+                    Console.WriteLine("  3. ZKTeco 查询电量百分比:   await bleManager.SendCommandAsync(\"battery:?\\n\");");
+                    Console.WriteLine("  4. Sky (NeuroSky) 点火包:    await bleManager.SendBytesAsync(new byte[] { 0x02, 0x15, 0x17 });");
+                    Console.WriteLine("  5. Sky 50Hz 工频陷波滤波:    await bleManager.SendBytesAsync(new byte[] { 0x02, 0x1B });");
+                }
+
                 Console.WriteLine("\n按回车键 (Enter) 断开并退出程序...\n");
                 Console.ReadLine();
             }

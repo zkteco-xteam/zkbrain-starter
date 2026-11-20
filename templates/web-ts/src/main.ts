@@ -92,61 +92,112 @@ function renderWave() {
 }
 requestAnimationFrame(renderWave);
 
-// 5. MEMS 惯导与硬件指令控制台
+// 5. 硬件指令下发与 MEMS 控制台 (遵循《硬件协议集成指南》)
 const cmdInput = document.getElementById('cmdInput') as HTMLInputElement;
 const sendCmdBtn = document.getElementById('sendCmdBtn')!;
 const cmdLogs = document.getElementById('cmdLogs')!;
 const btnMemsOn = document.getElementById('btnMemsOn')!;
 const btnMemsOff = document.getElementById('btnMemsOff')!;
-const btnIgnition = document.getElementById('btnIgnition')!;
 const btnRate512 = document.getElementById('btnRate512')!;
+const btnBatteryZk = document.getElementById('btnBatteryZk')!;
+const btnIgnition = document.getElementById('btnIgnition')!;
+const btn50Hz = document.getElementById('btn50Hz')!;
+const btnBatterySky = document.getElementById('btnBatterySky')!;
 
 function appendLog(msg: string) {
-  cmdLogs.innerText += msg + '\n';
-  cmdLogs.scrollTop = cmdLogs.scrollHeight;
+  cmdLogs.innerText = msg + '\n' + cmdLogs.innerText;
 }
 
-async function sendCommand(cmd: string) {
+async function sendConfig(key: string, value: string) {
   try {
-    appendLog(`[TX >>] ${cmd.trim()}`);
-    if (typeof (sdk as any).sendAsciiCommand === 'function') {
-      await (sdk as any).sendAsciiCommand(cmd);
-    } else if (typeof (sdk as any).writeCommand === 'function') {
-      await (sdk as any).writeCommand(cmd);
+    appendLog(`[TX >> sendConfig] ${key}:${value}`);
+    if (typeof (sdk as any).sendConfigCommand === 'function') {
+      await (sdk as any).sendConfigCommand({ [key]: value });
+    } else {
+      await (sdk as any).sendAsciiCommand(`${key}:${value};\n`);
     }
-    appendLog(`[RX <<] 下发成功: ${cmd.trim()}`);
+    appendLog(`[RX <<] 配置下发成功: ${key}:${value}`);
   } catch (err: any) {
     appendLog(`[错误] 下发失败: ${err.message}`);
   }
 }
 
-sendCmdBtn.addEventListener('click', () => {
+async function sendCommand(cmd: string) {
+  try {
+    const trimmed = cmd.trim();
+    if (trimmed.includes(':')) {
+      const [k, v] = trimmed.split(':');
+      await sendConfig(k.trim(), v ? v.trim() : '');
+      return;
+    }
+    appendLog(`[TX >>] ${trimmed}`);
+    if (typeof (sdk as any).sendAsciiCommand === 'function') {
+      await (sdk as any).sendAsciiCommand(trimmed + ';\n');
+    } else if (typeof (sdk as any).writeCommand === 'function') {
+      await (sdk as any).writeCommand(trimmed + ';\n');
+    }
+    appendLog(`[RX <<] 指令下发完成`);
+  } catch (err: any) {
+    appendLog(`[错误] 下发失败: ${err.message}`);
+  }
+}
+
+sendCmdBtn?.addEventListener('click', () => {
   if (cmdInput.value) sendCommand(cmdInput.value);
 });
 
-btnMemsOn.addEventListener('click', () => {
-  cmdInput.value = 'mems_enable=1;\n';
-  sendCommand('mems_enable=1;\n');
+btnMemsOn?.addEventListener('click', () => {
+  cmdInput.value = 'mems_on:1';
+  sendConfig('mems_on', '1');
 });
 
-btnMemsOff.addEventListener('click', () => {
-  cmdInput.value = 'mems_enable=0;\n';
-  sendCommand('mems_enable=0;\n');
+btnMemsOff?.addEventListener('click', () => {
+  cmdInput.value = 'mems_on:0';
+  sendConfig('mems_on', '0');
 });
 
-btnIgnition.addEventListener('click', async () => {
+btnRate512?.addEventListener('click', () => {
+  cmdInput.value = 'eeg_data_rate:512';
+  sendConfig('eeg_data_rate', '512');
+});
+
+btnBatteryZk?.addEventListener('click', () => {
+  cmdInput.value = 'battery:?';
+  sendConfig('battery', '?');
+});
+
+btnIgnition?.addEventListener('click', async () => {
   try {
-    appendLog('[TX >>] 点火包: [0x02, 0x15, 0x17]');
+    appendLog('[TX >> XMW] 点火包 0x15(Raw) + 0x17(Band)');
     if (typeof (sdk as any).writeCommand === 'function') {
       await (sdk as any).writeCommand(new Uint8Array([0x02, 0x15, 0x17]));
     }
-    appendLog('[RX <<] 点火包已下发');
+    appendLog('[RX <<] 点火包已送达物理层');
   } catch (err: any) {
     appendLog(`[错误] 点火失败: ${err.message}`);
   }
 });
 
-btnRate512.addEventListener('click', () => {
-  cmdInput.value = 'eeg_data_rate=1;\n';
-  sendCommand('eeg_data_rate=1;\n');
+btn50Hz?.addEventListener('click', async () => {
+  try {
+    appendLog('[TX >> XMW] 0x1B (设置50Hz工频滤波)');
+    if (typeof (sdk as any).writeCommand === 'function') {
+      await (sdk as any).writeCommand(new Uint8Array([0x02, 0x1B]));
+    }
+    appendLog('[RX <<] 50Hz滤波指令已下发');
+  } catch (err: any) {
+    appendLog(`[错误] 50Hz滤波失败: ${err.message}`);
+  }
+});
+
+btnBatterySky?.addEventListener('click', async () => {
+  try {
+    appendLog('[TX >> XMW] 0x06 (读取静态电量)');
+    if (typeof (sdk as any).writeCommand === 'function') {
+      await (sdk as any).writeCommand(new Uint8Array([0x02, 0x06]));
+    }
+    appendLog('[RX <<] 电量查询包已发送');
+  } catch (err: any) {
+    appendLog(`[错误] 失败: ${err.message}`);
+  }
 });

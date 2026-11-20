@@ -35,15 +35,22 @@
 
 ---
 
-## 3. MEMS 传感器与硬件指令控制协议
-- **通用下发 API**:
-  - Android/Kotlin: `ZKBrainManager.writeCommand(address: String, command: ByteArray)`
-  - Web/小程序: `sdk.sendAsciiCommand(command: String)` 或 `sdk.writeCommand(command)`
-- **常用预设指令**:
-  1. `mems_enable=1;\n`：开启 6 轴/9 轴 MEMS 姿态惯导数据流。
-  2. `mems_enable=0;\n`：关闭 MEMS 惯导流以节省功耗。
-  3. `[0x02, 0x15, 0x17]`：NeuroSky 芯片二进制点火包 (开启 Raw 512Hz 及 Band 能量)。
-  4. `eeg_data_rate=1;\n`：切换 512Hz 脑电高速采样率。
+## 3. MEMS 传感器与硬件指令控制协议 (参考《ZKBrain 设备指令下发与硬件协议集成指南》)
+- **推荐下发 API**:
+  - Android/KMP: `ZKBrainManager.sendConfigCommand(config: Map<String, String>)` (强烈推荐，内置 2 秒防重护盾) 或 `ZKBrainManager.writeCommand(address, bytes)`
+  - Web/小程序: `sdk.sendConfigCommand(config)` / `sdk.sendAsciiCommand(cmd)` / `sdk.writeCommand(bytes)`
+- **两大设备族核心指令清单**:
+  1. **ZKTeco (自研脑电/MEMS) 协议 (键值对格式)**:
+     - `mems_on:1` / `mems_on:0`: 开启 / 关闭 6 轴惯导姿态流
+     - `eeg_data_rate:512` / `256` / `128`: 设置采样率档位
+     - `eeg_data_on:1` / `0`: 开启 / 关闭脑电数据流
+     - `battery:?`: 读取电池电量百分比
+     - `version:?`: 读取硬件固件版本号
+  2. **Sky (NeuroSky / MindWave 系列) 二进制 XMW 协议**:
+     - `0x15`: 点火开启 512Hz 原始脑电波形数据流 (`CMD_XMW_RAW_ON`)
+     - `0x17`: 点火开启 1Hz 8 频段绝对能量谱 (`CMD_XMW_BAND_ON`)
+     - `0x1B`: 设置 50Hz 工频陷波滤波 (`CMD_XMW_50HZ`)
+     - `0x06`: 读取静态电池电量 (`CMD_XMW_BATTERY`)
 - **回包与姿态监听**:
   - `ZKBrainManager.commandResponse`: 监听硬件响应字符串。
   - `ZKBrainManager.quaternionData`: 监听空间姿态四元数 (`q0, q1, q2, q3`)。

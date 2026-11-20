@@ -87,17 +87,44 @@ class ZKBrainBleService extends ChangeNotifier {
     }
   }
 
-  /// 🌟 下发 MEMS 控制或自定义硬件命令
+  /// 🌟 下发 ZKTeco (自研脑电系列) 键值对配置指令 (如 mems_on:1, eeg_data_rate:512)
+  Future<void> sendConfigCommand(Map<String, String> config) async {
+    for (final entry in config.entries) {
+      final cmd = "${entry.key}:${entry.value};\n";
+      await sendCommandString(cmd, "ZKTeco配置: ${entry.key}:${entry.value}");
+    }
+  }
+
+  /// 🌟 下发 Sky (NeuroSky / MindWave 系列) 20 字节二进制 XMW 指令
+  Future<void> sendXmwCommand(int opCode, [String desc = ""]) async {
+    // 构造标准 20 字节 XMW 指令帧: 0x77, dlen=2, opCode, padding..., checksum
+    final packet = List<int>.filled(20, 0);
+    packet[0] = 0x77;
+    packet[1] = 0x02; // dlen
+    packet[2] = opCode & 0xFF;
+    int sum = 0;
+    for (int i = 1; i <= 18; i++) {
+      sum += packet[i];
+    }
+    packet[19] = (sum ^ 0xFF) & 0xFF; // 取反校验和
+
+    await sendCommandBytes(packet, desc.isNotEmpty ? desc : "XMW OpCode 0x${opCode.toRadixString(16).toUpperCase()}");
+  }
+
+  /// 🌟 下发通用字节流或自定义硬件指令
   Future<void> sendCommandBytes(List<int> bytes, [String desc = ""]) async {
     if (_writeCharacteristic != null) {
       await _writeCharacteristic!.write(bytes, withoutResponse: false);
-      lastCommandResponse = "已发送: ${desc.isNotEmpty ? desc : bytes.toString()}";
+      lastCommandResponse = "[TX >>] ${desc.isNotEmpty ? desc : bytes.toString()}";
+      notifyListeners();
+    } else {
+      lastCommandResponse = "[未连接] 无法发送: $desc";
       notifyListeners();
     }
   }
 
-  Future<void> sendCommandString(String text) async {
-    await sendCommandBytes(text.codeUnits, text);
+  Future<void> sendCommandString(String text, [String desc = ""]) async {
+    await sendCommandBytes(text.codeUnits, desc.isNotEmpty ? desc : text.trim());
   }
 
   Future<void> disconnect() async {

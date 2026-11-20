@@ -227,14 +227,14 @@ fun DashboardScreen() {
                 }
             }
 
-            // 5. 🌟 MEMS 传感器与硬件指令控制台 (命令下发与回包监听模板)
-            var customCommandText by remember { mutableStateOf("mems_enable=1;") }
-            var commandLog by remember { mutableStateOf("暂无指令回包") }
+            // 5. 🌟 硬件指令下发控制台 (严格遵循《ZKBrain 设备指令下发与硬件协议集成指南》)
+            var customCommandText by remember { mutableStateOf("mems_on:1") }
+            var commandLog by remember { mutableStateOf("等待指令下发或硬件回包...\n") }
             val connectedDevice by ZKBrainManager.connectedDevice.collectAsState()
 
             LaunchedEffect(Unit) {
                 ZKBrainManager.commandResponse.collectLatest { resp ->
-                    commandLog = resp
+                    commandLog = "[RX << 硬件响应] $resp\n$commandLog"
                 }
             }
 
@@ -244,34 +244,110 @@ fun DashboardScreen() {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text("🛠️ MEMS 传感器与指令下发控制台", color = Color.White, fontSize = 16.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                    Text(
+                        "🛠️ 硬件指令下发与 MEMS 控制台",
+                        color = Color.White,
+                        fontSize = 16.sp,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                    )
 
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    // 1. ZKTeco 自研系列键值对指令 (推荐 sendConfigCommand，享 2 秒防重护盾)
+                    Text("1. ZKTeco (自研脑电/MEMS) ASCII 协议:", color = Color(0xFF38BDF8), fontSize = 13.sp)
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
                         Button(
                             onClick = {
-                                connectedDevice?.let { dev ->
-                                    ZKBrainManager.writeCommand(dev.address, "mems_enable=1;\n".toByteArray())
-                                }
+                                ZKBrainManager.sendConfigCommand(mapOf("mems_on" to "1"))
+                                commandLog = "[TX >>] mems_on:1 (开启6轴惯导流)\n$commandLog"
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0284C7)),
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp)
                         ) {
-                            Text("📡 开启 MEMS", fontSize = 12.sp)
+                            Text("开启 MEMS", fontSize = 11.sp)
                         }
-
                         Button(
                             onClick = {
-                                connectedDevice?.let { dev ->
-                                    ZKBrainManager.writeCommand(dev.address, byteArrayOf(0x02, 0x15, 0x17))
-                                }
+                                ZKBrainManager.sendConfigCommand(mapOf("mems_on" to "0"))
+                                commandLog = "[TX >>] mems_on:0 (关闭MEMS)\n$commandLog"
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEA580C)),
-                            modifier = Modifier.weight(1f)
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF475569)),
+                            modifier = Modifier.weight(1f),
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp)
                         ) {
-                            Text("🔥 下发点火包", fontSize = 12.sp)
+                            Text("关闭 MEMS", fontSize = 11.sp)
+                        }
+                        Button(
+                            onClick = {
+                                ZKBrainManager.sendConfigCommand(mapOf("eeg_data_rate" to "512"))
+                                commandLog = "[TX >>] eeg_data_rate:512 (设512Hz)\n$commandLog"
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0D9488)),
+                            modifier = Modifier.weight(1f),
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp)
+                        ) {
+                            Text("512Hz采样率", fontSize = 11.sp)
+                        }
+                        Button(
+                            onClick = {
+                                ZKBrainManager.sendConfigCommand(mapOf("battery" to "?"))
+                                commandLog = "[TX >>] battery:? (查询电量)\n$commandLog"
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF334155)),
+                            modifier = Modifier.weight(1f),
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp)
+                        ) {
+                            Text("查电量", fontSize = 11.sp)
                         }
                     }
 
+                    // 2. Sky (NeuroSky / MindWave) 二进制 XMW 协议指令
+                    Text("2. Sky (NeuroSky/MindWave) XMW 二进制协议:", color = Color(0xFFFBBF24), fontSize = 13.sp)
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
+                        Button(
+                            onClick = {
+                                connectedDevice?.let { dev ->
+                                    // 0x15: CMD_XMW_RAW_ON, 0x17: CMD_XMW_BAND_ON
+                                    ZKBrainManager.writeCommand(dev.address, byteArrayOf(0x02, 0x15, 0x17))
+                                    commandLog = "[TX >>] 点火包 0x15(Raw) + 0x17(Band)\n$commandLog"
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEA580C)),
+                            modifier = Modifier.weight(1f),
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp)
+                        ) {
+                            Text("点火 (0x15/17)", fontSize = 11.sp)
+                        }
+                        Button(
+                            onClick = {
+                                connectedDevice?.let { dev ->
+                                    // 0x1B: CMD_XMW_50HZ (50Hz工频滤波)
+                                    ZKBrainManager.writeCommand(dev.address, byteArrayOf(0x02, 0x1B))
+                                    commandLog = "[TX >>] 0x1B (设置50Hz工频滤波)\n$commandLog"
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF475569)),
+                            modifier = Modifier.weight(1f),
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp)
+                        ) {
+                            Text("50Hz滤波", fontSize = 11.sp)
+                        }
+                        Button(
+                            onClick = {
+                                connectedDevice?.let { dev ->
+                                    // 0x06: CMD_XMW_BATTERY
+                                    ZKBrainManager.writeCommand(dev.address, byteArrayOf(0x02, 0x06))
+                                    commandLog = "[TX >>] 0x06 (读取静态电量)\n$commandLog"
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF334155)),
+                            modifier = Modifier.weight(1f),
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp)
+                        ) {
+                            Text("Sky电量", fontSize = 11.sp)
+                        }
+                    }
+
+                    // 3. 自定义指令输入下发
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
@@ -280,7 +356,7 @@ fun DashboardScreen() {
                         OutlinedTextField(
                             value = customCommandText,
                             onValueChange = { customCommandText = it },
-                            label = { Text("自定义命令 (ASCII/HEX)") },
+                            label = { Text("输入键值对(key:value)或HEX/文本") },
                             modifier = Modifier.weight(1f),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedTextColor = Color.White,
@@ -291,26 +367,40 @@ fun DashboardScreen() {
                         )
                         Button(
                             onClick = {
-                                connectedDevice?.let { dev ->
-                                    if (customCommandText.isNotBlank()) {
-                                        ZKBrainManager.writeCommand(dev.address, customCommandText.toByteArray())
+                                val trimmed = customCommandText.trim()
+                                if (trimmed.contains(":")) {
+                                    val parts = trimmed.split(":", limit = 2)
+                                    ZKBrainManager.sendConfigCommand(mapOf(parts[0].trim() to parts[1].trim()))
+                                    commandLog = "[TX >> sendConfigCommand] $trimmed\n$commandLog"
+                                } else {
+                                    connectedDevice?.let { dev ->
+                                        ZKBrainManager.writeCommand(dev.address, "$trimmed\n".toByteArray())
+                                        commandLog = "[TX >> writeCommand] $trimmed\n$commandLog"
                                     }
                                 }
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2563EB))
                         ) {
-                            Text("发送")
+                            Text("下发", fontSize = 13.sp)
                         }
                     }
 
-                    Text("最新回包响应:", color = Color(0xFF94A3B8), fontSize = 12.sp)
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Color(0xFF0F172A), RoundedCornerShape(6.dp))
-                            .padding(10.dp)
+                    Text("指令终端交互日志:", color = Color(0xFF94A3B8), fontSize = 12.sp)
+                    Card(
+                        shape = RoundedCornerShape(6.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF0F172A)),
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(commandLog, color = Color(0xFF4ADE80), fontSize = 12.sp, fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace)
+                        Text(
+                            text = commandLog,
+                            color = Color(0xFFA7F3D0),
+                            fontSize = 11.sp,
+                            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(95.dp)
+                                .padding(8.dp)
+                        )
                     }
                 }
             }
