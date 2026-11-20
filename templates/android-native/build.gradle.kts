@@ -25,6 +25,14 @@ android {
     }
     kotlinOptions {
         jvmTarget = "17"
+        freeCompilerArgs += listOf("-Xskip-metadata-version-check")
+    }
+
+    packaging {
+        jniLibs {
+            // 保留 AAR 原生 .so 符号，避免外部未安装 NDK 的开发者触发 stripDebugDebugSymbols 报错
+            keepDebugSymbols += listOf("**/*.so")
+        }
     }
 }
 

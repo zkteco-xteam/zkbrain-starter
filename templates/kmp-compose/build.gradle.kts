@@ -6,8 +6,16 @@ plugins {
 }
 
 kotlin {
-    androidTarget()
-    jvm("desktop")
+    androidTarget {
+        compilerOptions {
+            freeCompilerArgs.add("-Xskip-metadata-version-check")
+        }
+    }
+    jvm("desktop") {
+        compilerOptions {
+            freeCompilerArgs.add("-Xskip-metadata-version-check")
+        }
+    }
 
     sourceSets {
         commonMain.dependencies {
@@ -42,5 +50,11 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0.0"
+    }
+
+    packaging {
+        jniLibs {
+            keepDebugSymbols += listOf("**/*.so")
+        }
     }
 }
