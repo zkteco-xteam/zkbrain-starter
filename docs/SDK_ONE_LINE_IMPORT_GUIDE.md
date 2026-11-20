@@ -77,8 +77,11 @@ repositories {
 
 ```kotlin
 dependencies {
-    // 🌟 一行代码搞定（KMP 项目或纯 Android 项目通用）
-    implementation("com.zkteco.zkbrain:core:1.2.0")
+    // 🌟 一行代码搞定 (Android 官方发布包)
+    implementation("com.zkteco.zkbrain:zkbrain-android:1.2.0")
+    
+    // 或离线使用：
+    // implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.aar"))))
 }
 ```
 

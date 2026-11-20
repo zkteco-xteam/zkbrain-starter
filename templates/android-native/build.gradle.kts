@@ -35,6 +35,10 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.6")
 
-    // 🌟 一行代码直接引入 ZKBrain 官方 Android SDK
-    implementation("com.zkteco.zkbrain:core:1.2.0")
+    // 🌟 核心依赖 (双轨支持)：
+    // 方式 A (推荐开箱即用)：内置预编译官方 AAR，克隆即可离线编译跑通
+    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.aar", "*.jar"))))
+
+    // 方式 B (远程 Maven 发布依赖)：
+    // implementation("com.zkteco.zkbrain:zkbrain-android:1.2.0")
 }

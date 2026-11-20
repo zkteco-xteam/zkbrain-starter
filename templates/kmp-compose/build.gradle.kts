@@ -17,8 +17,8 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
 
-            // 🌟 核心：一行代码引入 ZKBrain KMP 跨平台 SDK
-            implementation("com.zkteco.zkbrain:core:1.2.0")
+            // 🌟 核心：一行代码引入 ZKBrain KMP 跨平台 SDK (支持本地兜底与远程 Maven)
+            implementation("com.zkteco.zkbrain:zkbrain-android:1.2.0")
             
             // 协程支持
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
@@ -26,6 +26,8 @@ kotlin {
         
         androidMain.dependencies {
             implementation("androidx.activity:activity-compose:1.9.2")
+            // 离线预编译 AAR 兜底 (Clone 后零配置直接跑通)
+            implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.aar"))))
         }
     }
 }
