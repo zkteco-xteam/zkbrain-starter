@@ -1,4 +1,4 @@
-/// 🌟 脑电 8 频段绝对功率数据实体
+/// EEG 8-band absolute power data model
 class BrainWaves {
   final int delta;
   final int theta;
@@ -21,11 +21,11 @@ class BrainWaves {
   });
 }
 
-/// 🌟 ZKBrain 综合脑电指标数据实体 (1Hz)
+/// ZKBrain 1Hz cognitive metrics data model
 class BrainData {
-  final int attention;       // 专注度 (0-100)
-  final int meditation;      // 放松度 (0-100)
-  final int signalQuality;   // 接触质量 (0: 良好, 200: 脱落)
+  final int attention;       // Attention index (0-100)
+  final int meditation;      // Meditation index (0-100)
+  final int signalQuality;   // Electrode contact quality (0: Good, 200: Poor/Off)
   final BrainWaves waves;
 
   const BrainData({
@@ -35,19 +35,19 @@ class BrainData {
     this.waves = const BrainWaves(),
   });
 
-  /// 计算疲劳指数 (基于 Theta / (Alpha + Beta) 比值模型)
+  /// Calculate fatigue index based on Theta / (Alpha + Beta) ratio model
   int get fatigueIndex {
     final active = (waves.lowBeta + waves.highBeta + waves.lowAlpha).clamp(1, 9999999);
     final ratio = ((waves.theta / active) * 80).toInt();
     return ratio.clamp(0, 100);
   }
 
-  /// 计算心流状态描述
+  /// Evaluate cognitive flow state
   String get flowState {
-    if (attention >= 75 && meditation >= 60) return "✨ 深度心流 (Deep Flow)";
-    if (attention >= 65) return "🎯 高度专注 (Focused)";
-    if (meditation >= 70) return "🧘 放松冥想 (Meditation)";
-    if (fatigueIndex >= 65) return "💤 疲劳预警 (Fatigued)";
-    return "平静日常 (Normal)";
+    if (attention >= 75 && meditation >= 60) return "Deep Flow";
+    if (attention >= 65) return "Focused";
+    if (meditation >= 70) return "Meditation";
+    if (fatigueIndex >= 65) return "Fatigued";
+    return "Normal";
   }
 }

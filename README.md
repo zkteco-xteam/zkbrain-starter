@@ -1,5 +1,7 @@
 # ZKBrain Starter Kit (AI-Ready 脑机应用开发脚手架)
 
+[English](README_EN.md) | [中文](README.md)
+
 > 🚀 **官方开源脚手架** | 面向二次开发者与 AI 编程助手（Cursor, Antigravity, Windsurf, Copilot）的跨平台脑机接口 (BCI) 开箱即用全栈模板。
 
 本项目是 **ZKBrain 跨平台脑机接口 SDK** 的官方公开脚手架，全面覆盖 **14 大主流开发平台与生态**（涵盖移动原生、全网跨端、轻应用、专业桌面、Unity 游戏/XR、Python 科研算法与树莓派工业边缘计算），统一采用 **1:1 官方 `DeviceScreen + DeviceShowTable` 标准 UI 视觉**，并深度整合了 **AI 上下文工程（Skill + llms.txt + Cursorrules + 中国主流 AI 开发工具规范）**。

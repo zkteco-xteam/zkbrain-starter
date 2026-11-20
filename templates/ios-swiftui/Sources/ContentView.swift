@@ -2,20 +2,20 @@ import SwiftUI
 import CoreBluetooth
 import zkbrain_parser
 
-/// 🌟 1:1 完整逐项克隆 shared1 设备管理控制台 (DeviceScreen + DeviceShowTable) - iOS SwiftUI 原生版
-/// 技术支持：熵基科技脑机事业部 (ZKTeco Brain-Computer Interface Division)
+/// 1:1 DeviceScreen & DeviceShowTable Clone - iOS SwiftUI Edition
+/// Technical Support: ZKTeco Brain-Computer Interface Division
 
 @MainActor
 class BrainMonitorViewModel: ObservableObject {
     @Published var connectionStatus: String = "DISCONNECTED"
-    @Published var connectedName: String = "未连接脑电设备"
+    @Published var connectedName: String = "Disconnected Device"
     @Published var connectedMac: String = "00:00:00:00:00:00"
     @Published var batteryLevel: Int = 85
     @Published var showBluetoothPermissionAlert: Bool = false
     @Published var showScanSheet: Bool = false
     @Published var isScanning: Bool = false
 
-    // 12 项生理与硬件指标
+    // 12 cognitive & hardware metrics
     @Published var attention: Int32 = 75
     @Published var meditation: Int32 = 68
     @Published var signalQuality: Int32 = 0
@@ -29,7 +29,7 @@ class BrainMonitorViewModel: ObservableObject {
     @Published var lowGamma: Int32 = 4800
     @Published var midGamma: Int32 = 2200
 
-    // MEMS 姿态传感与欧拉角
+    // MEMS motion posture
     @Published var memsRoll: Double = 1.2
     @Published var memsPitch: Double = -0.5
     @Published var memsYaw: Double = 14.8
@@ -38,7 +38,7 @@ class BrainMonitorViewModel: ObservableObject {
     @Published var memsQ2: Double = -0.004
     @Published var memsQ3: Double = 0.129
 
-    // 通道与图表显隐配置
+    // Channel & Chart Display Toggles
     @Published var isFp1Visible: Bool = true
     @Published var isFp2Visible: Bool = false
     @Published var chartToggles: [String: Bool] = [
@@ -59,7 +59,7 @@ class BrainMonitorViewModel: ObservableObject {
     @Published var scannedDevices: [ZKBrainDevice] = []
     @Published var commandInput: String = ""
     @Published var writeSnInput: String = ""
-    @Published var commandLogs: String = "[系统启动] ZKBrain iOS SwiftUI 控制台初始化就绪\n"
+    @Published var commandLogs: String = "[System] ZKBrain iOS SwiftUI console initialized successfully.\n"
 
     func addLog(_ text: String) {
         commandLogs += "\(text)\n"
@@ -72,7 +72,7 @@ class BrainMonitorViewModel: ObservableObject {
 
     func sendXmwCommand(opCode: UInt8, desc: String) {
         guard let dev = ZKBrainManager.shared.connectedDevice.value, connectionStatus == "CONNECTED" else {
-            addLog("[TX >> XMW 模拟] \(desc) (0x\(String(format: "%02X", opCode)))")
+            addLog("[TX >> XMW Simulated] \(desc) (0x\(String(format: "%02X", opCode)))")
             return
         }
         let bytes: [UInt8] = [0x02, opCode]
@@ -103,7 +103,7 @@ class BrainMonitorViewModel: ObservableObject {
     }
 
     func sendIgnitionBytes() {
-        addLog("[TX >> XMW] 下发点火包: 0x15 (Raw) + 0x17 (Band)")
+        addLog("[TX >> XMW] Ignition command sent: 0x15 (Raw) + 0x17 (Band)")
         guard let dev = ZKBrainManager.shared.connectedDevice.value, connectionStatus == "CONNECTED" else { return }
         let bytes: [UInt8] = [0x02, 0x15, 0x17]
         let kBytes = KotlinByteArray(size: Int32(bytes.count))
@@ -117,7 +117,7 @@ class BrainMonitorViewModel: ObservableObject {
         let auth = CBManager.authorization
         if auth == .denied || auth == .restricted {
             showBluetoothPermissionAlert = true
-            addLog("[权限拦截] iOS 系统蓝牙权限已被拒绝，请在系统设置中开启")
+            addLog("[Permission] iOS Bluetooth permission denied. Please enable in Settings.")
             return
         }
         showScanSheet = true
@@ -133,13 +133,13 @@ class BrainMonitorViewModel: ObservableObject {
         connectedName = device.name ?? "ZKBrain Device"
         connectedMac = device.address
         connectionStatus = "CONNECTED"
-        addLog("[BLE] 成功发起连接: \(connectedName) (\(connectedMac))")
+        addLog("[BLE] Connected successfully to device: \(connectedName) (\(connectedMac))")
     }
 
     func disconnect() {
         ZKBrainManager.shared.disconnect()
         connectionStatus = "DISCONNECTED"
-        addLog("[BLE] 用户主动断开设备连接")
+        addLog("[BLE] Device disconnected by user.")
     }
 
     func startListeningData() {
@@ -168,7 +168,7 @@ class BrainMonitorViewModel: ObservableObject {
         Task {
             for await dev in ZKBrainManager.shared.connectedDevice {
                 if let dev = dev {
-                    self.connectedName = dev.name ?? "已配对设备"
+                    self.connectedName = dev.name ?? "Paired Device"
                     self.connectedMac = dev.address
                 }
             }
@@ -195,34 +195,11 @@ struct ContentView: View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 12) {
-                    // ==========================================
-                    // 板块 2：统一设备连接状态卡片
-                    // ==========================================
                     DeviceStatusCard(vm: vm)
-
-                    // ==========================================
-                    // 板块 3：Channel Settings 通道配置卡片
-                    // ==========================================
                     ChannelSettingsCard(vm: vm)
-
-                    // ==========================================
-                    // 板块 4：Chart Display Settings 图表显隐卡片
-                    // ==========================================
                     ChartDisplaySettingsCard(vm: vm)
-
-                    // ==========================================
-                    // 板块 5：⚙️ NeuroSky / MindWave 专属 20 字节协议控制台
-                    // ==========================================
                     NeuroSkyConsoleCard(vm: vm)
-
-                    // ==========================================
-                    // 板块 6：🧠 ZKBrain 自研脑电设备官方控制台
-                    // ==========================================
                     ZKBrainConsoleCard(vm: vm)
-
-                    // ==========================================
-                    // 板块 7：Spectrum Data 详细数据表格 (DeviceShowTable 4x3 三色)
-                    // ==========================================
                     DeviceShowTable(vm: vm)
 
                     Spacer().frame(height: 20)
@@ -231,18 +208,18 @@ struct ContentView: View {
                 .padding(.top, 8)
             }
             .background(Color(UIColor.systemGroupedBackground))
-            .navigationTitle("设备管理 (DeviceScreen)")
+            .navigationTitle("Device Management")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
                     Button(action: { vm.toggleScan() }) {
                         HStack(spacing: 4) {
                             Image(systemName: "magnifyingglass")
-                            Text("搜索").font(.caption)
+                            Text("Search").font(.caption)
                         }
                     }
                     Button(action: {
-                        vm.addLog("[DFU] 固件 OTA 检测：当前已处于最新稳定版 v2.4.0")
+                        vm.addLog("[DFU] OTA firmware check: already on latest stable release v2.4.0")
                     }) {
                         HStack(spacing: 4) {
                             Image(systemName: "arrow.triangle.2.circlepath")
@@ -264,23 +241,20 @@ struct ContentView: View {
             .sheet(isPresented: $vm.showScanSheet) {
                 BleScanSheet(vm: vm)
             }
-            .alert("需要蓝牙访问权限", isPresented: $vm.showBluetoothPermissionAlert) {
-                Button("前往设置") {
+            .alert("Bluetooth Permission Required", isPresented: $vm.showBluetoothPermissionAlert) {
+                Button("Settings") {
                     if let url = URL(string: UIApplication.openSettingsURLString) {
                         UIApplication.shared.open(url)
                     }
                 }
-                Button("取消", role: .cancel) {}
+                Button("Cancel", role: .cancel) {}
             } message: {
-                Text("请在系统设置中允许本应用访问蓝牙，以便扫描并连接 ZKBrain 脑电设备。")
+                Text("Please allow Bluetooth access in iOS Settings to scan and connect ZKBrain BCI devices.")
             }
         }
     }
 }
 
-// ==========================================
-// 板块 2：统一设备连接状态卡片
-// ==========================================
 struct DeviceStatusCard: View {
     @ObservedObject var vm: BrainMonitorViewModel
 
@@ -294,7 +268,7 @@ struct DeviceStatusCard: View {
                 Circle()
                     .fill(isConnected ? Color.green : (vm.connectionStatus == "CONNECTING" ? Color.orange : Color.red))
                     .frame(width: 10, height: 10)
-                Text(isConnected ? "已就绪 (READY)" : (vm.connectionStatus == "CONNECTING" ? "连接中 (CONNECTING)" : "未连接 (DISCONNECTED)"))
+                Text(isConnected ? "READY" : (vm.connectionStatus == "CONNECTING" ? "CONNECTING" : "DISCONNECTED"))
                     .font(.subheadline).bold()
                     .foregroundColor(isConnected ? .green : .secondary)
 
@@ -336,7 +310,7 @@ struct DeviceStatusCard: View {
                 HStack {
                     Spacer()
                     Image(systemName: isConnected ? "link.badge.plus" : "magnifyingglass")
-                    Text(isConnected ? "断开设备" : "搜索连接")
+                    Text(isConnected ? "Disconnect" : "Scan & Connect")
                         .font(.subheadline).bold()
                     Spacer()
                 }
@@ -368,9 +342,6 @@ struct BadgeView: View {
     }
 }
 
-// ==========================================
-// 板块 3：Channel Settings 通道配置卡片
-// ==========================================
 struct ChannelSettingsCard: View {
     @ObservedObject var vm: BrainMonitorViewModel
 
@@ -379,7 +350,7 @@ struct ChannelSettingsCard: View {
             HStack(spacing: 6) {
                 Image(systemName: "slider.horizontal.3")
                     .foregroundColor(.secondary)
-                Text("Channel Settings (通道配置)")
+                Text("Channel Settings")
                     .font(.subheadline).bold()
             }
 
@@ -390,7 +361,7 @@ struct ChannelSettingsCard: View {
                 .toggleStyle(CheckboxToggleStyle())
 
                 Toggle(isOn: $vm.isFp2Visible) {
-                    Text("Right (FP2) [硬件不支持]").font(.caption).foregroundColor(.secondary)
+                    Text("Right (FP2) [Unsupported]").font(.caption).foregroundColor(.secondary)
                 }
                 .toggleStyle(CheckboxToggleStyle())
                 .disabled(true)
@@ -414,9 +385,6 @@ struct CheckboxToggleStyle: ToggleStyle {
     }
 }
 
-// ==========================================
-// 板块 4：Chart Display Settings 图表显隐卡片
-// ==========================================
 struct ChartDisplaySettingsCard: View {
     @ObservedObject var vm: BrainMonitorViewModel
 
@@ -431,7 +399,7 @@ struct ChartDisplaySettingsCard: View {
             HStack(spacing: 6) {
                 Image(systemName: "chart.xyaxis.line")
                     .foregroundColor(.secondary)
-                Text("Chart Display Settings (图表显隐配置)")
+                Text("Chart Display Settings")
                     .font(.subheadline).bold()
             }
 
@@ -440,7 +408,7 @@ struct ChartDisplaySettingsCard: View {
                     let isChecked = vm.chartToggles[title] ?? true
                     Button(action: {
                         vm.chartToggles[title] = !isChecked
-                        vm.addLog("[图表配置] \(title): \(!isChecked)")
+                        vm.addLog("[Chart] Toggle display for \(title): \(!isChecked)")
                     }) {
                         Text(title)
                             .font(.system(size: 11, weight: .medium))
@@ -462,9 +430,6 @@ struct ChartDisplaySettingsCard: View {
     }
 }
 
-// ==========================================
-// 板块 5：⚙️ NeuroSky / MindWave 专属 20 字节协议控制台
-// ==========================================
 struct NeuroSkyConsoleCard: View {
     @ObservedObject var vm: BrainMonitorViewModel
 
@@ -472,45 +437,45 @@ struct NeuroSkyConsoleCard: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 6) {
                 Text("⚙️")
-                Text("NeuroSky / MindWave 专属协议控制台")
+                Text("NeuroSky / MindWave Protocol Console")
                     .font(.subheadline).bold()
             }
-            Text("支持 20 字节二进制点火帧、工频滤波、SN 读写与经典 MAC 探测")
+            Text("Supports 20-byte binary ignition frame, notch filter, SN read/write and classic MAC probing")
                 .font(.caption2).foregroundColor(.secondary)
 
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 105))], spacing: 6) {
-                ActionBtn(label: "🚀 点火(0x15/17)", color: .green) {
+                ActionBtn(label: "🚀 Ignition (0x15/17)", color: .green) {
                     vm.sendIgnitionBytes()
                 }
-                ActionBtn(label: "🛑 停止(0x16/18)", color: .red) {
-                    vm.sendXmwCommand(opCode: 0x16, desc: "停止传输")
+                ActionBtn(label: "🛑 Stop (0x16/18)", color: .red) {
+                    vm.sendXmwCommand(opCode: 0x16, desc: "Stop Transmission")
                 }
-                ActionBtn(label: "50Hz滤波(0x1B)", color: .gray) {
-                    vm.sendXmwCommand(opCode: 0x1B, desc: "50Hz工频滤波")
+                ActionBtn(label: "50Hz Notch (0x1B)", color: .gray) {
+                    vm.sendXmwCommand(opCode: 0x1B, desc: "Notch Filter 50Hz")
                 }
-                ActionBtn(label: "60Hz滤波(0x1C)", color: .gray) {
-                    vm.sendXmwCommand(opCode: 0x1C, desc: "60Hz工频滤波")
+                ActionBtn(label: "60Hz Notch (0x1C)", color: .gray) {
+                    vm.sendXmwCommand(opCode: 0x1C, desc: "Notch Filter 60Hz")
                 }
-                ActionBtn(label: "读电量(0x06)", color: .orange) {
-                    vm.sendXmwCommand(opCode: 0x06, desc: "读取电量")
+                ActionBtn(label: "Battery (0x06)", color: .orange) {
+                    vm.sendXmwCommand(opCode: 0x06, desc: "Read Battery")
                 }
-                ActionBtn(label: "读SN(0xF4)", color: .orange) {
-                    vm.sendXmwCommand(opCode: 0xF4, desc: "读取序列号")
+                ActionBtn(label: "Serial SN (0xF4)", color: .orange) {
+                    vm.sendXmwCommand(opCode: 0xF4, desc: "Query SN")
                 }
-                ActionBtn(label: "探测MAC(0xFC)", color: .purple) {
-                    vm.sendXmwCommand(opCode: 0xFC, desc: "探测经典MAC")
+                ActionBtn(label: "Classic MAC (0xFC)", color: .purple) {
+                    vm.sendXmwCommand(opCode: 0xFC, desc: "Probe Classic MAC")
                 }
             }
 
             HStack(spacing: 8) {
-                TextField("输入写入序列号 SN...", text: $vm.writeSnInput)
+                TextField("Enter serial number SN...", text: $vm.writeSnInput)
                     .textFieldStyle(.roundedBorder)
                     .font(.system(size: 12))
 
-                Button("写入 SN (0xF2)") {
+                Button("Write SN (0xF2)") {
                     let sn = vm.writeSnInput.trimmingCharacters(in: .whitespaces)
                     if !sn.isEmpty {
-                        vm.addLog("[TX >> XMW] 写入 SN (0xF2): \(sn)")
+                        vm.addLog("[TX >> XMW] Write SN (0xF2): \(sn)")
                     }
                 }
                 .font(.system(size: 11, weight: .bold))
@@ -528,9 +493,6 @@ struct NeuroSkyConsoleCard: View {
     }
 }
 
-// ==========================================
-// 板块 6：🧠 ZKBrain 自研脑电设备官方控制台
-// ==========================================
 struct ZKBrainConsoleCard: View {
     @ObservedObject var vm: BrainMonitorViewModel
 
@@ -538,48 +500,47 @@ struct ZKBrainConsoleCard: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 6) {
                 Text("🧠")
-                Text("ZKBrain 自研脑电设备官方控制台")
+                Text("ZKBrain Proprietary Device Console")
                     .font(.subheadline).bold()
             }
-            Text("支持 ASCII 控制、MEMS 姿态传感、采样率切换与终端实时回显")
+            Text("Supports ASCII control, MEMS posture sensing, sample rate switching and terminal monitor")
                 .font(.caption2).foregroundColor(.secondary)
 
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 105))], spacing: 6) {
-                ActionBtn(label: "查询授权", color: .blue) {
+                ActionBtn(label: "License", color: .blue) {
                     vm.sendConfig(key: "license", value: "?")
                 }
-                ActionBtn(label: "读电量", color: .blue) {
+                ActionBtn(label: "Battery", color: .blue) {
                     vm.sendConfig(key: "battery", value: "?")
                 }
-                ActionBtn(label: "固件版本", color: .blue) {
+                ActionBtn(label: "Version", color: .blue) {
                     vm.sendConfig(key: "version", value: "?")
                 }
-                ActionBtn(label: "开启脑电", color: .green) {
+                ActionBtn(label: "Start EEG", color: .green) {
                     vm.sendConfig(key: "eeg_data_on", value: "1")
                 }
-                ActionBtn(label: "关闭脑电", color: .red) {
+                ActionBtn(label: "Stop EEG", color: .red) {
                     vm.sendConfig(key: "eeg_data_on", value: "0")
                 }
-                ActionBtn(label: "256Hz采样率", color: .gray) {
+                ActionBtn(label: "256Hz Rate", color: .gray) {
                     vm.sendConfig(key: "eeg_data_rate", value: "2")
                 }
-                ActionBtn(label: "512Hz采样率", color: .gray) {
+                ActionBtn(label: "512Hz Rate", color: .gray) {
                     vm.sendConfig(key: "eeg_data_rate", value: "1")
                 }
-                ActionBtn(label: "开启MEMS", color: .teal) {
+                ActionBtn(label: "Start MEMS", color: .teal) {
                     vm.sendConfig(key: "mems_on", value: "1")
                 }
-                ActionBtn(label: "关闭MEMS", color: .gray) {
+                ActionBtn(label: "Stop MEMS", color: .gray) {
                     vm.sendConfig(key: "mems_on", value: "0")
                 }
-                ActionBtn(label: "DFU 扫描", color: .purple) {
+                ActionBtn(label: "DFU Scan", color: .purple) {
                     vm.sendCommand("dfu_scan:1")
                 }
             }
 
-            // MEMS 姿态卡片
             VStack(alignment: .leading, spacing: 3) {
-                Text("📐 实时 MEMS 空间姿态 (Euler & Quaternion)")
+                Text("📐 Realtime MEMS Posture (Euler & Quaternion)")
                     .font(.system(size: 11, weight: .bold))
                     .foregroundColor(.secondary)
                 Text(String(format: "Euler:  Roll: %.1f°   Pitch: %.1f°   Yaw: %.1f°", vm.memsRoll, vm.memsPitch, vm.memsYaw))
@@ -593,13 +554,12 @@ struct ZKBrainConsoleCard: View {
             .background(Color(.secondarySystemBackground))
             .cornerRadius(6)
 
-            // 指令输入与发送
             HStack(spacing: 8) {
-                TextField("自定义指令 (如 mems_on:1 或 sample_rate:512)", text: $vm.commandInput)
+                TextField("Custom command (e.g. mems_on:1 or sample_rate:512)", text: $vm.commandInput)
                     .textFieldStyle(.roundedBorder)
                     .font(.system(size: 12))
 
-                Button("发送指令") {
+                Button("Send") {
                     vm.sendCommand(vm.commandInput)
                 }
                 .font(.system(size: 11, weight: .bold))
@@ -610,20 +570,19 @@ struct ZKBrainConsoleCard: View {
                 .cornerRadius(6)
             }
 
-            // 黑底终端回显监控窗口
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Text("终端响应监控 (Terminal Monitor):")
+                    Text("Terminal Monitor:")
                         .font(.caption2).foregroundColor(.gray)
                     Spacer()
-                    Button("清空") {
+                    Button("Clear") {
                         vm.commandLogs = ""
                     }
                     .font(.caption2).foregroundColor(.cyan)
                 }
 
                 ScrollView {
-                    Text(vm.commandLogs.isEmpty ? "等待下发或接收指令回包...\n" : vm.commandLogs)
+                    Text(vm.commandLogs.isEmpty ? "Waiting for command responses...\n" : vm.commandLogs)
                         .font(.system(size: 10, design: .monospaced))
                         .foregroundColor(.green)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -664,12 +623,6 @@ struct ActionBtn: View {
     }
 }
 
-// ==========================================
-// 板块 7：Spectrum Data 详细数据表格 (DeviceShowTable 4x3 三色)
-// 粉色 #FFE4E1 (Attention, Meditation, Quality, Raw EEG)
-// 青色 #E0FFFF (Delta, Theta, Low Alpha, High Alpha)
-// 黄色 #F0E68C (Low Beta, High Beta, Low Gamma, Mid Gamma)
-// ==========================================
 struct DeviceShowTable: View {
     @ObservedObject var vm: BrainMonitorViewModel
 
@@ -679,7 +632,6 @@ struct DeviceShowTable: View {
 
     var body: some View {
         VStack(spacing: 8) {
-            // 居中 MAC 标题条
             Text("Device MAC: \(vm.connectedMac)")
                 .font(.system(size: 12, weight: .bold, design: .monospaced))
                 .foregroundColor(.white)
@@ -688,27 +640,22 @@ struct DeviceShowTable: View {
                 .background(Color(red: 0.12, green: 0.16, blue: 0.23))
                 .cornerRadius(6)
 
-            // 4x3 单元格矩阵
             VStack(spacing: 1) {
-                // Row 1 (全粉)
                 HStack(spacing: 1) {
                     TableCell(label: "Attention", value: "\(vm.attention)", bg: pinkBg)
                     TableCell(label: "Meditation", value: "\(vm.meditation)", bg: pinkBg)
                     TableCell(label: "Quality", value: "\(vm.signalQuality)", bg: pinkBg)
                 }
-                // Row 2 (粉 + 青 + 青)
                 HStack(spacing: 1) {
                     TableCell(label: "Raw EEG", value: "\(vm.rawEeg)", bg: pinkBg)
                     TableCell(label: "Delta", value: "\(vm.delta)", bg: cyanBg)
                     TableCell(label: "Theta", value: "\(vm.theta)", bg: cyanBg)
                 }
-                // Row 3 (青 + 青 + 黄)
                 HStack(spacing: 1) {
                     TableCell(label: "Low Alpha", value: "\(vm.lowAlpha)", bg: cyanBg)
                     TableCell(label: "High Alpha", value: "\(vm.highAlpha)", bg: cyanBg)
                     TableCell(label: "Low Beta", value: "\(vm.lowBeta)", bg: yellowBg)
                 }
-                // Row 4 (全黄)
                 HStack(spacing: 1) {
                     TableCell(label: "High Beta", value: "\(vm.highBeta)", bg: yellowBg)
                     TableCell(label: "Low Gamma", value: "\(vm.lowGamma)", bg: yellowBg)
@@ -744,16 +691,13 @@ struct TableCell: View {
     }
 }
 
-// ==========================================
-// 板块 8：蓝牙搜索连接弹窗 (BleScanSheet)
-// ==========================================
 struct BleScanSheet: View {
     @ObservedObject var vm: BrainMonitorViewModel
 
     var body: some View {
         NavigationView {
             VStack(alignment: .leading, spacing: 10) {
-                Text(vm.isScanning ? "正在扫描低功耗蓝牙 (BLE) 脑电设备..." : "扫描完成")
+                Text(vm.isScanning ? "Scanning for nearby BLE BCI devices..." : "Scan completed")
                     .font(.caption).foregroundColor(.secondary)
 
                 if vm.scannedDevices.isEmpty {
@@ -761,7 +705,7 @@ struct BleScanSheet: View {
                     VStack(spacing: 8) {
                         Image(systemName: "antenna.radiowaves.left.and.right")
                             .font(.largeTitle).foregroundColor(.gray)
-                        Text("暂未发现脑电设备，请确认设备已开机并靠近")
+                        Text("No BCI devices found. Please ensure device is powered on.")
                             .font(.caption).foregroundColor(.gray)
                     }
                     .frame(maxWidth: .infinity)
@@ -770,13 +714,13 @@ struct BleScanSheet: View {
                     List(vm.scannedDevices, id: \.address) { dev in
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(dev.name ?? "未知脑电设备")
+                                Text(dev.name ?? "Unknown Device")
                                     .font(.subheadline).bold()
                                 Text("\(dev.address)  |  RSSI: \(dev.rssi) dBm")
                                     .font(.caption2).foregroundColor(.secondary)
                             }
                             Spacer()
-                            Button("连接") {
+                            Button("Connect") {
                                 vm.connectDevice(dev)
                             }
                             .font(.caption).bold()
@@ -790,16 +734,16 @@ struct BleScanSheet: View {
                 }
             }
             .padding()
-            .navigationTitle("🔍 搜索脑电设备")
+            .navigationTitle("Search BCI Devices")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("取消") {
+                    Button("Cancel") {
                         vm.showScanSheet = false
                     }
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(vm.isScanning ? "扫描中" : "重新扫描") {
+                    Button(vm.isScanning ? "Scanning" : "Rescan") {
                         vm.toggleScan()
                     }
                 }

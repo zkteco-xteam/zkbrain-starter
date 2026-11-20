@@ -2,23 +2,23 @@
   "string": [
     {
       "name": "module_desc",
-      "value": "ZKBrain 鸿蒙脑机交互工程"
+      "value": "ZKBrain HarmonyOS BCI Application"
     },
     {
       "name": "EntryAbility_desc",
-      "value": "ZKBrain 脑机接口主程序"
+      "value": "ZKBrain BCI Main Application"
     },
     {
       "name": "EntryAbility_label",
-      "value": "ZKBrain 脑机"
+      "value": "ZKBrain BCI"
     },
     {
       "name": "bluetooth_reason",
-      "value": "需要连接周围 ZKBrain 脑电硬件以采集实时波形"
+      "value": "Bluetooth is required to connect to ZKBrain BCI hardware for real-time waveform acquisition"
     },
     {
       "name": "location_reason",
-      "value": "低功耗蓝牙扫描需要定位权限支持"
+      "value": "Location permission is required for BLE device discovery"
     }
   ]
 }

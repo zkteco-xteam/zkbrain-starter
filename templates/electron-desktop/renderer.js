@@ -1,4 +1,4 @@
-// 状态与逻辑
+// State & logic
 let isConnected = false;
 
 const statusDot = document.getElementById('statusDot');
@@ -22,7 +22,7 @@ terminalClearBtn.addEventListener('click', () => {
 
 topSearchBtn.addEventListener('click', () => {
   scanModal.classList.add('open');
-  addLog('[BLE] Electron Web Bluetooth 扫描周边脑电设备...');
+  addLog('[BLE] Scanning for nearby BLE BCI devices...');
 });
 
 modalCloseBtn.addEventListener('click', () => {
@@ -30,8 +30,8 @@ modalCloseBtn.addEventListener('click', () => {
 });
 
 topDfuBtn.addEventListener('click', () => {
-  addLog('[DFU] 固件 OTA 检测：当前已处于最新稳定版 v2.4.0');
-  alert('固件检测：当前已是最新稳定版本 v2.4.0');
+  addLog('[DFU] Checking firmware OTA: currently on latest stable v2.4.0');
+  alert('Firmware check: currently on latest stable version v2.4.0');
 });
 
 mainConnectBtn.addEventListener('click', () => {
@@ -39,10 +39,10 @@ mainConnectBtn.addEventListener('click', () => {
     isConnected = false;
     statusDot.classList.remove('connected');
     statusText.classList.remove('connected');
-    statusText.textContent = '未连接 (DISCONNECTED)';
+    statusText.textContent = 'DISCONNECTED';
     mainConnectBtn.classList.remove('connected');
-    mainConnectBtn.textContent = '连接设备';
-    addLog('[BLE] 用户主动断开设备连接');
+    mainConnectBtn.textContent = 'Connect Device';
+    addLog('[BLE] Disconnected by user');
   } else {
     scanModal.classList.add('open');
   }
@@ -52,14 +52,14 @@ window.connectMock = function(name, mac) {
   isConnected = true;
   statusDot.classList.add('connected');
   statusText.classList.add('connected');
-  statusText.textContent = '已连接 (CONNECTED)';
+  statusText.textContent = 'CONNECTED';
   mainConnectBtn.classList.add('connected');
-  mainConnectBtn.textContent = '断开当前连接';
+  mainConnectBtn.textContent = 'Disconnect';
   scanModal.classList.remove('open');
-  addLog(`[BLE] 成功建立连接: ${name} (${mac})`);
+  addLog(`[BLE] Connected to device: ${name} (${mac})`);
 };
 
-// 12项图表过滤器
+// 12-metric chart filters
 const chartList = [
   "Raw EEG", "Signal Quality", "Attention", "Meditation",
   "Delta", "Theta", "Low Alpha", "High Alpha",
@@ -74,30 +74,30 @@ chartList.forEach(name => {
     btn.classList.toggle('active');
     const on = btn.classList.contains('active');
     btn.textContent = `${on ? '✓ ' : ''}${name}`;
-    addLog(`[图表显隐] ${name} 状态切换: ${on}`);
+    addLog(`[CHART] Toggle ${name}: ${on}`);
   };
   chartContainer.appendChild(btn);
 });
 
-// 指令事件绑定
+// Hardware command bindings
 const bindCmd = (id, log) => {
   const el = document.getElementById(id);
   if (el) el.addEventListener('click', () => addLog(log));
 };
 
-bindCmd('btnIgnition', '[TX >> XMW] 下发点火包: 0x15 (Raw) + 0x17 (Band)');
-bindCmd('btnStopXmw', '[TX >> XMW] 停止数据传输: 0x16 + 0x18');
-bindCmd('btn50Hz', '[TX >> XMW] 设置 50Hz 工频陷波滤波 (0x1B)');
-bindCmd('btn60Hz', '[TX >> XMW] 设置 60Hz 工频陷波滤波 (0x1C)');
-bindCmd('btnBatterySky', '[TX >> XMW] 读取硬件电量 (0x06)');
-bindCmd('btnReadSn', '[TX >> XMW] 查询序列号 SN (0xF4)');
-bindCmd('btnDetectMac', '[TX >> XMW] 探测经典蓝牙 MAC (0xFC)');
+bindCmd('btnIgnition', '[TX >> XMW] Ignition Packet: 0x15 (Raw) + 0x17 (Band)');
+bindCmd('btnStopXmw', '[TX >> XMW] Stop transmission: 0x16 + 0x18');
+bindCmd('btn50Hz', '[TX >> XMW] Set 50Hz notch filter (0x1B)');
+bindCmd('btn60Hz', '[TX >> XMW] Set 60Hz notch filter (0x1C)');
+bindCmd('btnBatterySky', '[TX >> XMW] Read battery level (0x06)');
+bindCmd('btnReadSn', '[TX >> XMW] Query SN (0xF4)');
+bindCmd('btnDetectMac', '[TX >> XMW] Detect classic Bluetooth MAC (0xFC)');
 
 document.getElementById('btnSendSn').addEventListener('click', () => {
   const sn = document.getElementById('inputWriteSn').value.trim();
   if (sn) {
-    addLog(`[TX >> XMW] 写入 SN (0xF2): ${sn}`);
-    alert(`SN 写入指令已下发: ${sn}`);
+    addLog(`[TX >> XMW] Write SN (0xF2): ${sn}`);
+    alert(`SN command sent: ${sn}`);
   }
 });
 
@@ -108,26 +108,14 @@ bindCmd('btnEegOn', '[TX >>] eeg_data_on:1');
 bindCmd('btnEegOff', '[TX >>] eeg_data_on:0');
 bindCmd('btnRate256', '[TX >>] eeg_data_rate:2 (256Hz)');
 bindCmd('btnRate512', '[TX >>] eeg_data_rate:1 (512Hz)');
-bindCmd('btnMemsOn', '[TX >>] mems_on:1 (开启MEMS空间姿态流)');
-bindCmd('btnMemsOff', '[TX >>] mems_on:0 (关闭MEMS空间姿态流)');
-bindCmd('btnDfuScan', '[TX >>] dfu_scan:1 (进入空中升级广播模式)');
+bindCmd('btnMemsOn', '[TX >>] mems_on:1');
+bindCmd('btnMemsOff', '[TX >>] mems_on:0');
+bindCmd('btnDfuScan', '[TX >>] dfu_scan:1 (DFU OTA Ready Mode)');
 
 document.getElementById('btnSendCustomCmd').addEventListener('click', () => {
-  const input = document.getElementById('inputCustomCmd');
-  const val = input.value.trim();
-  if (val) {
-    addLog(`[TX >>] ${val}`);
-    input.value = '';
+  const cmd = document.getElementById('inputCustomCmd').value.trim();
+  if (cmd) {
+    addLog(`[TX >>] ${cmd}`);
+    document.getElementById('inputCustomCmd').value = '';
   }
 });
-
-// 数据模拟
-setInterval(() => {
-  if (isConnected) {
-    const att = Math.min(100, Math.max(10, parseInt(document.getElementById('cellAttention').textContent) + Math.floor((Math.random() - 0.5) * 6)));
-    const med = Math.min(100, Math.max(10, parseInt(document.getElementById('cellMeditation').textContent) + Math.floor((Math.random() - 0.5) * 6)));
-    document.getElementById('cellAttention').textContent = att;
-    document.getElementById('cellMeditation').textContent = med;
-    document.getElementById('cellRawEeg').textContent = Math.floor((Math.random() - 0.5) * 240);
-  }
-}, 1000);

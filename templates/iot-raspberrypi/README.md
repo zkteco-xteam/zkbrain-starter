@@ -1,29 +1,29 @@
-# ZKBrain 树莓派 / Linux IoT 边缘网关脚手架
+# ZKBrain Raspberry Pi / Linux IoT Edge Gateway Starter
 
-> ⚡ **专为智慧工地安全帽、车载司机疲劳监测、智能轮椅与工业边缘计算打造**：开机自启 BLE 守护进程、硬件 GPIO 蜂鸣器超限报警与局域网 1:1 `DeviceScreen + DeviceShowTable` Web 监控看板。
-
----
-
-## 🌟 核心特性
-
-1. **后台边缘疲劳守护进程 (`daemon_fatigue_alert.py`)**：
-   - 自动扫描并秒级静默重连 ZKBrain / NeuroSky 脑电设备；
-   - 实时计算注意力涣散与疲劳指数；
-   - 超出阈值时触发树莓派物理 GPIO 引脚 18（驱动高电平蜂鸣器、震动电机或车载继电器）。
-2. **局域网 1:1 Web 监控看板 (`edge_web_dashboard.py`)**：
-   - 内置零依赖轻量 Web 服务，在车间局域网或车载 Wi-Fi 下，手机、平板或中控屏打开 `http://<IP>:8080` 即可实时查看 1:1 三色脑电数据表与 MEMS 姿态。
+> Designed for smart helmets, driver fatigue monitoring, intelligent wheelchairs, and industrial edge computing: boot-time auto-restart BLE daemon, hardware GPIO buzzer alerts, and LAN 1:1 `DeviceScreen + DeviceShowTable` web dashboard.
 
 ---
 
-## 🛠️ 快速启动
+## Key Features
+
+1. **Background Fatigue Alert Daemon (`daemon_fatigue_alert.py`)**:
+   - Auto-scans and reconnects to ZKBrain / NeuroSky hardware in seconds;
+   - Real-time distraction and fatigue index evaluation;
+   - Triggers Raspberry Pi physical GPIO pin 18 (driving high-level buzzer, vibration motor, or relay) upon threshold breach.
+2. **LAN 1:1 Web Monitoring Dashboard (`edge_web_dashboard.py`)**:
+   - Zero-dependency lightweight HTTP service. Accessible via `http://<IP>:8080` from mobile, tablet, or central console to view the 1:1 color-coded EEG spectrum table and MEMS attitude in real time.
+
+---
+
+## Quickstart
 
 ```bash
-# 1. 安装边缘依赖
+# 1. Install dependencies
 pip install -r requirements.txt
 
-# 2. 启动疲劳报警守护进程
+# 2. Start fatigue alert daemon
 python daemon_fatigue_alert.py
 
-# 3. 启动局域网 Web 监控看板
+# 3. Start LAN Web Dashboard
 python edge_web_dashboard.py
 ```

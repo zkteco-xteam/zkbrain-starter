@@ -1,5 +1,5 @@
 /**
- * 🌟 脑波 8 频段绝对功率实体
+ * EEG 8-band absolute power model
  */
 export interface BrainWaves {
   delta: number;
@@ -13,17 +13,17 @@ export interface BrainWaves {
 }
 
 /**
- * 🌟 综合脑电指标数据实体 (1Hz)
+ * 1Hz comprehensive cognitive metrics model
  */
 export interface BrainData {
-  attention: number;     // 专注度 (0-100)
-  meditation: number;    // 放松度 (0-100)
-  signalQuality: number; // 接触质量 (0 良好, 200 脱落)
+  attention: number;     // Attention index (0-100)
+  meditation: number;    // Meditation index (0-100)
+  signalQuality: number; // Electrode contact quality (0: Good, 200: Poor/Off)
   waves: BrainWaves;
 }
 
 /**
- * 疲劳指数计算
+ * Calculate fatigue index
  */
 export function calculateFatigue(waves: BrainWaves): number {
   const active = Math.max(1, waves.lowBeta + waves.highBeta + waves.lowAlpha);
@@ -32,12 +32,12 @@ export function calculateFatigue(waves: BrainWaves): number {
 }
 
 /**
- * 心流状态判定
+ * Evaluate cognitive flow state
  */
 export function evaluateFlowState(attention: number, meditation: number, fatigue: number): string {
-  if (attention >= 75 && meditation >= 60) return "✨ 深度心流 (Deep Flow)";
-  if (attention >= 65) return "🎯 高度专注 (Focused)";
-  if (meditation >= 70) return "🧘 放松冥想 (Meditation)";
-  if (fatigue >= 65) return "💤 疲劳预警 (Fatigued)";
-  return "平静日常 (Normal)";
+  if (attention >= 75 && meditation >= 60) return "Deep Flow";
+  if (attention >= 65) return "Focused";
+  if (meditation >= 70) return "Meditation";
+  if (fatigue >= 65) return "Fatigued";
+  return "Normal";
 }

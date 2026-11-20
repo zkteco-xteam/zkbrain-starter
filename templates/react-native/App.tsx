@@ -77,14 +77,14 @@ export default function App(): React.JSX.Element {
     { key: "Middle Gamma", checked: true },
   ]);
 
-  // 控制台与终端
+  // 控制台与终端 / Console & Terminal
   const [writeSnInput, setWriteSnInput] = useState("");
   const [customCmdInput, setCustomCmdInput] = useState("");
   const [terminalLogs, setTerminalLogs] = useState(
-    "[系统启动] ZKBrain React Native 控制台初始化就绪\n"
+    "[SYSTEM] ZKBrain React Native console initialized\n"
   );
 
-  // 弹窗与蓝牙扫描
+  // 弹窗与蓝牙扫描 / Scan & Modal
   const [showScanModal, setShowScanModal] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [scannedDevices, setScannedDevices] = useState<DeviceItem[]>([
@@ -98,7 +98,7 @@ export default function App(): React.JSX.Element {
   };
 
   useEffect(() => {
-    addLog("[BLE] React Native 双端蓝牙驱动就绪 (Android 12+ / iOS 13+)");
+    addLog("[BLE] React Native cross-platform BLE driver ready (Android 12+ / iOS 13+)");
     const interval = setInterval(() => {
       if (isConnected) {
         setAttention((prev) => Math.min(100, Math.max(10, prev + Math.floor((Math.random() - 0.5) * 6))));
@@ -135,15 +135,15 @@ export default function App(): React.JSX.Element {
   const startScan = async () => {
     const ok = await requestBluetoothPermissions();
     if (!ok) {
-      Alert.alert("权限不足", "需要蓝牙扫描与连接权限，请在系统设置中允许。");
-      addLog("[BLE] 未获得蓝牙运行时权限");
+      Alert.alert("Permissions Required", "Bluetooth scan and connect permissions are required.");
+      addLog("[BLE] Bluetooth runtime permissions denied");
       return;
     }
     setIsScanning(true);
-    addLog("[BLE] 正在扫描周围低功耗蓝牙 (BLE) 脑电设备...");
+    addLog("[BLE] Scanning for nearby BLE BCI devices...");
     setTimeout(() => {
       setIsScanning(false);
-      addLog("[BLE] 扫描完成，发现 3 台可用脑电设备");
+      addLog("[BLE] Scan complete, found 3 available devices");
     }, 2500);
   };
 
@@ -158,13 +158,13 @@ export default function App(): React.JSX.Element {
     setIsConnected(true);
     setShowScanModal(false);
     setIsScanning(false);
-    addLog(`[BLE] 成功建立连接: ${item.name} (${item.mac})`);
+    addLog(`[BLE] Connected to device: ${item.name} (${item.mac})`);
   };
 
   const toggleConnect = () => {
     if (isConnected) {
       setIsConnected(false);
-      addLog("[BLE] 用户主动断开连接");
+      addLog("[BLE] Disconnected by user");
     } else {
       openScanModal();
     }
@@ -174,28 +174,28 @@ export default function App(): React.JSX.Element {
     setChartToggles((prev) =>
       prev.map((item) => (item.key === key ? { ...item, checked: !item.checked } : item))
     );
-    addLog(`[图表显隐] ${key} 状态切换`);
+    addLog(`[CHART] Toggle display: ${key}`);
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor="#1e293b" />
       <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
-        {/* 板块 1：顶部操作栏 */}
+        {/* 板块 1：顶部操作栏 / Section 1: Header Bar */}
         <View style={styles.headerBar}>
-          <Text style={styles.headerTitle}>设备管理 (DeviceScreen)</Text>
+          <Text style={styles.headerTitle}>DeviceScreen (设备管理)</Text>
           <View style={styles.headerActions}>
             <TouchableOpacity style={[styles.btnTop, styles.btnSearch]} onPress={openScanModal}>
-              <Text style={styles.btnTopText}>🔍 搜索设备</Text>
+              <Text style={styles.btnTopText}>🔍 Scan</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.btnTop, styles.btnDfu]}
               onPress={() => {
-                addLog("[DFU] 固件 OTA 检测：当前已处于最新稳定版 v2.4.0");
-                Alert.alert("固件检测", "当前已是最新稳定固件 v2.4.0");
+                addLog("[DFU] Checking firmware OTA: currently on latest stable v2.4.0");
+                Alert.alert("Firmware OTA", "Currently on latest stable release v2.4.0");
               }}
             >
-              <Text style={styles.btnTopText}>OTA升级</Text>
+              <Text style={styles.btnTopText}>DFU</Text>
             </TouchableOpacity>
             <View style={styles.badgeAuth}>
               <Text style={styles.badgeAuthText}>✓ SN就绪</Text>
@@ -290,46 +290,46 @@ export default function App(): React.JSX.Element {
           <View style={styles.btnGrid}>
             <TouchableOpacity
               style={[styles.btnAct, styles.actGreen]}
-              onPress={() => addLog("[TX >> XMW] 下发点火包: 0x15 (Raw) + 0x17 (Band)")}
+              onPress={() => addLog("[TX >> XMW] Ignition Packet: 0x15 (Raw) + 0x17 (Band)")}
             >
-              <Text style={styles.actGreenText}>点火包 (0x15+0x17)</Text>
+              <Text style={styles.actGreenText}>Ignite (0x15+0x17)</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.btnAct, styles.actRed]}
-              onPress={() => addLog("[TX >> XMW] 停止数据传输 (0x16 + 0x18)")}
+              onPress={() => addLog("[TX >> XMW] Stop transmission: 0x16 + 0x18")}
             >
-              <Text style={styles.actRedText}>停止传输 (0x16+0x18)</Text>
+              <Text style={styles.actRedText}>Stop (0x16+0x18)</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.btnAct, styles.actBlue]}
-              onPress={() => addLog("[TX >> XMW] 设置 50Hz 工频陷波滤波 (0x1B)")}
+              onPress={() => addLog("[TX >> XMW] Set 50Hz notch filter (0x1B)")}
             >
-              <Text style={styles.actBlueText}>50Hz 陷波 (0x1B)</Text>
+              <Text style={styles.actBlueText}>50Hz (0x1B)</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.btnAct, styles.actBlue]}
-              onPress={() => addLog("[TX >> XMW] 设置 60Hz 工频陷波滤波 (0x1C)")}
+              onPress={() => addLog("[TX >> XMW] Set 60Hz notch filter (0x1C)")}
             >
-              <Text style={styles.actBlueText}>60Hz 陷波 (0x1C)</Text>
+              <Text style={styles.actBlueText}>60Hz (0x1C)</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.btnAct, styles.actOrange]}
-              onPress={() => addLog("[TX >> XMW] 读取硬件电量 (0x06)")}
+              onPress={() => addLog("[TX >> XMW] Read battery level (0x06)")}
             >
-              <Text style={styles.actOrangeText}>读电量 (0x06)</Text>
+              <Text style={styles.actOrangeText}>Battery (0x06)</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.btnAct, styles.actGray]}
-              onPress={() => addLog("[TX >> XMW] 查询序列号 SN (0xF4)")}
+              onPress={() => addLog("[TX >> XMW] Query SN (0xF4)")}
             >
-              <Text style={styles.actGrayText}>查询 SN (0xF4)</Text>
+              <Text style={styles.actGrayText}>Read SN (0xF4)</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.inputRow}>
             <TextInput
               style={styles.inputField}
-              placeholder="输入新设备 SN (例如: ZK20261120001)"
+              placeholder="Enter device SN (e.g. ZK20261120001)"
               value={writeSnInput}
               onChangeText={setWriteSnInput}
             />
@@ -337,8 +337,8 @@ export default function App(): React.JSX.Element {
               style={styles.btnSnSend}
               onPress={() => {
                 if (writeSnInput.trim()) {
-                  addLog(`[TX >> XMW] 写入 SN (0xF2): ${writeSnInput}`);
-                  Alert.alert("SN 指令", `已写入: ${writeSnInput}`);
+                  addLog(`[TX >> XMW] Write SN (0xF2): ${writeSnInput}`);
+                  Alert.alert("SN Command", `Dispatched: ${writeSnInput}`);
                   setWriteSnInput("");
                 }
               }}
@@ -397,15 +397,15 @@ export default function App(): React.JSX.Element {
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.btnAct, styles.actPurple]}
-              onPress={() => addLog("[TX >>] mems_on:1 (开启MEMS空间姿态流)")}
+              onPress={() => addLog("[TX >>] mems_on:1 (Enable MEMS Motion Stream)")}
             >
-              <Text style={styles.actPurpleText}>开启 MEMS</Text>
+              <Text style={styles.actPurpleText}>MEMS ON</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.btnAct, styles.actGray]}
-              onPress={() => addLog("[TX >>] mems_on:0 (关闭MEMS空间姿态流)")}
+              onPress={() => addLog("[TX >>] mems_on:0 (Disable MEMS Motion Stream)")}
             >
-              <Text style={styles.actGrayText}>关闭 MEMS</Text>
+              <Text style={styles.actGrayText}>MEMS OFF</Text>
             </TouchableOpacity>
           </View>
 

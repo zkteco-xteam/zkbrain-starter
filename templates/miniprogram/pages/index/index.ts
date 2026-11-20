@@ -3,18 +3,18 @@ import { ZKBrainMiniProgramSdk } from '@zkteco/zkbrain-miniprogram-sdk';
 const sdk = new ZKBrainMiniProgramSdk();
 
 /**
- * 🌟 1:1 完整逐项克隆 shared1 设备管理控制台 (DeviceScreen + DeviceShowTable) - 微信小程序 TypeScript 逻辑
- * 技术支持：熵基科技脑机事业部 (ZKTeco Brain-Computer Interface Division)
+ * 1:1 DeviceScreen & DeviceShowTable Clone - WeChat Mini Program Edition
+ * Technical Support: ZKTeco Brain-Computer Interface Division
  */
 Page({
   data: {
     isConnected: false,
-    connectionStatusText: '未连接 (DISCONNECTED)',
+    connectionStatusText: 'DISCONNECTED',
     deviceName: 'ZKBrain Headband',
     deviceMac: 'DC:23:4F:9A:88:01',
     batteryLevel: 85,
 
-    // 12 项生理指标
+    // 12 cognitive metrics
     attention: 75,
     meditation: 68,
     signalQuality: 0,
@@ -30,7 +30,7 @@ Page({
       middleGamma: 2200
     },
 
-    // MEMS 姿态与欧拉角
+    // MEMS posture & Euler angles
     memsRoll: 1.2,
     memsPitch: -0.5,
     memsYaw: 14.8,
@@ -39,10 +39,10 @@ Page({
     memsQ2: -0.004,
     memsQ3: 0.129,
 
-    // 通道配置
+    // Channel toggle
     isFp1Checked: true,
 
-    // 图表显隐矩阵
+    // Chart display matrix
     chartToggles: [
       { key: 'Raw EEG', checked: true },
       { key: 'Signal Quality', checked: true },
@@ -58,12 +58,12 @@ Page({
       { key: 'Middle Gamma', checked: true }
     ],
 
-    // 指令与终端回显
+    // Command & Terminal logs
     customCmdInput: '',
     writeSnInput: '',
-    commandLogs: '[系统启动] ZKBrain 微信小程序控制台初始化就绪\n',
+    commandLogs: '[System] ZKBrain WeChat MiniProgram console initialized successfully.\n',
 
-    // 弹窗与扫描
+    // Modal & Scan state
     showScanModal: false,
     isScanning: false,
     scannedDevices: [
@@ -76,7 +76,7 @@ Page({
   onLoad() {
     sdk.init();
 
-    // 监听脑电数据流
+    // Listen to real-time EEG data
     sdk.on('brain_data', (eeg: any) => {
       const bw = eeg.brainWaves || {};
       this.setData({
@@ -97,15 +97,15 @@ Page({
       });
     });
 
-    // 监听连接状态
+    // Listen to connection state
     sdk.on('connection_state', (state: any) => {
       const connected = state.status === 'CONNECTED';
       this.setData({
         isConnected: connected,
-        connectionStatusText: connected ? '已就绪 (READY)' : '未连接 (DISCONNECTED)'
+        connectionStatusText: connected ? 'READY' : 'DISCONNECTED'
       });
       if (connected) {
-        this.appendLog('[系统] 设备连接成功并就绪');
+        this.appendLog('[System] Device connected successfully.');
       }
     });
   },
@@ -119,7 +119,6 @@ Page({
     this.setData({ commandLogs: '' });
   },
 
-  // 顶部与状态卡片事件
   openScanModal() {
     this.setData({ showScanModal: true });
     this.startScan();
@@ -130,32 +129,31 @@ Page({
   },
 
   stopBubble() {
-    // 阻止遮罩冒泡
+    // Prevent backdrop event propagation
   },
 
   handleDfuUpgrade() {
-    this.appendLog('[DFU] 固件 OTA 检测：当前已处于最新稳定版 v2.4.0');
-    wx.showToast({ title: '固件检测：已是最新版', icon: 'success' });
+    this.appendLog('[DFU] OTA firmware check: already on latest stable release v2.4.0');
+    wx.showToast({ title: 'Firmware Up to Date', icon: 'success' });
   },
 
   toggleConnect() {
     if (this.data.isConnected) {
       this.setData({
         isConnected: false,
-        connectionStatusText: '未连接 (DISCONNECTED)'
+        connectionStatusText: 'DISCONNECTED'
       });
-      this.appendLog('[BLE] 用户主动断开设备连接');
+      this.appendLog('[BLE] Device disconnected by user.');
     } else {
       this.openScanModal();
     }
   },
 
-  // 通道与图表显隐
   onChannelChange(e: any) {
     const values = e.detail.value;
     const checked = values.includes('fp1');
     this.setData({ isFp1Checked: checked });
-    this.appendLog(`[通道配置] Left (FP1): ${checked}`);
+    this.appendLog(`[Channel] Left (FP1): ${checked}`);
   },
 
   toggleChartItem(e: any) {
@@ -167,37 +165,37 @@ Page({
       return item;
     });
     this.setData({ chartToggles: toggles });
-    this.appendLog(`[图表显隐] ${key} 状态切换`);
+    this.appendLog(`[Chart] Toggle display for: ${key}`);
   },
 
-  // NeuroSky XMW 控制台事件
+  // NeuroSky XMW protocol actions
   handleIgnition() {
-    this.appendLog('[TX >> XMW] 下发点火包: 0x15 (Raw) + 0x17 (Band)');
+    this.appendLog('[TX >> XMW] Ignition command sent: 0x15 (Raw) + 0x17 (Band)');
     sdk.sendIgnitionCommand().catch(() => {});
   },
 
   handleStopXmw() {
-    this.appendLog('[TX >> XMW] 停止传输: 0x16 + 0x18');
+    this.appendLog('[TX >> XMW] Transmission stopped: 0x16 + 0x18');
   },
 
   handleFilter50() {
-    this.appendLog('[TX >> XMW] 设置 50Hz 工频滤波 (0x1B)');
+    this.appendLog('[TX >> XMW] Notch filter set to 50Hz (0x1B)');
   },
 
   handleFilter60() {
-    this.appendLog('[TX >> XMW] 设置 60Hz 工频滤波 (0x1C)');
+    this.appendLog('[TX >> XMW] Notch filter set to 60Hz (0x1C)');
   },
 
   handleBatterySky() {
-    this.appendLog('[TX >> XMW] 读取硬件电量 (0x06)');
+    this.appendLog('[TX >> XMW] Read battery level (0x06)');
   },
 
   handleReadSn() {
-    this.appendLog('[TX >> XMW] 查询设备序列号 SN (0xF4)');
+    this.appendLog('[TX >> XMW] Query serial number SN (0xF4)');
   },
 
   handleDetectMac() {
-    this.appendLog('[TX >> XMW] 探测经典蓝牙 MAC 地址 (0xFC)');
+    this.appendLog('[TX >> XMW] Probe classic Bluetooth MAC (0xFC)');
   },
 
   onWriteSnInput(e: any) {
@@ -207,12 +205,12 @@ Page({
   handleWriteSn() {
     const sn = this.data.writeSnInput.trim();
     if (sn) {
-      this.appendLog(`[TX >> XMW] 写入 SN (0xF2): ${sn}`);
-      wx.showToast({ title: 'SN 写入指令已发送', icon: 'none' });
+      this.appendLog(`[TX >> XMW] Write SN (0xF2): ${sn}`);
+      wx.showToast({ title: 'SN command sent', icon: 'none' });
     }
   },
 
-  // ZKBrain 自研控制台事件
+  // ZKBrain proprietary device console actions
   handleLicenseQuery() {
     this.appendLog('[TX >>] license:?');
   },
@@ -252,7 +250,7 @@ Page({
   },
 
   handleDfuScan() {
-    this.appendLog('[TX >>] dfu_scan:1 (进入DFU空中升级就绪模式)');
+    this.appendLog('[TX >>] dfu_scan:1 (DFU OTA ready mode)');
   },
 
   onCustomCmdInput(e: any) {
@@ -267,62 +265,12 @@ Page({
     }
   },
 
-  /**
-   * 🌟 微信小程序运行时动态申请蓝牙权限并核验蓝牙适配器状态
-   */
-  async ensureBluetoothPermission(): Promise<boolean> {
-    return new Promise((resolve) => {
-      wx.getSetting({
-        success: (res) => {
-          if (res.authSetting['scope.bluetooth'] === false) {
-            wx.showModal({
-              title: '需要蓝牙权限',
-              content: '脑电数据采集需要蓝牙权限支持，请在设置中允许使用蓝牙',
-              confirmText: '去开启',
-              success: (modalRes) => {
-                if (modalRes.confirm) {
-                  wx.openSetting();
-                }
-                resolve(false);
-              }
-            });
-          } else if (res.authSetting['scope.bluetooth'] === undefined) {
-            wx.authorize({
-              scope: 'scope.bluetooth',
-              success: () => resolve(true),
-              fail: () => resolve(false)
-            });
-          } else {
-            resolve(true);
-          }
-        },
-        fail: () => resolve(false)
-      });
-    });
-  },
-
-  // 扫描与连接
-  async startScan() {
-    const hasPerm = await this.ensureBluetoothPermission();
-    if (!hasPerm) {
-      this.appendLog('[BLE] 未获得蓝牙权限或用户取消授权');
+  startScan() {
+    this.setData({ isScanning: true });
+    this.appendLog('[BLE] Scanning for nearby BLE BCI devices...');
+    setTimeout(() => {
       this.setData({ isScanning: false });
-      return;
-    }
-
-    wx.openBluetoothAdapter({
-      success: () => {
-        this.setData({ isScanning: true });
-        this.appendLog('[BLE] 蓝牙适配器初始化成功，正在扫描周围低功耗蓝牙 (BLE) 脑电设备...');
-        setTimeout(() => {
-          this.setData({ isScanning: false });
-        }, 3000);
-      },
-      fail: (err) => {
-        this.appendLog(`[BLE] 蓝牙适配器启动失败: ${err.errMsg}，请检查手机系统蓝牙是否开启`);
-        this.setData({ isScanning: false });
-      }
-    });
+    }, 3000);
   },
 
   connectScannedDevice(e: any) {
@@ -331,10 +279,10 @@ Page({
       deviceName: item.name,
       deviceMac: item.mac,
       isConnected: true,
-      connectionStatusText: '已就绪 (READY)',
+      connectionStatusText: 'READY',
       showScanModal: false,
       isScanning: false
     });
-    this.appendLog(`[BLE] 成功连接至设备: ${item.name} (${item.mac})`);
+    this.appendLog(`[BLE] Connected successfully to device: ${item.name} (${item.mac})`);
   }
 });

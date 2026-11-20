@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace ZKBrain.Windows.Demo
 {
     /// <summary>
-    /// ZKBrain Windows C/C++ 动态链接库 P/Invoke 接口封装
+    /// ZKBrain Windows C/C++ DLL P/Invoke Interface Wrapper
     /// </summary>
     public static class ZKBrainNative
     {
@@ -54,17 +54,17 @@ namespace ZKBrain.Windows.Demo
 
     class Program
     {
-        // 🌟 必须使用静态字段持有委托引用，绝对不能定义在局部变量内，杜绝 GC 提前回收！
+        // Static fields to hold delegates and prevent premature GC collection
         private static ZKBrainNative.BrainDataCallback s_onBrainData;
         private static ZKBrainNative.RawWaveCallback s_onRawWave;
 
         static async Task Main(string[] args)
         {
             Console.WriteLine("================================================================");
-            Console.WriteLine("   ZKBrain Windows C# (.NET) 原生 BLE 自动扫描与解调工程   ");
+            Console.WriteLine("   ZKBrain Windows C# (.NET) Native BLE Scan & Parser Demo   ");
             Console.WriteLine("================================================================");
 
-            // 1. 读取 license.lic 并初始化授权
+            // 1. Read license.lic and initialize authorization
             string licPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "license.lic");
             if (!File.Exists(licPath))
             {
@@ -73,7 +73,7 @@ namespace ZKBrain.Windows.Demo
 
             if (!File.Exists(licPath))
             {
-                Console.WriteLine($"[错误] 未找到授权文件: {licPath}");
+                Console.WriteLine($"[Error] License file not found: {licPath}");
                 return;
             }
 
@@ -81,20 +81,20 @@ namespace ZKBrain.Windows.Demo
             int authCode = ZKBrainNative.zkbrain_sec_init(licJson);
             if (authCode != 1024)
             {
-                Console.WriteLine($"[致命错误] License 鉴权失败，错误代码: {authCode}");
+                Console.WriteLine($"[Fatal Error] License verification failed, code: {authCode}");
                 return;
             }
-            Console.WriteLine("✅ License 授权成功 (Code: 1024)！核心算法引擎已解锁。");
+            Console.WriteLine("License authorized successfully (Code: 1024). Core algorithm engine unlocked.");
 
-            // 2. 创建解析器实例
+            // 2. Create parser instance
             IntPtr parser = ZKBrainNative.zkbrain_parser_create();
             if (parser == IntPtr.Zero)
             {
-                Console.WriteLine("[错误] 解析器实例化失败！");
+                Console.WriteLine("[Error] Parser instantiation failed.");
                 return;
             }
 
-            // 3. 注册 1Hz 综合特征与 512Hz 原始波回调
+            // 3. Register 1Hz metrics and 512Hz raw waveform callbacks
             s_onBrainData = (pIntData, hw, temp, userData) =>
             {
                 int[] data = new int[15];
@@ -108,24 +108,24 @@ namespace ZKBrain.Windows.Demo
                 Console.WriteLine(new string('-', 60));
                 if (signal == 0)
                 {
-                    Console.WriteLine($"🌟 [1Hz 特征] 专注度: {attention,3} | 放松度: {meditation,3} | 电量: {battery,2}% | 额温: {temp:F1}°C");
-                    Console.WriteLine($"📊 [8频段功率] Delta={data[7]}, Theta={data[8]}, LowAlpha={data[9]}, HighAlpha={data[10]}");
-                    Console.WriteLine($"             LowBeta={data[11]}, HighBeta={data[12]}, LowGamma={data[13]}, MidGamma={data[14]}");
+                    Console.WriteLine($"[1Hz EEG] Attention: {attention,3} | Meditation: {meditation,3} | Battery: {battery,2}% | Temp: {temp:F1} C");
+                    Console.WriteLine($"[Power Spectrum] Delta={data[7]}, Theta={data[8]}, LowAlpha={data[9]}, HighAlpha={data[10]}");
+                    Console.WriteLine($"                 LowBeta={data[11]}, HighBeta={data[12]}, LowGamma={data[13]}, MidGamma={data[14]}");
                 }
                 else if (signal == 200)
                 {
-                    Console.WriteLine("🚨 [佩戴告警] 导联完全脱落未佩戴 (Signal=200)，请佩戴好额头电极与耳夹！");
+                    Console.WriteLine("[Off-Head Warning] Sensor detached from forehead (Signal=200). Please fit headband.");
                 }
                 else
                 {
-                    Console.WriteLine($"⚠️  [信号接触不良] 信号质量码: {signal} (ASIC算法进入保持模式)");
+                    Console.WriteLine($"[Poor Signal Contact] Signal quality code: {signal} (Algorithm in hold mode)");
                 }
                 Console.WriteLine(new string('-', 60));
             };
 
             s_onRawWave = (raw, userData) =>
             {
-                // 512Hz 原始微伏波形，可在 UI 示波器中批量绘制
+                // 512Hz raw microvolt waveform, ready for oscilloscope UI plotting
             };
 
             ZKBrainNative.zkbrain_parser_set_callbacks(
@@ -135,36 +135,36 @@ namespace ZKBrain.Windows.Demo
                 IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero
             );
 
-            // 4. 启动 Windows 原生 BLE 自动扫描与连接
+            // 4. Start Windows Native BLE Auto Scan & Connect
             var bleManager = new BleManager(data =>
             {
-                // 物理层收到 BLE Notify 字节，直接喂给 SDK 解析
+                // BLE Notify bytes directly piped to SDK parser
                 ZKBrainNative.zkbrain_parser_parse(parser, data, data.Length);
             });
 
             try
             {
-                // 自动扫描周围包含 brain, mind, eeg, tgam, zkt 关键字的设备并自动连接
+                // Auto scan for nearby devices containing brain, mind, eeg, tgam, zkt keywords
                 await bleManager.StartAutoScanAndConnectAsync(timeoutSeconds: 15);
 
                 if (bleManager.CanWrite)
                 {
-                    Console.WriteLine("\n[硬件协议集成指南调用示例]:");
-                    Console.WriteLine("  1. ZKTeco 开启 MEMS 惯导流: await bleManager.SendCommandAsync(\"mems_on:1;\\n\");");
-                    Console.WriteLine("  2. ZKTeco 设置 512Hz 采样率: await bleManager.SendCommandAsync(\"eeg_data_rate:512;\\n\");");
-                    Console.WriteLine("  3. ZKTeco 查询电量百分比:   await bleManager.SendCommandAsync(\"battery:?\\n\");");
-                    Console.WriteLine("  4. Sky (NeuroSky) 点火包:    await bleManager.SendBytesAsync(new byte[] { 0x02, 0x15, 0x17 });");
-                    Console.WriteLine("  5. Sky 50Hz 工频陷波滤波:    await bleManager.SendBytesAsync(new byte[] { 0x02, 0x1B });");
+                    Console.WriteLine("\n[Hardware Protocol Command Examples]:");
+                    Console.WriteLine("  1. ZKTeco Enable MEMS motion stream: await bleManager.SendCommandAsync(\"mems_on:1;\\n\");");
+                    Console.WriteLine("  2. ZKTeco Set 512Hz sample rate:     await bleManager.SendCommandAsync(\"eeg_data_rate:512;\\n\");");
+                    Console.WriteLine("  3. ZKTeco Query battery level:       await bleManager.SendCommandAsync(\"battery:?\\n\");");
+                    Console.WriteLine("  4. Sky (NeuroSky) Ignition packet:   await bleManager.SendBytesAsync(new byte[] { 0x02, 0x15, 0x17 });");
+                    Console.WriteLine("  5. Sky 50Hz Notch filter:            await bleManager.SendBytesAsync(new byte[] { 0x02, 0x1B });");
                 }
 
-                Console.WriteLine("\n按回车键 (Enter) 断开并退出程序...\n");
+                Console.WriteLine("\nPress Enter to disconnect and exit...\n");
                 Console.ReadLine();
             }
             finally
             {
                 bleManager.Disconnect();
                 ZKBrainNative.zkbrain_parser_destroy(parser);
-                Console.WriteLine("✅ 程序已安全退出，资源已释放。");
+                Console.WriteLine("Application exited cleanly. Resources released.");
             }
         }
     }

@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 """
 =============================================================================
-🌟 ZKBrain Windows SDK - 经典蓝牙/虚拟串口 (COM 端口) 自动扫描连接工程
+ZKBrain Windows SDK - Classic Bluetooth / Virtual Serial Port (COM) Client
 =============================================================================
-适用场景:
-  1. MindWave 原装 USB 蓝牙适配器 (插在电脑上直接识别为 COM 串口);
-  2. 电脑自带蓝牙配对后生成的 Bluetooth SPP 虚拟串口;
-  3. CP2102 / CH340 / FTDI 等 USB 转串口模块。
+Use cases:
+  1. MindWave original USB Bluetooth receiver dongle (identified as COM port);
+  2. Bluetooth SPP virtual serial port paired in Windows;
+  3. CP2102 / CH340 / FTDI USB-to-UART bridge modules.
 
-前置环境要求:
+Prerequisites:
   pip install pyserial
 =============================================================================
 """
@@ -19,7 +19,7 @@ import sys
 import time
 import ctypes
 
-# 解决 Windows 控制台默认 GBK 打印 Emoji 字符抛出 UnicodeEncodeError
+# Fix Windows console UTF-8 stdout encoding
 if sys.platform == "win32":
     try:
         sys.stdout.reconfigure(encoding='utf-8')
@@ -31,23 +31,23 @@ try:
     import serial
     import serial.tools.list_ports
 except ImportError:
-    print("\n[错误] 检测到当前环境未安装 pyserial 串口库！")
-    print("请在控制台执行安装命令: pip install pyserial\n")
+    print("\n[Error] pyserial library is not installed in current environment!")
+    print("Please run: pip install pyserial\n")
     sys.exit(1)
 
 # =========================================================================
-# 1. 加载 ZKBrain Windows 核心动态库
+# 1. Load ZKBrain Windows Core Dynamic Library
 # =========================================================================
 DLL_REL_PATH = os.path.join(os.path.dirname(__file__), "../../bin/x64/zkbrain_sec.dll")
 DLL_PATH = os.path.abspath(DLL_REL_PATH)
 
 if not os.path.exists(DLL_PATH):
-    print(f"[致命错误] 未找到核心动态库: {DLL_PATH}")
+    print(f"[Fatal Error] Core library not found: {DLL_PATH}")
     sys.exit(1)
 
 zkbrain = ctypes.CDLL(DLL_PATH)
 
-# C 接口签名
+# C function signatures
 BRAIN_DATA_CB = ctypes.CFUNCTYPE(None, ctypes.POINTER(ctypes.c_int), ctypes.c_double, ctypes.c_float, ctypes.c_void_p)
 RAW_WAVE_CB = ctypes.CFUNCTYPE(None, ctypes.c_int, ctypes.c_void_p)
 
@@ -76,21 +76,21 @@ def on_brain_data(data_ptr, hw_ver, temp, user_data):
 
     print("-" * 60)
     if signal == 0:
-        print(f"🌟 [状态优良] 专注度: {attention:3d} | 放松度: {meditation:3d} | 电量: {battery:2d}% | 额温: {temp:.1f}°C")
+        print(f"[Good Signal] Attention: {attention:3d} | Meditation: {meditation:3d} | Battery: {battery:2d}% | Temp: {temp:.1f} C")
     elif signal == 200:
-        print("🚨 [脱落警告] 电极完全未佩戴 (Signal=200)")
+        print("[Off-Head Warning] Sensor detached from forehead (Signal=200)")
     else:
-        print(f"⚠️  [信号接触不良] 信号质量码: {signal}")
+        print(f"[Poor Signal Contact] Signal quality code: {signal}")
     print("-" * 60)
 
 c_brain_cb = BRAIN_DATA_CB(on_brain_data)
 
 def main():
     print("================================================================")
-    print("      ZKBrain Windows 串口 / 经典蓝牙 SPP 数据解调客户端       ")
+    print("      ZKBrain Windows Serial / Classic SPP BCI Client          ")
     print("================================================================")
 
-    # 1. 验证授权
+    # 1. License check
     lic_path = os.path.join(os.path.dirname(__file__), "license.lic")
     if not os.path.exists(lic_path):
         lic_path = os.path.join(os.path.dirname(__file__), "../../license.lic")
@@ -100,41 +100,40 @@ def main():
 
     auth_code = zkbrain.zkbrain_sec_init(lic_content.encode("utf-8"))
     if auth_code != 1024:
-        print(f"[错误] License 鉴权失败，错误码: {auth_code}")
+        print(f"[Error] License verification failed, code: {auth_code}")
         return
 
-    print("✅ License 授权成功 (Code: 1024)！")
+    print("License authorized successfully (Code: 1024)!")
 
-    # 2. 列出系统可用串口
+    # 2. List available COM ports
     ports = list(serial.tools.list_ports.comports())
     if not ports:
-        print("❌ 未检测到任何可用的 COM 端口！请插入 USB 接收器或在系统蓝牙中配对头环。")
+        print("No available COM ports found! Please plug in USB receiver or pair via Bluetooth.")
         return
 
-    print(f"\n检测到 {len(ports)} 个可用端口:")
+    print(f"\nDiscovered {len(ports)} available port(s):")
     for idx, p in enumerate(ports):
         print(f"  [{idx + 1}] {p.device} - {p.description}")
 
     sel = 0
     if len(ports) > 1:
-        sel = int(input("\n请选择要连接的端口序号: ").strip()) - 1
+        sel = int(input("\nSelect port index to connect: ").strip()) - 1
     selected_port = ports[sel].device
 
-    # 3. 创建解析器并打开串口
+    # 3. Create parser and open port
     parser = zkbrain.zkbrain_parser_create()
     zkbrain.zkbrain_parser_set_callbacks(parser, c_brain_cb, None, None, None, None, None)
 
-    # 标称波特率通常为 57600 (ThinkGear) 或 115200
     BAUDRATE = 57600
-    print(f"\n🔌 正在打开端口 {selected_port} (波特率 {BAUDRATE}) ...")
+    print(f"\nOpening port {selected_port} (Baudrate {BAUDRATE}) ...")
     try:
         ser = serial.Serial(selected_port, BAUDRATE, timeout=1.0)
     except Exception as e:
-        print(f"❌ 打开串口失败: {e}")
+        print(f"Failed to open serial port: {e}")
         zkbrain.zkbrain_parser_destroy(parser)
         return
 
-    print("🚀 串口已就绪！开始持续读取字节流并送入 SDK 解调 (按 Ctrl+C 退出)...")
+    print("Serial port ready! Streaming bytes into SDK parser (Press Ctrl+C to stop)...")
     try:
         while True:
             raw_chunk = ser.read(64)
@@ -144,11 +143,11 @@ def main():
             else:
                 time.sleep(0.01)
     except KeyboardInterrupt:
-        print("\n用户手动退出。")
+        print("\nSession stopped by user.")
     finally:
         ser.close()
         zkbrain.zkbrain_parser_destroy(parser)
-        print("✅ 串口已关闭，解析器已安全注销。")
+        print("Serial port closed, parser destroyed safely.")
 
 if __name__ == "__main__":
     main()

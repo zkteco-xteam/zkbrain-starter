@@ -39,7 +39,7 @@ import kotlinx.coroutines.launch
 import kotlin.math.round
 
 /**
- * 🌟 1:1 完整逐项还原 shared1 设备管理控制台 (DeviceScreen) - Jetpack Compose 原生版
+ * 1:1 Complete Device Management Console (DeviceScreen) - Jetpack Compose Native
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,7 +47,7 @@ fun DashboardScreen() {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    // 响应式流状态收集
+    // Reactive state flows
     val connState by ZKBrainManager.connState.collectAsState()
     val connectedDevice by ZKBrainManager.connectedDevice.collectAsState()
     val scannedDevices by ZKBrainManager.scannedDevices.collectAsState()
@@ -58,7 +58,7 @@ fun DashboardScreen() {
     var terminalLogs by remember { mutableStateOf<List<String>>(emptyList()) }
     var showScanDialog by remember { mutableStateOf(false) }
 
-    // MEMS 姿态与欧拉角
+    // MEMS attitude & Euler angles
     var memsX by remember { mutableFloatStateOf(0f) }
     var memsY by remember { mutableFloatStateOf(0f) }
     var memsZ by remember { mutableFloatStateOf(0f) }
@@ -67,7 +67,7 @@ fun DashboardScreen() {
     var memsQ2 by remember { mutableFloatStateOf(0f) }
     var memsQ3 by remember { mutableFloatStateOf(0f) }
 
-    // 通道与图表显隐配置
+    // Channels & charts display settings
     var isFp1Visible by remember { mutableStateOf(true) }
     var isFp2Visible by remember { mutableStateOf(false) }
     val chartToggles = remember {
@@ -89,7 +89,7 @@ fun DashboardScreen() {
 
     var customCmdInput by remember { mutableStateOf("") }
     var writeSnInput by remember { mutableStateOf("") }
-    var dfuStatus by remember { mutableStateOf("DFU: 空闲就绪") }
+    var dfuStatus by remember { mutableStateOf("DFU: Idle & Ready") }
 
     val isConnected = (connState == ZKBrainConnectionState.READY || connState == ZKBrainConnectionState.CONNECTED)
     val deviceName = connectedDevice?.name ?: "ZKBrain"
@@ -98,7 +98,7 @@ fun DashboardScreen() {
             deviceName.contains("TGAM", ignoreCase = true) ||
             deviceName.contains("xpain", ignoreCase = true)
 
-    // Android 运行时动态蓝牙权限申请
+    // Android runtime BLE permissions
     val requiredBlePermissions = remember {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             arrayOf(
@@ -120,7 +120,7 @@ fun DashboardScreen() {
             ZKBrainManager.startScan(timeoutMillis = 10000L)
             showScanDialog = true
         } else {
-            Toast.makeText(context, "未授予蓝牙权限，无法扫描设备", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Bluetooth permissions denied, cannot scan devices", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -140,7 +140,7 @@ fun DashboardScreen() {
         terminalLogs = (listOf(msg) + terminalLogs).take(50)
     }
 
-    // 状态流监听
+    // State flow collectors
     LaunchedEffect(Unit) {
         launch {
             ZKBrainManager.brainData.collectLatest { eeg ->
@@ -179,7 +179,7 @@ fun DashboardScreen() {
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // ==========================================
-        // 板块 1：顶部操作栏 (蓝牙搜索 + DFU 升级 + License Badge)
+        // Section 1: Top Bar (BLE Scan + DFU OTA + License Badge)
         // ==========================================
         item {
             Row(
@@ -195,7 +195,7 @@ fun DashboardScreen() {
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        text = if (scanState == com.zkteco.zkbrain.bean.ZKBrainScanState.SCANNING) "搜索中..." else "🔍 蓝牙搜索",
+                        text = if (scanState == com.zkteco.zkbrain.bean.ZKBrainScanState.SCANNING) "Scanning..." else "Search BLE",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
@@ -205,7 +205,7 @@ fun DashboardScreen() {
 
                 Button(
                     onClick = {
-                        Toast.makeText(context, "DFU 固件升级管理器已就绪", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "DFU OTA firmware manager is ready", Toast.LENGTH_SHORT).show()
                     },
                     shape = RoundedCornerShape(6.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE65100)),
@@ -213,7 +213,7 @@ fun DashboardScreen() {
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        text = "🚀 DFU 升级",
+                        text = "DFU OTA",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
@@ -228,7 +228,7 @@ fun DashboardScreen() {
                         .padding(horizontal = 8.dp, vertical = 6.dp)
                 ) {
                     Text(
-                        text = "License: 已授权",
+                        text = "License: Active",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF2E7D32),
@@ -239,7 +239,7 @@ fun DashboardScreen() {
         }
 
         // ==========================================
-        // 板块 2：统一当前设备连接状态卡片
+        // Section 2: Unified Device Connection Card
         // ==========================================
         item {
             Card(
@@ -293,12 +293,12 @@ fun DashboardScreen() {
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = when (connState) {
-                                    ZKBrainConnectionState.READY -> "已连接 (就绪)"
-                                    ZKBrainConnectionState.CONNECTING -> "正在连接..."
-                                    ZKBrainConnectionState.DISCOVERING_SERVICES -> "服务发现中..."
-                                    ZKBrainConnectionState.CONNECTED -> "物理已连接"
-                                    ZKBrainConnectionState.DISCONNECTED -> "未连接设备"
-                                    else -> "连接异常 (${connState.name})"
+                                    ZKBrainConnectionState.READY -> "Connected (Ready)"
+                                    ZKBrainConnectionState.CONNECTING -> "Connecting..."
+                                    ZKBrainConnectionState.DISCOVERING_SERVICES -> "Discovering Services..."
+                                    ZKBrainConnectionState.CONNECTED -> "Physically Connected"
+                                    ZKBrainConnectionState.DISCONNECTED -> "Disconnected"
+                                    else -> "Abnormal (${connState.name})"
                                 },
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
@@ -321,7 +321,7 @@ fun DashboardScreen() {
                                 contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
                                 modifier = Modifier.height(30.dp)
                             ) {
-                                Text("断开连接", fontSize = 12.sp, color = Color.White)
+                                Text("Disconnect", fontSize = 12.sp, color = Color.White)
                             }
                         } else {
                             Button(
@@ -331,7 +331,7 @@ fun DashboardScreen() {
                                 contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
                                 modifier = Modifier.height(30.dp)
                             ) {
-                                Text("搜索并连接", fontSize = 12.sp, color = Color.White)
+                                Text("Scan & Connect", fontSize = 12.sp, color = Color.White)
                             }
                         }
                     }
@@ -362,7 +362,7 @@ fun DashboardScreen() {
                                     .padding(horizontal = 8.dp, vertical = 4.dp)
                             ) {
                                 Text(
-                                    text = "🔋 电量: ${if (batteryLevel > 0) "$batteryLevel%" else "--"}",
+                                    text = "Battery: ${if (batteryLevel > 0) "$batteryLevel%" else "--"}",
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFF2E7D32)
@@ -384,7 +384,7 @@ fun DashboardScreen() {
                                     .padding(horizontal = 6.dp, vertical = 2.dp)
                             ) {
                                 Text(
-                                    text = if (isNeuroSky) "NeuroSky (MindWave)" else "ZKBrain 自研设备",
+                                    text = if (isNeuroSky) "NeuroSky (MindWave)" else "ZKBrain Native Device",
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = if (isNeuroSky) Color(0xFFE65100) else Color(0xFF2E7D32)
@@ -398,7 +398,7 @@ fun DashboardScreen() {
                                     .padding(horizontal = 6.dp, vertical = 2.dp)
                             ) {
                                 Text(
-                                    text = "⚡ Raw采样率: 512Hz",
+                                    text = "Raw Rate: 512Hz",
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFF512DA8)
@@ -444,7 +444,7 @@ fun DashboardScreen() {
                         }
                     } else {
                         Text(
-                            text = "未连接任何脑电设备，请点击“搜索并连接”或右上角“蓝牙搜索”进行配对。",
+                            text = "No BCI device connected. Click 'Scan & Connect' or 'Search BLE' above to pair.",
                             fontSize = 12.sp,
                             color = Color(0xFF757575),
                             lineHeight = 18.sp
@@ -455,12 +455,12 @@ fun DashboardScreen() {
         }
 
         // ==========================================
-        // 板块 3：Channel Settings (通道配置)
+        // Section 3: Channel Settings
         // ==========================================
         item {
             Column {
                 Text(
-                    text = "Channel Settings (通道配置)",
+                    text = "Channel Settings",
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
@@ -480,7 +480,7 @@ fun DashboardScreen() {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(checked = isFp2Visible, onCheckedChange = { }, enabled = false)
                         Text(
-                            text = "Right (FP2 - 暂未支持/仅支持单通道FP1)",
+                            text = "Right (FP2) [Unsupported]",
                             fontSize = 14.sp,
                             color = Color.Gray
                         )
@@ -490,12 +490,12 @@ fun DashboardScreen() {
         }
 
         // ==========================================
-        // 板块 4：Chart Display Settings (11 个图表显隐 CheckBox 矩阵)
+        // Section 4: Chart Display Settings
         // ==========================================
         item {
             Column {
                 Text(
-                    text = "Chart Display Settings (图表显示筛选)",
+                    text = "Chart Display Settings",
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
@@ -537,7 +537,7 @@ fun DashboardScreen() {
         }
 
         // ==========================================
-        // 板块 5：⚙️ NeuroSky / MindWave 专属 20 字节协议控制台
+        // Section 5: NeuroSky / MindWave 20-Byte Protocol Console
         // ==========================================
         item {
             Column(
@@ -554,14 +554,14 @@ fun DashboardScreen() {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "⚙️ NeuroSky / MindWave 专属 20 字节协议控制台",
+                        text = "NeuroSky / MindWave 20-Byte Protocol Console",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFFE65100),
                         modifier = Modifier.weight(1f, fill = false)
                     )
                     Text(
-                        text = "经典 20B XMW 协议",
+                        text = "Classic 20B XMW",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium,
                         color = Color(0xFFE65100),
@@ -574,8 +574,8 @@ fun DashboardScreen() {
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // 1. 点火与停止
-                Text("1. 数据流启停控制 (Raw & 8 频段功率)", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF424242))
+                // 1. Ignition & Stream Control
+                Text("1. Stream Control (Raw & 8-Band Power)", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF424242))
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -585,7 +585,7 @@ fun DashboardScreen() {
                         onClick = {
                             connectedDevice?.let { dev ->
                                 ZKBrainManager.writeCommand(dev.address, byteArrayOf(0x02, 0x15))
-                                appendTerminal("[TX >>] 开启 Raw 流 (0x15)")
+                                appendTerminal("[TX >>] Start Raw stream (0x15)")
                             }
                         },
                         modifier = Modifier.weight(1f),
@@ -593,14 +593,14 @@ fun DashboardScreen() {
                         contentPadding = PaddingValues(horizontal = 2.dp, vertical = 4.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32))
                     ) {
-                        Text("开启Raw(0x15)", fontSize = 10.sp, color = Color.White)
+                        Text("Start Raw(0x15)", fontSize = 10.sp, color = Color.White)
                     }
 
                     Button(
                         onClick = {
                             connectedDevice?.let { dev ->
                                 ZKBrainManager.writeCommand(dev.address, byteArrayOf(0x02, 0x16))
-                                appendTerminal("[TX >>] 停止 Raw 流 (0x16)")
+                                appendTerminal("[TX >>] Stop Raw stream (0x16)")
                             }
                         },
                         modifier = Modifier.weight(1f),
@@ -608,14 +608,14 @@ fun DashboardScreen() {
                         contentPadding = PaddingValues(horizontal = 2.dp, vertical = 4.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC62828))
                     ) {
-                        Text("停止Raw(0x16)", fontSize = 10.sp, color = Color.White)
+                        Text("Stop Raw(0x16)", fontSize = 10.sp, color = Color.White)
                     }
 
                     Button(
                         onClick = {
                             connectedDevice?.let { dev ->
                                 ZKBrainManager.writeCommand(dev.address, byteArrayOf(0x02, 0x17))
-                                appendTerminal("[TX >>] 开启 8频段 (0x17)")
+                                appendTerminal("[TX >>] Start 8-band stream (0x17)")
                             }
                         },
                         modifier = Modifier.weight(1f),
@@ -623,14 +623,14 @@ fun DashboardScreen() {
                         contentPadding = PaddingValues(horizontal = 2.dp, vertical = 4.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1565C0))
                     ) {
-                        Text("开启8频段(0x17)", fontSize = 10.sp, color = Color.White)
+                        Text("Start 8-Band(0x17)", fontSize = 10.sp, color = Color.White)
                     }
 
                     Button(
                         onClick = {
                             connectedDevice?.let { dev ->
                                 ZKBrainManager.writeCommand(dev.address, byteArrayOf(0x02, 0x18))
-                                appendTerminal("[TX >>] 停止 8频段 (0x18)")
+                                appendTerminal("[TX >>] Stop 8-band stream (0x18)")
                             }
                         },
                         modifier = Modifier.weight(1f),
@@ -638,14 +638,14 @@ fun DashboardScreen() {
                         contentPadding = PaddingValues(horizontal = 2.dp, vertical = 4.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A1B9A))
                     ) {
-                        Text("停止8频段(0x18)", fontSize = 10.sp, color = Color.White)
+                        Text("Stop 8-Band(0x18)", fontSize = 10.sp, color = Color.White)
                     }
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // 2. 滤波
-                Text("2. 50Hz/60Hz 工频陷波滤波配置", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF424242))
+                // 2. Notch Filter
+                Text("2. 50Hz/60Hz Notch Filter", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF424242))
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -655,35 +655,35 @@ fun DashboardScreen() {
                         onClick = {
                             connectedDevice?.let { dev ->
                                 ZKBrainManager.writeCommand(dev.address, byteArrayOf(0x02, 0x1B))
-                                appendTerminal("[TX >>] 设置 50Hz 陷波 (0x1B)")
+                                appendTerminal("[TX >>] Set 50Hz notch filter (0x1B)")
                             }
                         },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(6.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00695C))
                     ) {
-                        Text("50Hz 陷波 (0x1B)", fontSize = 12.sp, color = Color.White)
+                        Text("50Hz Notch (0x1B)", fontSize = 12.sp, color = Color.White)
                     }
 
                     Button(
                         onClick = {
                             connectedDevice?.let { dev ->
                                 ZKBrainManager.writeCommand(dev.address, byteArrayOf(0x02, 0x1C))
-                                appendTerminal("[TX >>] 设置 60Hz 陷波 (0x1C)")
+                                appendTerminal("[TX >>] Set 60Hz notch filter (0x1C)")
                             }
                         },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(6.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0277BD))
                     ) {
-                        Text("60Hz 陷波 (0x1C)", fontSize = 12.sp, color = Color.White)
+                        Text("60Hz Notch (0x1C)", fontSize = 12.sp, color = Color.White)
                     }
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // 3. 硬件信息
-                Text("3. 硬件静态信息读取", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF424242))
+                // 3. Hardware Info
+                Text("3. Hardware Information Query", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF424242))
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -693,54 +693,54 @@ fun DashboardScreen() {
                         onClick = {
                             connectedDevice?.let { dev ->
                                 ZKBrainManager.writeCommand(dev.address, byteArrayOf(0x02, 0x06))
-                                appendTerminal("[TX >>] 读电量 (0x06)")
+                                appendTerminal("[TX >>] Read battery level (0x06)")
                             }
                         },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(6.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4527A0))
                     ) {
-                        Text("读电量 (0x06)", fontSize = 12.sp, color = Color.White)
+                        Text("Battery (0x06)", fontSize = 12.sp, color = Color.White)
                     }
 
                     Button(
                         onClick = {
                             connectedDevice?.let { dev ->
                                 ZKBrainManager.writeCommand(dev.address, byteArrayOf(0x02, 0xF4.toByte()))
-                                appendTerminal("[TX >>] 读硬件 SN (0xF4)")
+                                appendTerminal("[TX >>] Read hardware SN (0xF4)")
                             }
                         },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(6.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFAD1457))
                     ) {
-                        Text("读硬件 SN (0xF4)", fontSize = 12.sp, color = Color.White)
+                        Text("Read SN (0xF4)", fontSize = 12.sp, color = Color.White)
                     }
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // 4. 探测经典 MAC
-                Text("4. 探测经典蓝牙 MAC 地址 (0xFC)", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF424242))
+                // 4. Classic MAC Probe
+                Text("4. Probe Classic Bluetooth MAC (0xFC)", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF424242))
                 Spacer(modifier = Modifier.height(4.dp))
                 Button(
                     onClick = {
                         connectedDevice?.let { dev ->
                             ZKBrainManager.writeCommand(dev.address, byteArrayOf(0x02, 0xFC.toByte()))
-                            appendTerminal("[TX >>] 探测经典 MAC (0xFC)")
+                            appendTerminal("[TX >>] Probe classic BT MAC (0xFC)")
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(6.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF37474F))
                 ) {
-                    Text("探测经典 MAC (0xFC)", fontSize = 12.sp, color = Color.White)
+                    Text("Probe Classic MAC (0xFC)", fontSize = 12.sp, color = Color.White)
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // 5. 写入 SN (0xF2)
-                Text("5. 写入设备 SN (OpCode 0xF2, 最多 16 字节 ASCII)", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF424242))
+                // 5. Write SN (0xF2)
+                Text("5. Write Device SN (OpCode 0xF2, max 16 bytes ASCII)", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF424242))
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -751,7 +751,7 @@ fun DashboardScreen() {
                         value = writeSnInput,
                         onValueChange = { if (it.length <= 16) writeSnInput = it },
                         modifier = Modifier.weight(1f),
-                        placeholder = { Text("输入 SN (如 MW_001)", fontSize = 12.sp) },
+                        placeholder = { Text("Enter SN (e.g. MW_001)", fontSize = 12.sp) },
                         singleLine = true
                     )
                     Button(
@@ -761,7 +761,7 @@ fun DashboardScreen() {
                                     val snBytes = writeSnInput.trim().toByteArray().take(16).toByteArray()
                                     val packet = byteArrayOf(0x02, 0xF2.toByte()) + snBytes
                                     ZKBrainManager.writeCommand(dev.address, packet)
-                                    appendTerminal("[TX >>] 写入 SN (0xF2): $writeSnInput")
+                                    appendTerminal("[TX >>] Write SN (0xF2): $writeSnInput")
                                 }
                             }
                         },
@@ -769,14 +769,14 @@ fun DashboardScreen() {
                         enabled = writeSnInput.isNotBlank(),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4E342E))
                     ) {
-                        Text("写入 (0xF2)", fontSize = 12.sp, color = Color.White)
+                        Text("Write (0xF2)", fontSize = 12.sp, color = Color.White)
                     }
                 }
             }
         }
 
         // ==========================================
-        // 板块 6：🧠 ZKBrain 自研脑电设备官方控制台
+        // Section 6: ZKBrain Native Device Official Console
         // ==========================================
         item {
             Column(
@@ -793,13 +793,13 @@ fun DashboardScreen() {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "🧠 ZKBrain 自研脑电设备官方控制台",
+                        text = "ZKBrain Native Device Official Console",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF0D47A1)
                     )
                     Text(
-                        text = if (!isNeuroSky) "🌟 当前适配 (官方 ASCII)" else "自研设备专属 (ASCII)",
+                        text = if (!isNeuroSky) "Active (Official ASCII)" else "ASCII Only",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium,
                         color = if (!isNeuroSky) Color(0xFF1565C0) else Color(0xFF757575),
@@ -818,19 +818,19 @@ fun DashboardScreen() {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "License: 正式授权 (永久有效)",
+                        text = "License: Active (Permanent)",
                         fontSize = 12.sp,
                         color = Color(0xFF333333)
                     )
                     Button(
                         onClick = {
                             ZKBrainManager.sendConfigCommand(mapOf("zk_check_license" to ""))
-                            appendTerminal("[TX >>] 查询授权 (zk_check_license)")
+                            appendTerminal("[TX >>] Query license status (zk_check_license)")
                         },
                         shape = RoundedCornerShape(6.dp),
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
                     ) {
-                        Text("查询授权", fontSize = 12.sp)
+                        Text("Check License", fontSize = 12.sp)
                     }
                 }
 
@@ -842,7 +842,7 @@ fun DashboardScreen() {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "设备电量: ${if (batteryLevel > 0) "$batteryLevel%" else "--"} (正常供电)",
+                        text = "Battery: ${if (batteryLevel > 0) "$batteryLevel%" else "--"} (Normal)",
                         fontSize = 12.sp,
                         color = Color(0xFF333333)
                     )
@@ -854,7 +854,7 @@ fun DashboardScreen() {
                         shape = RoundedCornerShape(6.dp),
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
                     ) {
-                        Text("读取电量", fontSize = 12.sp)
+                        Text("Read Battery", fontSize = 12.sp)
                     }
                 }
 
@@ -866,7 +866,7 @@ fun DashboardScreen() {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "固件版本: ${connectedDevice?.deviceVersion?.ifEmpty { "V1.2.1" } ?: "V1.2.1"} (已适配)",
+                        text = "Firmware: ${connectedDevice?.deviceVersion?.ifEmpty { "V1.2.1" } ?: "V1.2.1"}",
                         fontSize = 12.sp,
                         color = Color(0xFF333333)
                     )
@@ -878,14 +878,14 @@ fun DashboardScreen() {
                         shape = RoundedCornerShape(6.dp),
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
                     ) {
-                        Text("读取版本", fontSize = 12.sp)
+                        Text("Read Version", fontSize = 12.sp)
                     }
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Text(
-                    text = "脑电数据开关 (eeg_data_on)",
+                    text = "EEG Data Stream (eeg_data_on)",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF555555)
@@ -903,7 +903,7 @@ fun DashboardScreen() {
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(6.dp)
                     ) {
-                        Text("开 (:1)", fontSize = 12.sp)
+                        Text("ON (:1)", fontSize = 12.sp)
                     }
                     Button(
                         onClick = {
@@ -913,7 +913,7 @@ fun DashboardScreen() {
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(6.dp)
                     ) {
-                        Text("关 (:0)", fontSize = 12.sp)
+                        Text("OFF (:0)", fontSize = 12.sp)
                     }
                     Button(
                         onClick = {
@@ -923,14 +923,14 @@ fun DashboardScreen() {
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(6.dp)
                     ) {
-                        Text("查询 (:?)", fontSize = 12.sp)
+                        Text("Query (:?)", fontSize = 12.sp)
                     }
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Text(
-                    text = "脑电采样率 (eeg_data_rate)",
+                    text = "EEG Sample Rate (eeg_data_rate)",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF555555)
@@ -949,7 +949,7 @@ fun DashboardScreen() {
                         shape = RoundedCornerShape(4.dp),
                         contentPadding = PaddingValues(horizontal = 2.dp, vertical = 4.dp)
                     ) {
-                        Text("128H", fontSize = 11.sp)
+                        Text("128Hz", fontSize = 11.sp)
                     }
                     Button(
                         onClick = {
@@ -960,7 +960,7 @@ fun DashboardScreen() {
                         shape = RoundedCornerShape(4.dp),
                         contentPadding = PaddingValues(horizontal = 2.dp, vertical = 4.dp)
                     ) {
-                        Text("256H", fontSize = 11.sp)
+                        Text("256Hz", fontSize = 11.sp)
                     }
                     Button(
                         onClick = {
@@ -971,7 +971,7 @@ fun DashboardScreen() {
                         shape = RoundedCornerShape(4.dp),
                         contentPadding = PaddingValues(horizontal = 2.dp, vertical = 4.dp)
                     ) {
-                        Text("512H", fontSize = 11.sp)
+                        Text("512Hz", fontSize = 11.sp)
                     }
                     Button(
                         onClick = {
@@ -982,14 +982,14 @@ fun DashboardScreen() {
                         shape = RoundedCornerShape(4.dp),
                         contentPadding = PaddingValues(horizontal = 2.dp, vertical = 4.dp)
                     ) {
-                        Text("查询", fontSize = 11.sp)
+                        Text("Query", fontSize = 11.sp)
                     }
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Text(
-                    text = "惯导/MEMS 姿态传感控制 (mems_on)",
+                    text = "MEMS Motion Sensor Control (mems_on)",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF555555)
@@ -1007,7 +1007,7 @@ fun DashboardScreen() {
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(6.dp)
                     ) {
-                        Text("开 (:1)", fontSize = 12.sp)
+                        Text("ON (:1)", fontSize = 12.sp)
                     }
                     Button(
                         onClick = {
@@ -1017,7 +1017,7 @@ fun DashboardScreen() {
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(6.dp)
                     ) {
-                        Text("关 (:0)", fontSize = 12.sp)
+                        Text("OFF (:0)", fontSize = 12.sp)
                     }
                     Button(
                         onClick = {
@@ -1027,13 +1027,13 @@ fun DashboardScreen() {
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(6.dp)
                     ) {
-                        Text("查询 (:?)", fontSize = 12.sp)
+                        Text("Query (:?)", fontSize = 12.sp)
                     }
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // 实时欧拉角展示
+                // Real-time Euler angles display
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -1042,7 +1042,7 @@ fun DashboardScreen() {
                         .padding(8.dp)
                 ) {
                     Text(
-                        text = "MEMS 空间姿态角 (mems_type:1 / Euler Angles):",
+                        text = "MEMS Euler Angles (mems_type:1):",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF1565C0)
@@ -1052,13 +1052,13 @@ fun DashboardScreen() {
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("Pitch(俯仰): ${round(memsX * 10) / 10f}°", fontSize = 11.sp, fontFamily = FontFamily.Monospace, color = Color(0xFF0D47A1))
-                        Text("Roll(翻滚): ${round(memsY * 10) / 10f}°", fontSize = 11.sp, fontFamily = FontFamily.Monospace, color = Color(0xFF0D47A1))
-                        Text("Yaw(偏航): ${round(memsZ * 10) / 10f}°", fontSize = 11.sp, fontFamily = FontFamily.Monospace, color = Color(0xFF0D47A1))
+                        Text("Pitch: ${round(memsX * 10) / 10f}°", fontSize = 11.sp, fontFamily = FontFamily.Monospace, color = Color(0xFF0D47A1))
+                        Text("Roll: ${round(memsY * 10) / 10f}°", fontSize = 11.sp, fontFamily = FontFamily.Monospace, color = Color(0xFF0D47A1))
+                        Text("Yaw: ${round(memsZ * 10) / 10f}°", fontSize = 11.sp, fontFamily = FontFamily.Monospace, color = Color(0xFF0D47A1))
                     }
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "MEMS 旋转四元数 (mems_type:0 / Quaternions):",
+                        text = "MEMS Quaternions (mems_type:0):",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF2E7D32)
@@ -1075,7 +1075,7 @@ fun DashboardScreen() {
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Text(
-                    text = "下发自定义键值对指令",
+                    text = "Send Custom Key-Value Command",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF555555)
@@ -1089,7 +1089,7 @@ fun DashboardScreen() {
                     OutlinedTextField(
                         value = customCmdInput,
                         onValueChange = { customCmdInput = it },
-                        placeholder = { Text("输入指令如 mems_type:0 或 sn:?", fontSize = 12.sp) },
+                        placeholder = { Text("Enter command, e.g. mems_type:0 or sn:?", fontSize = 12.sp) },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
                         textStyle = androidx.compose.ui.text.TextStyle(fontSize = 12.sp)
@@ -1114,7 +1114,7 @@ fun DashboardScreen() {
                         shape = RoundedCornerShape(6.dp),
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
                     ) {
-                        Text("发送指令", fontSize = 12.sp)
+                        Text("Send Command", fontSize = 12.sp)
                     }
                 }
 
@@ -1126,7 +1126,7 @@ fun DashboardScreen() {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "📥 硬件回包监控 (commandResponse)",
+                        text = "Hardware Response Log (commandResponse)",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF2E7D32)
@@ -1136,7 +1136,7 @@ fun DashboardScreen() {
                         shape = RoundedCornerShape(4.dp),
                         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
                     ) {
-                        Text("清空", fontSize = 11.sp)
+                        Text("Clear", fontSize = 11.sp)
                     }
                 }
 
@@ -1172,13 +1172,13 @@ fun DashboardScreen() {
                     Button(
                         onClick = {
                             ZKBrainManager.sendConfigCommand(mapOf("zk_dfu_scan" to ""))
-                            dfuStatus = "DFU: 正在扫描 DFU 升级广播..."
+                            dfuStatus = "DFU: Scanning for OTA DFU beacons..."
                             appendTerminal("[TX >>] zk_dfu_scan")
                         },
                         shape = RoundedCornerShape(6.dp),
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
                     ) {
-                        Text("扫描 DFU 设备", fontSize = 11.sp)
+                        Text("Scan DFU", fontSize = 11.sp)
                     }
 
                     Text(
@@ -1192,7 +1192,7 @@ fun DashboardScreen() {
         }
 
         // ==========================================
-        // 板块 7：Spectrum Data 详细表格 (DeviceShowTable)
+        // Section 7: Spectrum Data Table (DeviceShowTable)
         // ==========================================
         item {
             Column {
@@ -1205,7 +1205,7 @@ fun DashboardScreen() {
                 Spacer(modifier = Modifier.height(6.dp))
 
                 DeviceShowTable(
-                    macAddress = if (connectedDevice != null) "MAC: ${connectedDevice!!.address}" else "MAC: 未连接",
+                    macAddress = if (connectedDevice != null) "MAC: ${connectedDevice!!.address}" else "MAC: Disconnected",
                     data = brainData
                 )
             }
@@ -1213,7 +1213,7 @@ fun DashboardScreen() {
     }
 
     // ==========================================
-    // 蓝牙搜索选择弹窗 (BleScanDialog)
+    // Bluetooth Scan Dialog (BleScanDialog)
     // ==========================================
     if (showScanDialog) {
         Dialog(
@@ -1242,13 +1242,13 @@ fun DashboardScreen() {
                     ) {
                         Column {
                             Text(
-                                text = "🔍 搜索周围脑电设备",
+                                text = "Search Nearby BCI Devices",
                                 fontSize = 17.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF1E293B)
                             )
                             Text(
-                                text = "点击列表条目即可一键连接",
+                                text = "Tap a device to connect instantly",
                                 fontSize = 12.sp,
                                 color = Color(0xFF64748B)
                             )
@@ -1258,7 +1258,7 @@ fun DashboardScreen() {
                             shape = RoundedCornerShape(8.dp),
                             contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
                         ) {
-                            Text("🔄 刷新", fontSize = 12.sp)
+                            Text("Refresh", fontSize = 12.sp)
                         }
                     }
 
@@ -1274,7 +1274,7 @@ fun DashboardScreen() {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 CircularProgressIndicator(color = Color(0xFF3B82F6), modifier = Modifier.size(36.dp))
                                 Spacer(modifier = Modifier.height(10.dp))
-                                Text("正在扫描广播中的脑机硬件...", color = Color(0xFF64748B), fontSize = 13.sp)
+                                Text("Scanning for BLE BCI hardware...", color = Color(0xFF64748B), fontSize = 13.sp)
                             }
                         }
                     } else {
@@ -1302,7 +1302,7 @@ fun DashboardScreen() {
                                 ) {
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
-                                            text = dev.name.ifEmpty { "未知脑电设备" },
+                                            text = dev.name.ifEmpty { "Unknown BCI Device" },
                                             fontSize = 14.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = Color(0xFF0F172A)
@@ -1325,7 +1325,7 @@ fun DashboardScreen() {
                                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
                                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E88E5))
                                     ) {
-                                        Text("连接", fontSize = 12.sp, color = Color.White)
+                                        Text("Connect", fontSize = 12.sp, color = Color.White)
                                     }
                                 }
                             }
@@ -1345,7 +1345,7 @@ fun DashboardScreen() {
                             },
                             shape = RoundedCornerShape(8.dp)
                         ) {
-                            Text("关闭")
+                            Text("Close")
                         }
                     }
                 }
@@ -1355,7 +1355,7 @@ fun DashboardScreen() {
 }
 
 /**
- * 🌟 1:1 还原 shared1 device_show_item.xml 的 4x3 三色指标表格
+ * 1:1 DeviceShowTable with 4x3 color-coded metrics matrix
  */
 @Composable
 fun DeviceShowTable(
@@ -1363,9 +1363,9 @@ fun DeviceShowTable(
     data: MultiBrainEeg?,
     modifier: Modifier = Modifier
 ) {
-    val bgPink = Color(0xFFFFE4E1)    // #FFE4E1 (粉)
-    val bgCyan = Color(0xFFE0FFFF)    // #E0FFFF (青)
-    val bgYellow = Color(0xFFF0E68C)  // #F0E68C (黄)
+    val bgPink = Color(0xFFFFE4E1)    // #FFE4E1 (Pink)
+    val bgCyan = Color(0xFFE0FFFF)    // #E0FFFF (Cyan)
+    val bgYellow = Color(0xFFF0E68C)  // #F0E68C (Yellow)
 
     val waves = data?.brainWaves
 
@@ -1376,7 +1376,7 @@ fun DeviceShowTable(
             .background(Color.White)
             .padding(8.dp)
     ) {
-        // 顶部 MAC 地址居中
+        // Top MAC address centered
         Text(
             text = macAddress,
             fontSize = 16.sp,
@@ -1388,7 +1388,7 @@ fun DeviceShowTable(
             textAlign = TextAlign.Center
         )
 
-        // 3列表格行 1: Signal | Attention | Meditation
+        // Row 1: Signal | Attention | Meditation
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -1400,7 +1400,7 @@ fun DeviceShowTable(
 
         Spacer(modifier = Modifier.height(6.dp))
 
-        // 3列表格行 2: Delta | Theta | Low Alpha
+        // Row 2: Delta | Theta | Low Alpha
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -1412,7 +1412,7 @@ fun DeviceShowTable(
 
         Spacer(modifier = Modifier.height(6.dp))
 
-        // 3列表格行 3: Low Beta | High Beta | Low Gamma
+        // Row 3: Low Beta | High Beta | Low Gamma
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -1424,14 +1424,14 @@ fun DeviceShowTable(
 
         Spacer(modifier = Modifier.height(6.dp))
 
-        // 3列表格行 4: Mid Gamma | Battery | Raw 采样率 (4x3 完美对称布局)
+        // Row 4: Mid Gamma | Battery | Raw Rate (4x3 symmetric layout)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             TableCell(title = "Mid Gamma (γ2)", value = "${waves?.middleGamma ?: 0}", bgColor = bgPink, modifier = Modifier.weight(1f))
             TableCell(title = "Battery", value = "${data?.batteryCapacity ?: 0}%", bgColor = bgCyan, modifier = Modifier.weight(1f))
-            TableCell(title = "Raw 采样率", value = "512 Hz", bgColor = bgYellow, modifier = Modifier.weight(1f))
+            TableCell(title = "Raw Rate", value = "512 Hz", bgColor = bgYellow, modifier = Modifier.weight(1f))
         }
     }
 }

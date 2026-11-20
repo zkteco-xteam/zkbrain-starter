@@ -9,7 +9,7 @@ namespace ZKBrain.Unity
     {
         private ZKBrainBleBridge bridge;
         private Vector2 scrollPos;
-        private string terminalLogs = "[系统启动] ZKBrain Unity 控制台就绪\n";
+        private string terminalLogs = "[SYSTEM] ZKBrain Unity BCI Console Ready\n";
         private string customCmd = "mems_on:1";
 
         private void Start()
@@ -25,22 +25,22 @@ namespace ZKBrain.Unity
         {
             GUI.skin.box.alignment = TextAnchor.MiddleCenter;
 
-            // 绘制左侧控制台浮窗
+            // 绘制左侧控制台浮窗 / Left panel HUD
             GUILayout.BeginArea(new Rect(15, 15, 420, Screen.height - 30), GUI.skin.window);
             scrollPos = GUILayout.BeginScrollView(scrollPos);
 
-            // 1. 顶部操作栏
+            // 1. 顶部操作栏 / Section 1: Header Bar
             GUILayout.BeginHorizontal();
-            GUILayout.Label("<b>设备管理 (DeviceScreen)</b>", GUILayout.Width(180));
-            if (GUILayout.Button("🔍 搜索", GUILayout.Width(60)))
+            GUILayout.Label("<b>DeviceScreen (设备管理)</b>", GUILayout.Width(180));
+            if (GUILayout.Button("🔍 Scan", GUILayout.Width(60)))
             {
                 bridge?.ConnectDevice("ZKBrain-PRO-8801", "DC:23:4F:9A:88:01");
             }
-            if (GUILayout.Button("OTA升级", GUILayout.Width(65)))
+            if (GUILayout.Button("DFU", GUILayout.Width(65)))
             {
-                bridge?.Log("[DFU] 固件 OTA 检测：当前处于最新版 v2.4.0");
+                bridge?.Log("[DFU] Checking firmware OTA: currently on latest stable v2.4.0");
             }
-            GUILayout.Label("<color=#16a34a><b>✓ SN就绪</b></color>");
+            GUILayout.Label("<color=#16a34a><b>✓ SN Ready</b></color>");
             GUILayout.EndHorizontal();
 
             GUILayout.Space(8);

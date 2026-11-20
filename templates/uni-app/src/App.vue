@@ -2,7 +2,7 @@
 import { onLaunch, onShow, onHide } from "@dcloudio/uni-app";
 
 onLaunch(() => {
-  console.log("[App Launch] ZKBrain Uni-app 脑机接口引擎启动就绪");
+  console.log("[App Launch] ZKBrain Uni-app BCI engine initialized");
 });
 onShow(() => {});
 onHide(() => {});

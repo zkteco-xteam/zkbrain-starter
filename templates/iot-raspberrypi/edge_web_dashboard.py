@@ -3,18 +3,18 @@ import socketserver
 import os
 
 """
-🌐 ZKBrain 树莓派局域网 1:1 Web 监控仪表盘 (DeviceScreen)
-启动轻量 HTTP 静态服务，局域网内的工控机、平板或手机浏览器直接打开 http://<树莓派IP>:8080 查看 1:1 控制台。
+ZKBrain Raspberry Pi LAN 1:1 Web Monitoring Dashboard (DeviceScreen)
+Starts a lightweight HTTP static server. Open http://<Pi_IP>:8080 from any browser on the LAN.
 """
 
 PORT = 8080
 
 HTML_CONTENT = """<!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>设备管理 (DeviceScreen) - 树莓派边缘看板</title>
+  <title>Device Management (DeviceScreen) - Raspberry Pi Edge Dashboard</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, sans-serif; background: #f1f5f9; padding: 14px; color: #0f172a; }
@@ -43,29 +43,29 @@ HTML_CONTENT = """<!DOCTYPE html>
 <body>
   <div class="container">
     <div class="header-bar">
-      <div class="header-title">设备管理 (DeviceScreen) - 树莓派边缘网关</div>
-      <div style="background:#dcfce7; color:#16a34a; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:bold;">● 边缘自愈守护中</div>
+      <div class="header-title">Device Management (DeviceScreen) - Raspberry Pi Edge Gateway</div>
+      <div style="background:#dcfce7; color:#16a34a; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:bold;">Watchdog Active</div>
     </div>
 
     <div class="card">
       <div class="status-row">
-        <span class="status-badge">● 已连接 (CONNECTED)</span>
-        <span style="background:#dcfce7; color:#16a34a; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:bold;">⚡ 85%</span>
+        <span class="status-badge">CONNECTED</span>
+        <span style="background:#dcfce7; color:#16a34a; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:bold;">85%</span>
       </div>
-      <div style="font-size:16px; font-weight:bold; margin-top:6px;">ZKBrain-PRO-8801 (智慧工地/车载预警终端)</div>
-      <div style="font-size:11px; color:#64748b; font-family:monospace; margin-bottom:8px;">MAC: DC:23:4F:9A:88:01 | GPIO Pin 18 报警就绪</div>
+      <div style="font-size:16px; font-weight:bold; margin-top:6px;">ZKBrain-PRO-8801 (Smart Helmet / In-Vehicle Terminal)</div>
+      <div style="font-size:11px; color:#64748b; font-family:monospace; margin-bottom:8px;">MAC: DC:23:4F:9A:88:01 | GPIO Pin 18 Alert Armed</div>
     </div>
 
     <div class="card">
-      <div class="card-title">🧭 MEMS 传感器 6 轴空间姿态</div>
+      <div class="card-title">MEMS 6-Axis Spatial Attitude</div>
       <div class="mems-box">
-        Roll: 1.2° | Pitch: -0.5° | Yaw: 14.8°<br>
+        Roll: 1.2 | Pitch: -0.5 | Yaw: 14.8<br>
         Q0: 0.992 | Q1: 0.010 | Q2: -0.004 | Q3: 0.129
       </div>
     </div>
 
     <div class="card">
-      <div class="card-title">📈 4x3 全波段三色脑电数据表 (DeviceShowTable)</div>
+      <div class="card-title">4x3 Full-Band Spectrum Metrics (DeviceShowTable)</div>
       <div class="table-mac">MAC: DC:23:4F:9A:88:01</div>
       <div class="table-container">
         <div class="table-row">
@@ -92,11 +92,11 @@ HTML_CONTENT = """<!DOCTYPE html>
     </div>
 
     <div class="card">
-      <div class="card-title">💻 边缘网关守护日志</div>
+      <div class="card-title">Edge Gateway Daemon Logs</div>
       <div class="terminal-box">
-        [系统就绪] 边缘网关看门狗已启动<br>
-        [BLE] 蓝牙链路就绪，正在实时监听 512Hz 脑电流<br>
-        [GPIO] 引脚 18 输出就绪：当前疲劳度正常 (Fatigue: 18, 阈值 75)
+        [System] Edge gateway watchdog daemon started<br>
+        [BLE] Physical BLE link ready, streaming 512Hz raw EEG<br>
+        [GPIO] Pin 18 ready: Fatigue status normal (Fatigue: 18, Threshold: 75)
       </div>
     </div>
   </div>
@@ -113,12 +113,12 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
 
 def run():
     with socketserver.TCPServer(("", PORT), CustomHandler) as httpd:
-        print(f"🚀 ZKBrain 树莓派边缘 Web 控制台已启动: http://0.0.0.0:{PORT}")
-        print("局域网设备可通过手机、工控机浏览器直接访问监控！")
+        print(f"ZKBrain Raspberry Pi Edge Web Console running at: http://0.0.0.0:{PORT}")
+        print("Accessible via phone or industrial tablet browser on the same LAN.")
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:
-            print("\n服务已关闭")
+            print("\nService stopped.")
 
 if __name__ == "__main__":
     run()

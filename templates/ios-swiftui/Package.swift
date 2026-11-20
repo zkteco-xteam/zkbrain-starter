@@ -10,7 +10,7 @@ let package = Package(
         .executable(name: "BrainMonitorApp", targets: ["BrainMonitorApp"])
     ],
     dependencies: [
-        // 🌟 核心：通过 Swift Package Manager (SPM) 一行直接拉取 ZKBrain iOS SDK
+        // Swift Package Manager (SPM) direct dependency for ZKBrain iOS SDK
         .package(url: "https://github.com/zkteco-xteam/zkbrain.git", from: "1.2.0")
     ],
     targets: [

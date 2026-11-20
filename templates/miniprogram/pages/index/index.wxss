@@ -8,7 +8,7 @@ page {
   padding: 24rpx;
 }
 
-/* 顶部操作栏 */
+/* Section 1: Header Bar */
 .header-bar {
   display: flex;
   justify-content: space-between;
@@ -56,7 +56,7 @@ page {
   border-radius: 6rpx;
 }
 
-/* 卡片基类 */
+/* Base Card Style */
 .card {
   background-color: #ffffff;
   border-radius: 16rpx;
@@ -84,7 +84,7 @@ page {
   margin-bottom: 16rpx;
 }
 
-/* 状态卡片 */
+/* Status Card */
 .status-header {
   display: flex;
   justify-content: space-between;
@@ -207,7 +207,7 @@ page {
   background-color: #dc2626;
 }
 
-/* 通道配置 */
+/* Channel Settings */
 .channel-row {
   margin-top: 10rpx;
 }
@@ -221,7 +221,7 @@ page {
   color: #94a3b8;
 }
 
-/* 图表显隐矩阵 */
+/* Chart Chips Grid */
 .chart-chips-grid {
   display: flex;
   flex-wrap: wrap;
@@ -244,7 +244,7 @@ page {
   border-color: #2563eb;
 }
 
-/* 协议控制台按钮网格 */
+/* Action Button Grid */
 .btn-grid {
   display: flex;
   flex-wrap: wrap;
@@ -305,7 +305,7 @@ page {
   border-color: rgba(124, 58, 237, 0.4);
 }
 
-/* 输入框与行 */
+/* Inputs & Actions */
 .sn-input-row, .cmd-input-row {
   display: flex;
   gap: 12rpx;
@@ -344,7 +344,7 @@ page {
   border-radius: 8rpx;
 }
 
-/* MEMS 姿态卡片 */
+/* MEMS Posture Card */
 .mems-box {
   background-color: #f8fafc;
   border: 1rpx solid #e2e8f0;
@@ -371,7 +371,7 @@ page {
   color: #64748b;
 }
 
-/* 终端监控 */
+/* Terminal Monitor */
 .terminal-box {
   background-color: #0f172a;
   border-radius: 12rpx;
@@ -399,7 +399,7 @@ page {
   line-height: 1.4;
 }
 
-/* 板块 7：DeviceShowTable 4x3 三色表格 */
+/* Section 7: DeviceShowTable 4x3 Spectrum Grid */
 .table-mac-header {
   background-color: #1e293b;
   color: white;
@@ -452,7 +452,7 @@ page {
   color: #0f172a;
 }
 
-/* 三色背景定义 */
+/* 3-Color Definitions */
 .bg-pink {
   background-color: #ffe4e1;
 }
@@ -465,7 +465,7 @@ page {
   background-color: #f0e68c;
 }
 
-/* 板块 8：弹窗样式 */
+/* Section 8: Modal Dialog */
 .modal-mask {
   position: fixed;
   top: 0;

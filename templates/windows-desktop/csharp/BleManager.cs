@@ -9,8 +9,8 @@ using Windows.Storage.Streams;
 namespace ZKBrain.Windows.Demo
 {
     /// <summary>
-    /// 基于 Windows 10/11 原生 WinRT 协议栈的低功耗蓝牙 (BLE) 扫描与连接管理器
-    /// 无需任何第三方驱动或外部 NuGet 包，直接利用 Windows 系统原生能力
+    /// Native Windows 10/11 WinRT Bluetooth Low Energy (BLE) Scanner and Connection Manager.
+    /// Uses native OS APIs without any external NuGet dependencies.
     /// </summary>
     public class BleManager
     {
@@ -29,7 +29,7 @@ namespace ZKBrain.Windows.Demo
         }
 
         /// <summary>
-        /// 自动扫描周围设备，并在匹配到关键字 (如 MindWave, Brain, EEG, TGAM) 时自动建立连接
+        /// Auto-scans nearby BLE devices and establishes connection upon keyword match (e.g. MindWave, Brain, EEG, TGAM).
         /// </summary>
         public async Task StartAutoScanAndConnectAsync(string[] nameFilters = null, int timeoutSeconds = 10)
         {
@@ -45,20 +45,20 @@ namespace ZKBrain.Windows.Demo
                 ScanningMode = BluetoothLEScanningMode.Active
             };
 
-            Console.WriteLine("\n[BLE] 正在通过 Windows 原生蓝牙广播扫描周围脑电硬件...");
+            Console.WriteLine("\n[BLE] Scanning for nearby BCI hardware via Windows native BLE advertisement...");
 
             _watcher.Received += (sender, args) =>
             {
                 string localName = args.Advertisement.LocalName;
                 if (!string.IsNullOrEmpty(localName))
                 {
-                    Console.WriteLine($"  发现广播设备: {localName} (MAC: {args.BluetoothAddress:X}, RSSI: {args.RawSignalStrengthInDBm} dBm)");
+                    Console.WriteLine($"  Discovered device: {localName} (MAC: {args.BluetoothAddress:X}, RSSI: {args.RawSignalStrengthInDBm} dBm)");
 
                     foreach (var filter in nameFilters)
                     {
                         if (localName.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0)
                         {
-                            Console.WriteLine($"\n🎯 命中目标脑电设备关键字 [{filter}] -> {localName}");
+                            Console.WriteLine($"\nMatched target BCI device keyword [{filter}] -> {localName}");
                             _watcher.Stop();
                             tcs.TrySetResult(args.BluetoothAddress);
                             break;
@@ -81,35 +81,35 @@ namespace ZKBrain.Windows.Demo
             }
             else
             {
-                Console.WriteLine("[BLE] 扫描超时，未在指定时间内发现目标设备。");
+                Console.WriteLine("[BLE] Scan timeout. No matching device found within the specified duration.");
             }
         }
 
         /// <summary>
-        /// 连接到指定的蓝牙硬件地址
+        /// Connects to specified Bluetooth address.
         /// </summary>
         public async Task<bool> ConnectToDeviceAsync(ulong bluetoothAddress)
         {
-            Console.WriteLine($"[BLE] 正在连接设备 (地址: {bluetoothAddress:X}) ...");
+            Console.WriteLine($"[BLE] Connecting to device (Address: {bluetoothAddress:X}) ...");
 
             _currentDevice = await BluetoothLEDevice.FromBluetoothAddressAsync(bluetoothAddress);
             if (_currentDevice == null)
             {
-                Console.WriteLine("[BLE] 连接建立失败 (无法获取设备对象)。");
+                Console.WriteLine("[BLE] Connection failed: unable to acquire device object.");
                 return false;
             }
 
-            Console.WriteLine($"[BLE] 物理链路已连通: {_currentDevice.Name}");
+            Console.WriteLine($"[BLE] Physical link established: {_currentDevice.Name}");
 
-            // 枚举 GATT 服务
+            // Enumerate GATT services
             var gattResult = await _currentDevice.GetGattServicesAsync(BluetoothCacheMode.Uncached);
             if (gattResult.Status != GattCommunicationStatus.Success)
             {
-                Console.WriteLine($"[BLE] 检索 GATT 服务失败: {gattResult.Status}");
+                Console.WriteLine($"[BLE] Failed to retrieve GATT services: {gattResult.Status}");
                 return false;
             }
 
-            // 查找所有具备 Notify 权限的特征值
+            // Find all characteristics with Notify permission
             foreach (var service in gattResult.Services)
             {
                 var charResult = await service.GetCharacteristicsAsync(BluetoothCacheMode.Uncached);
@@ -125,7 +125,7 @@ namespace ZKBrain.Windows.Demo
                             ch.CharacteristicProperties.HasFlag(GattCharacteristicProperties.WriteWithoutResponse))
                         {
                             _writeCharacteristic = ch;
-                            Console.WriteLine($"  发现硬件指令下发通道 (Write): {ch.Uuid}");
+                            Console.WriteLine($"  Discovered command write channel: {ch.Uuid}");
                         }
                     }
                 }
@@ -133,11 +133,11 @@ namespace ZKBrain.Windows.Demo
 
             if (_subscribedCharacteristics.Count == 0)
             {
-                Console.WriteLine("[BLE] 未在设备上找到支持 Notify 的数据通道！");
+                Console.WriteLine("[BLE] No notify-capable characteristic channel found on device!");
                 return false;
             }
 
-            Console.WriteLine($"\n🚀 成功订阅 {_subscribedCharacteristics.Count} 个脑电特征值通道！正在实时解调...");
+            Console.WriteLine($"\nSuccessfully subscribed to {_subscribedCharacteristics.Count} EEG notify channels. Real-time demodulation active.");
             return true;
         }
 
@@ -145,7 +145,7 @@ namespace ZKBrain.Windows.Demo
         {
             try
             {
-                // 写入客户端特征值配置描述符 (CCCD) 开启通知
+                // Write CCCD to enable notifications
                 var status = await ch.WriteClientCharacteristicConfigurationDescriptorAsync(
                     GattClientCharacteristicConfigurationDescriptorValue.Notify);
 
@@ -153,23 +153,21 @@ namespace ZKBrain.Windows.Demo
                 {
                     ch.ValueChanged += OnCharacteristicValueChanged;
                     _subscribedCharacteristics.Add(ch);
-                    Console.WriteLine($"  -> 成功监听特征值: {ch.Uuid}");
+                    Console.WriteLine($"  -> Successfully subscribed to characteristic: {ch.Uuid}");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"  -> 监听特征值 {ch.Uuid} 失败: {ex.Message}");
+                Console.WriteLine($"  -> Failed to subscribe to characteristic {ch.Uuid}: {ex.Message}");
             }
         }
 
         private void OnCharacteristicValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args)
         {
-            // 从 IBuffer 提取原始字节流
             var reader = DataReader.FromBuffer(args.CharacteristicValue);
             byte[] bytes = new byte[args.CharacteristicValue.Length];
             reader.ReadBytes(bytes);
 
-            // 触发数据回调，直接送入 ZKBrain 解析器
             _onDataReceived?.Invoke(bytes);
         }
 
@@ -191,11 +189,11 @@ namespace ZKBrain.Windows.Demo
                 _currentDevice.Dispose();
                 _currentDevice = null;
             }
-            Console.WriteLine("[BLE] 蓝牙连接已断开并释放资源。");
+            Console.WriteLine("[BLE] Bluetooth connection closed and resources released.");
         }
 
         /// <summary>
-        /// 下发 ASCII 指令给硬件 (如 mems_enable=1;\n, eeg_data_rate=1;\n)
+        /// Sends ASCII command to hardware (e.g. mems_on:1\n, eeg_data_rate:512\n)
         /// </summary>
         public async Task<bool> SendCommandAsync(string command)
         {
@@ -209,13 +207,13 @@ namespace ZKBrain.Windows.Demo
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[BLE] 指令下发失败: {ex.Message}");
+                Console.WriteLine($"[BLE] Command transmission failed: {ex.Message}");
                 return false;
             }
         }
 
         /// <summary>
-        /// 下发二进制指令包 (如 NeuroSky 点火包 new byte[] { 0x02, 0x15, 0x17 })
+        /// Sends raw binary command packet (e.g. NeuroSky ignition packet new byte[] { 0x02, 0x15, 0x17 })
         /// </summary>
         public async Task<bool> SendBytesAsync(byte[] bytes)
         {
@@ -229,7 +227,7 @@ namespace ZKBrain.Windows.Demo
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[BLE] 字节包下发失败: {ex.Message}");
+                Console.WriteLine($"[BLE] Binary packet transmission failed: {ex.Message}");
                 return false;
             }
         }

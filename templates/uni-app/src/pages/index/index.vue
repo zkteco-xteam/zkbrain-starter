@@ -313,9 +313,9 @@ const chartToggles = reactive([
 // 终端监控与指令
 const writeSnInput = ref("");
 const customCmdInput = ref("");
-const commandLogs = ref("[系统启动] ZKBrain Uni-app (Vue 3 + TS) 控制台初始化就绪\n");
+const commandLogs = ref("[SYSTEM] ZKBrain Uni-app (Vue 3 + TS) console initialized\n");
 
-// 弹窗与蓝牙扫描
+// 弹窗与蓝牙扫描 / Scan & Bluetooth dialog
 const showScanModal = ref(false);
 const isScanning = ref(false);
 const scannedDevices = reactive([
@@ -327,7 +327,7 @@ const scannedDevices = reactive([
 let mockTimer: any = null;
 
 onMounted(() => {
-  appendLog("[BLE] 系统准备就绪，支持微信/支付宝/抖音小程序及 App 多端蓝牙");
+  appendLog("[BLE] Bluetooth engine ready, supporting WeChat, Alipay, ByteDance & native Apps");
   // 模拟心跳脑电数据流
   mockTimer = setInterval(() => {
     if (isConnected.value) {
@@ -389,21 +389,21 @@ async function ensureBluetoothPermission(): Promise<boolean> {
 async function startScan() {
   const ok = await ensureBluetoothPermission();
   if (!ok) {
-    appendLog("[BLE] 未获得蓝牙权限或用户取消授权");
+    appendLog("[BLE] Bluetooth permissions denied or cancelled by user");
     return;
   }
 
   uni.openBluetoothAdapter({
     success: () => {
       isScanning.value = true;
-      appendLog("[BLE] 蓝牙适配器启动成功，正在扫描周边脑电设备...");
+      appendLog("[BLE] Bluetooth adapter initialized, scanning for nearby BCI devices...");
       setTimeout(() => {
         isScanning.value = false;
-        appendLog("[BLE] 扫描完成，发现 3 台可用脑电设备");
+        appendLog("[BLE] Scan complete, found 3 available BCI devices");
       }, 2500);
     },
     fail: (err) => {
-      appendLog(`[BLE] 蓝牙适配器开启失败: ${err.errMsg}，请检查系统蓝牙开关`);
+      appendLog(`[BLE] Failed to initialize Bluetooth adapter: ${err.errMsg}`);
       isScanning.value = false;
     },
   });
@@ -425,67 +425,67 @@ function connectScannedDevice(item: any) {
   isConnected.value = true;
   showScanModal.value = false;
   isScanning.value = false;
-  appendLog(`[BLE] 成功建立连接: ${item.name} (${item.mac})`);
+  appendLog(`[BLE] Connected to device: ${item.name} (${item.mac})`);
 }
 
 function toggleConnect() {
   if (isConnected.value) {
     isConnected.value = false;
-    appendLog("[BLE] 用户主动断开设备连接");
+    appendLog("[BLE] Disconnected by user");
   } else {
     openScanModal();
   }
 }
 
 function handleDfuUpgrade() {
-  appendLog("[DFU] 发起固件 OTA 检测：当前已处于最新稳定版 v2.4.0");
-  uni.showToast({ title: "固件检测：已是最新版", icon: "success" });
+  appendLog("[DFU] Checking firmware OTA: currently on latest stable release v2.4.0");
+  uni.showToast({ title: "Firmware up to date: v2.4.0", icon: "success" });
 }
 
 function onChannelChange(e: any) {
   isFp1Checked.value = e.detail.value;
-  appendLog(`[通道配置] Left (FP1): ${isFp1Checked.value}`);
+  appendLog(`[CHANNEL] Left (FP1): ${isFp1Checked.value}`);
 }
 
 function toggleChartItem(key: string) {
   const target = chartToggles.find((item) => item.key === key);
   if (target) {
     target.checked = !target.checked;
-    appendLog(`[图表显隐] ${key} 状态切换为: ${target.checked}`);
+    appendLog(`[CHART] Toggle display for ${key}: ${target.checked}`);
   }
 }
 
-// NeuroSky XMW 指令
+// NeuroSky XMW 指令 / NeuroSky XMW commands
 function handleIgnition() {
-  appendLog("[TX >> XMW] 下发点火包: 0x15 (Raw) + 0x17 (Band)");
+  appendLog("[TX >> XMW] Ignition Packet: 0x15 (Raw) + 0x17 (Band)");
 }
 function handleStopXmw() {
-  appendLog("[TX >> XMW] 停止数据传输 (0x16 + 0x18)");
+  appendLog("[TX >> XMW] Stop transmission: 0x16 + 0x18");
 }
 function handleFilter50Hz() {
-  appendLog("[TX >> XMW] 设置 50Hz 工频陷波滤波 (0x1B)");
+  appendLog("[TX >> XMW] Set 50Hz notch filter (0x1B)");
 }
 function handleFilter60Hz() {
-  appendLog("[TX >> XMW] 设置 60Hz 工频陷波滤波 (0x1C)");
+  appendLog("[TX >> XMW] Set 60Hz notch filter (0x1C)");
 }
 function handleQueryBatterySky() {
-  appendLog("[TX >> XMW] 读取硬件电量 (0x06)");
+  appendLog("[TX >> XMW] Read battery level (0x06)");
 }
 function handleQuerySn() {
-  appendLog("[TX >> XMW] 查询序列号 SN (0xF4)");
+  appendLog("[TX >> XMW] Query SN (0xF4)");
 }
 function handleDetectMac() {
-  appendLog("[TX >> XMW] 探测经典蓝牙 MAC 地址 (0xFC)");
+  appendLog("[TX >> XMW] Detect classic Bluetooth MAC (0xFC)");
 }
 function handleWriteSn() {
   const sn = writeSnInput.value.trim();
   if (sn) {
-    appendLog(`[TX >> XMW] 写入 SN (0xF2): ${sn}`);
-    uni.showToast({ title: `SN 已下发: ${sn}`, icon: "none" });
+    appendLog(`[TX >> XMW] Write SN (0xF2): ${sn}`);
+    uni.showToast({ title: `SN dispatched: ${sn}`, icon: "none" });
   }
 }
 
-// ZKBrain 指令
+// ZKBrain 指令 / ZKBrain commands
 function handleQueryLicense() {
   appendLog("[TX >>] license:?");
 }
@@ -508,13 +508,13 @@ function handleRate512() {
   appendLog("[TX >>] eeg_data_rate:1 (512Hz)");
 }
 function handleMemsOn() {
-  appendLog("[TX >>] mems_on:1 (开启MEMS空间姿态流)");
+  appendLog("[TX >>] mems_on:1 (Enable MEMS Motion Stream)");
 }
 function handleMemsOff() {
-  appendLog("[TX >>] mems_on:0 (关闭MEMS空间姿态流)");
+  appendLog("[TX >>] mems_on:0 (Disable MEMS Motion Stream)");
 }
 function handleDfuScan() {
-  appendLog("[TX >>] dfu_scan:1 (进入DFU固件升级广播模式)");
+  appendLog("[TX >>] dfu_scan:1 (Enter DFU OTA Ready Mode)");
 }
 function handleSendCustomCmd() {
   const cmd = customCmdInput.value.trim();

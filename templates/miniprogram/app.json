@@ -3,14 +3,14 @@
     "pages/index/index"
   ],
   "window": {
-    "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#1e293b",
-    "navigationBarTitleText": "ZKBrain 脑机交互",
+    "backgroundTextStyle": "dark",
+    "navigationBarBackgroundColor": "#0f172a",
+    "navigationBarTitleText": "ZKBrain BCI Console",
     "navigationBarTextStyle": "white"
   },
   "permission": {
-    "scope.userLocation": {
-      "desc": "用于搜索并连接周围的低功耗脑机接口设备"
+    "scope.bluetooth": {
+      "desc": "Used to discover and connect nearby BLE brain-computer interface devices."
     }
   },
   "sitemapLocation": "sitemap.json"

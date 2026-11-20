@@ -67,7 +67,7 @@ namespace ZKBrain.Unity
 
         private void Start()
         {
-            Log("[系统启动] ZKBrain Unity C# 脑机交互引擎初始化就绪");
+            Log("[SYSTEM] ZKBrain Unity C# BCI Engine initialized and ready");
             StartCoroutine(SimulateDataStream());
         }
 
@@ -92,20 +92,20 @@ namespace ZKBrain.Unity
             deviceName = name;
             deviceMac = mac;
             isConnected = true;
-            Log($"[BLE] 成功建立连接: {name} ({mac})");
+            Log($"[BLE] Connected to device: {name} ({mac})");
         }
 
         public void DisconnectDevice()
         {
             isConnected = false;
-            Log("[BLE] 用户主动断开脑电设备连接");
+            Log("[BLE] Device disconnected by user");
         }
 
         public void SendIgnitionPacket()
         {
             // 0x15: Raw 512Hz, 0x17: 8 Bands
             byte[] packet = new byte[] { 0x02, 0x15, 0x17 };
-            Log("[TX >> XMW] 下发点火包: 0x15 (Raw) + 0x17 (Band)");
+            Log("[TX >> XMW] Ignition Packet: 0x15 (Raw) + 0x17 (Band)");
         }
 
         public void SendConfig(string key, string value)

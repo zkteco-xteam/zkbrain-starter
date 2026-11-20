@@ -8,22 +8,22 @@ interface BleDeviceItem {
 }
 
 /**
- * 🌟 1:1 完整逐项克隆 shared1 设备管理控制台 (DeviceScreen + DeviceShowTable) - HarmonyOS ArkTS 原生版
- * 技术支持：熵基科技脑机事业部 (ZKTeco Brain-Computer Interface Division)
+ * 1:1 DeviceScreen & DeviceShowTable Clone - HarmonyOS ArkTS Edition
+ * Technical Support: ZKTeco Brain-Computer Interface Division
  */
 @Entry
 @Component
 struct Index {
   @State isConnected: boolean = false;
-  @State connectionStateText: string = "未连接 (Disconnected)";
+  @State connectionStateText: string = "Disconnected";
   @State connectedDeviceName: string = "ZKBrain Headband";
   @State connectedDeviceMac: string = "DC:23:4F:9A:88:01";
   @State batteryLevel: number = 85;
 
-  // 12项生理指标数据
+  // 12 cognitive & hardware metrics
   @State attention: number = 78;
   @State meditation: number = 65;
-  @State signalQuality: number = 0; // 0良好
+  @State signalQuality: number = 0;
   @State rawEeg: number = 142;
   @State delta: number = 12450;
   @State theta: number = 8320;
@@ -34,7 +34,7 @@ struct Index {
   @State lowGamma: number = 4600;
   @State middleGamma: number = 2100;
 
-  // MEMS 姿态与欧拉角
+  // MEMS motion posture
   @State memsRoll: number = 1.2;
   @State memsPitch: number = -0.5;
   @State memsYaw: number = 14.8;
@@ -43,7 +43,7 @@ struct Index {
   @State memsQ2: number = -0.004;
   @State memsQ3: number = 0.129;
 
-  // 通道与图表显隐配置
+  // Channel & Chart Display Toggles
   @State isFp1Visible: boolean = true;
   @State isFp2Visible: boolean = false;
   @State chartToggles: Record<string, boolean> = {
@@ -61,12 +61,12 @@ struct Index {
     "Middle Gamma": true
   };
 
-  // 控制台与终端日志
+  // Console & Terminal logs
   @State customCmdInput: string = "";
   @State writeSnInput: string = "";
-  @State terminalLogs: string = "[系统启动] ZKBrain HarmonyOS ArkTS 控制台初始化就绪\n";
+  @State terminalLogs: string = "[System] ZKBrain HarmonyOS ArkTS console initialized successfully.\n";
 
-  // 蓝牙搜索弹窗状态与模拟设备
+  // Scan modal state & scanned devices
   @State showScanDialog: boolean = false;
   @State isScanning: boolean = false;
   @State scannedDevices: BleDeviceItem[] = [
@@ -88,11 +88,11 @@ struct Index {
       const result = await atManager.requestPermissionsFromUser(context, permissions);
       const granted = result.authResults.every((code: number) => code === 0);
       if (!granted) {
-        this.addLog("[权限拦截] 未授予鸿蒙系统蓝牙权限，请在系统设置中允许");
+        this.addLog("[Permission] Bluetooth permission denied. Please allow in system settings.");
       }
       return granted;
     } catch (err) {
-      this.addLog(`[权限申请异常] ${JSON.stringify(err)}`);
+      this.addLog(`[Permission] Permission request exception: ${JSON.stringify(err)}`);
       return false;
     }
   }
@@ -102,7 +102,6 @@ struct Index {
   }
 
   aboutToAppear(): void {
-    // 模拟数据微动
     this.timerId = setInterval(() => {
       if (this.isConnected) {
         this.attention = Math.floor(65 + Math.random() * 25);
@@ -123,10 +122,10 @@ struct Index {
       Scroll() {
         Column({ space: 12 }) {
           // ==========================================
-          // 板块 1：顶部操作栏 (App Header)
+          // Section 1: Top Navigation Bar
           // ==========================================
           Row() {
-            Text("设备管理 (DeviceScreen)")
+            Text("Device Management (DeviceScreen)")
               .fontSize(18)
               .fontWeight(FontWeight.Bold)
               .fontColor("#0F172A")
@@ -134,7 +133,7 @@ struct Index {
             Blank()
 
             Row({ space: 8 }) {
-              Button("🔍 搜索")
+              Button("🔍 Search")
                 .fontSize(12)
                 .backgroundColor("#2563EB")
                 .height(32)
@@ -144,18 +143,18 @@ struct Index {
                   if (ok) {
                     this.showScanDialog = true;
                     this.isScanning = true;
-                    this.addLog("[BLE] 启动鸿蒙 BLE 设备搜索...");
+                    this.addLog("[BLE] Scanning for nearby BLE BCI devices...");
                   }
                 })
 
-              Button("🚀 DFU升级")
+              Button("🚀 DFU Upgrade")
                 .fontSize(12)
                 .backgroundColor("#475569")
                 .height(32)
                 .borderRadius(6)
                 .onClick(() => {
-                  this.addLog("[DFU] 检查固件版本：当前已处于最新稳定版 v2.4.0");
-                  promptAction.showToast({ message: "DFU 固件检测完成：当前为最新版本" });
+                  this.addLog("[DFU] OTA firmware check: already on latest stable release v2.4.0");
+                  promptAction.showToast({ message: "DFU check complete: Current firmware is up to date" });
                 })
 
               Text("Authorized")
@@ -172,32 +171,32 @@ struct Index {
           .padding({ top: 12, bottom: 6 })
 
           // ==========================================
-          // 板块 2：统一设备连接状态卡片
+          // Section 2: Unified Device Status Card
           // ==========================================
           this.buildDeviceStatusCard()
 
           // ==========================================
-          // 板块 3：Channel Settings 通道配置卡片
+          // Section 3: Channel Settings Card
           // ==========================================
           this.buildChannelSettingsCard()
 
           // ==========================================
-          // 板块 4：Chart Display Settings 图表显隐卡片
+          // Section 4: Chart Display Settings Card
           // ==========================================
           this.buildChartDisplaySettingsCard()
 
           // ==========================================
-          // 板块 5：⚙️ NeuroSky / MindWave 专属 20 字节协议控制台
+          // Section 5: NeuroSky / MindWave 20-Byte Protocol Console
           // ==========================================
           this.buildNeuroSkyConsoleCard()
 
           // ==========================================
-          // 板块 6：🧠 ZKBrain 自研脑电设备官方控制台
+          // Section 6: ZKBrain Proprietary Device Console
           // ==========================================
           this.buildZKBrainConsoleCard()
 
           // ==========================================
-          // 板块 7：Spectrum Data 详细数据表格 (DeviceShowTable 4x3 三色)
+          // Section 7: Spectrum Data Table (DeviceShowTable 4x3)
           // ==========================================
           this.buildDeviceShowTable()
 
@@ -208,10 +207,10 @@ struct Index {
       }
       .width('100%')
       .height('100%')
-      .backgroundColor("#F1F5F9") // 浅灰背景
+      .backgroundColor("#F1F5F9")
 
       // ==========================================
-      // 板块 8：蓝牙搜索连接弹窗 (BleScanDialog)
+      // Section 8: Bluetooth Scan Modal (BleScanDialog)
       // ==========================================
       if (this.showScanDialog) {
         this.buildScanDialog()
@@ -222,7 +221,7 @@ struct Index {
   }
 
   // ==========================================
-  // 板块 2 UI：统一设备连接状态卡片
+  // Section 2 UI: Unified Device Status Card
   // ==========================================
   @Builder
   buildDeviceStatusCard() {
@@ -270,7 +269,7 @@ struct Index {
       }
       .margin({ top: 4, bottom: 4 })
 
-      Button(this.isConnected ? "断开设备" : "搜索连接")
+      Button(this.isConnected ? "Disconnect" : "Scan & Connect")
         .width('100%')
         .height(36)
         .fontSize(13)
@@ -279,8 +278,8 @@ struct Index {
         .onClick(() => {
           if (this.isConnected) {
             this.isConnected = false;
-            this.connectionStateText = "未连接 (Disconnected)";
-            this.addLog("[BLE] 用户主动断开设备连接");
+            this.connectionStateText = "Disconnected";
+            this.addLog("[BLE] Device disconnected by user.");
           } else {
             this.showScanDialog = true;
           }
@@ -305,14 +304,14 @@ struct Index {
   }
 
   // ==========================================
-  // 板块 3 UI：Channel Settings 通道配置卡片
+  // Section 3 UI: Channel Settings Card
   // ==========================================
   @Builder
   buildChannelSettingsCard() {
     Column({ space: 8 }) {
       Row() {
         Text("⚙️").fontSize(14)
-        Text("Channel Settings (通道配置)")
+        Text("Channel Settings")
           .fontSize(14)
           .fontWeight(FontWeight.Bold)
           .fontColor("#1E293B")
@@ -327,7 +326,7 @@ struct Index {
             .selectedColor("#2563EB")
             .onChange((val: boolean) => {
               this.isFp1Visible = val;
-              this.addLog(`[通道配置] Left (FP1): ${val}`);
+              this.addLog(`[Channel] Left (FP1): ${val}`);
             })
           Text("Left (FP1)").fontSize(13).fontColor("#1E293B")
         }
@@ -335,8 +334,8 @@ struct Index {
         Row() {
           Checkbox({ name: 'fp2', group: 'channels' })
             .select(this.isFp2Visible)
-            .enabled(false) // 禁用
-          Text("Right (FP2) [硬件不支持]").fontSize(13).fontColor("#94A3B8")
+            .enabled(false)
+          Text("Right (FP2) [Unsupported]").fontSize(13).fontColor("#94A3B8")
         }
       }
     }
@@ -347,14 +346,14 @@ struct Index {
   }
 
   // ==========================================
-  // 板块 4 UI：Chart Display Settings 图表显隐卡片
+  // Section 4 UI: Chart Display Settings Card
   // ==========================================
   @Builder
   buildChartDisplaySettingsCard() {
     Column({ space: 8 }) {
       Row() {
         Text("📈").fontSize(14)
-        Text("Chart Display Settings (图表显隐配置)")
+        Text("Chart Display Settings")
           .fontSize(14)
           .fontWeight(FontWeight.Bold)
           .fontColor("#1E293B")
@@ -373,7 +372,7 @@ struct Index {
             .margin(3)
             .onClick(() => {
               this.chartToggles[key] = !this.chartToggles[key];
-              this.addLog(`[图表显隐] ${key}: ${this.chartToggles[key]}`);
+              this.addLog(`[Chart] Toggle display for ${key}: ${this.chartToggles[key]}`);
             })
         })
       }
@@ -385,14 +384,14 @@ struct Index {
   }
 
   // ==========================================
-  // 板块 5 UI：⚙️ NeuroSky / MindWave 专属 20 字节协议控制台
+  // Section 5 UI: NeuroSky / MindWave 20-Byte Protocol Console
   // ==========================================
   @Builder
   buildNeuroSkyConsoleCard() {
     Column({ space: 8 }) {
       Row() {
         Text("⚙️").fontSize(14)
-        Text("NeuroSky / MindWave 专属协议控制台")
+        Text("NeuroSky / MindWave Protocol Console")
           .fontSize(14)
           .fontWeight(FontWeight.Bold)
           .fontColor("#1E293B")
@@ -400,36 +399,36 @@ struct Index {
       }
       .width('100%')
 
-      Text("支持 20 字节二进制点火帧、工频滤波、SN 读写与经典 MAC 探测")
+      Text("Supports 20-byte binary ignition frame, notch filter, SN read/write and classic MAC probing")
         .fontSize(12)
         .fontColor("#64748B")
 
       Flex({ wrap: FlexWrap.Wrap }) {
-        this.buildConsoleActionBtn("🚀 点火启动 (0x15/17)", "#16A34A", () => {
-          this.addLog("[TX >> XMW] 点火启动包: 0x15 (Raw) + 0x17 (Band)");
+        this.buildConsoleActionBtn("🚀 Ignition (0x15/17)", "#16A34A", () => {
+          this.addLog("[TX >> XMW] Ignition command sent: 0x15 (Raw) + 0x17 (Band)");
         })
-        this.buildConsoleActionBtn("🛑 停止传输 (0x16/18)", "#DC2626", () => {
-          this.addLog("[TX >> XMW] 停止传输: 0x16 + 0x18");
+        this.buildConsoleActionBtn("🛑 Stop (0x16/18)", "#DC2626", () => {
+          this.addLog("[TX >> XMW] Transmission stopped: 0x16 + 0x18");
         })
-        this.buildConsoleActionBtn("50Hz 工频滤波 (0x1B)", "#475569", () => {
-          this.addLog("[TX >> XMW] 设置 50Hz 工频陷波滤波 (0x1B)");
+        this.buildConsoleActionBtn("50Hz Notch (0x1B)", "#475569", () => {
+          this.addLog("[TX >> XMW] Notch filter set to 50Hz (0x1B)");
         })
-        this.buildConsoleActionBtn("60Hz 工频滤波 (0x1C)", "#475569", () => {
-          this.addLog("[TX >> XMW] 设置 60Hz 工频陷波滤波 (0x1C)");
+        this.buildConsoleActionBtn("60Hz Notch (0x1C)", "#475569", () => {
+          this.addLog("[TX >> XMW] Notch filter set to 60Hz (0x1C)");
         })
-        this.buildConsoleActionBtn("读电量 (0x06)", "#D97706", () => {
-          this.addLog("[TX >> XMW] 读取硬件电量 (0x06)");
+        this.buildConsoleActionBtn("Battery (0x06)", "#D97706", () => {
+          this.addLog("[TX >> XMW] Read battery level (0x06)");
         })
-        this.buildConsoleActionBtn("读序列号 (0xF4)", "#D97706", () => {
-          this.addLog("[TX >> XMW] 查询设备序列号 SN (0xF4)");
+        this.buildConsoleActionBtn("Serial SN (0xF4)", "#D97706", () => {
+          this.addLog("[TX >> XMW] Query serial number SN (0xF4)");
         })
-        this.buildConsoleActionBtn("探测经典MAC (0xFC)", "#7C3AED", () => {
-          this.addLog("[TX >> XMW] 探测经典蓝牙 MAC 地址 (0xFC)");
+        this.buildConsoleActionBtn("Classic MAC (0xFC)", "#7C3AED", () => {
+          this.addLog("[TX >> XMW] Probe classic Bluetooth MAC (0xFC)");
         })
       }
 
       Row({ space: 6 }) {
-        TextInput({ text: this.writeSnInput, placeholder: "输入写入序列号 SN..." })
+        TextInput({ text: this.writeSnInput, placeholder: "Enter serial number SN..." })
           .layoutWeight(1)
           .height(34)
           .fontSize(12)
@@ -438,15 +437,15 @@ struct Index {
           .borderRadius(6)
           .onChange((v: string) => this.writeSnInput = v)
 
-        Button("写入 SN (0xF2)")
+        Button("Write SN (0xF2)")
           .fontSize(11)
           .height(34)
           .backgroundColor("#0F172A")
           .borderRadius(6)
           .onClick(() => {
             if (this.writeSnInput.trim().length > 0) {
-              this.addLog(`[TX >> XMW] 写入 SN (0xF2): ${this.writeSnInput.trim()}`);
-              promptAction.showToast({ message: `SN 写入指令已发送: ${this.writeSnInput.trim()}` });
+              this.addLog(`[TX >> XMW] Write SN (0xF2): ${this.writeSnInput.trim()}`);
+              promptAction.showToast({ message: `SN command sent: ${this.writeSnInput.trim()}` });
             }
           })
       }
@@ -459,14 +458,14 @@ struct Index {
   }
 
   // ==========================================
-  // 板块 6 UI：🧠 ZKBrain 自研脑电设备官方控制台
+  // Section 6 UI: ZKBrain Proprietary Device Console
   // ==========================================
   @Builder
   buildZKBrainConsoleCard() {
     Column({ space: 8 }) {
       Row() {
         Text("🧠").fontSize(14)
-        Text("ZKBrain 自研脑电设备官方控制台")
+        Text("ZKBrain Proprietary Device Console")
           .fontSize(14)
           .fontWeight(FontWeight.Bold)
           .fontColor("#1E293B")
@@ -474,46 +473,45 @@ struct Index {
       }
       .width('100%')
 
-      Text("支持 ASCII 控制、MEMS 姿态传感、采样率切换与终端实时回显")
+      Text("Supports ASCII control, MEMS posture sensing, sample rate switching and terminal monitor")
         .fontSize(12)
         .fontColor("#64748B")
 
       Flex({ wrap: FlexWrap.Wrap }) {
-        this.buildConsoleActionBtn("查询授权 (license:?)", "#0284C7", () => {
+        this.buildConsoleActionBtn("License (license:?)", "#0284C7", () => {
           this.addLog("[TX >>] license:?");
         })
-        this.buildConsoleActionBtn("读电量 (battery:?)", "#0284C7", () => {
+        this.buildConsoleActionBtn("Battery (battery:?)", "#0284C7", () => {
           this.addLog("[TX >>] battery:?");
         })
-        this.buildConsoleActionBtn("固件版本 (version:?)", "#0284C7", () => {
+        this.buildConsoleActionBtn("Version (version:?)", "#0284C7", () => {
           this.addLog("[TX >>] version:?");
         })
-        this.buildConsoleActionBtn("开启脑电 (eeg_data_on:1)", "#16A34A", () => {
+        this.buildConsoleActionBtn("Start EEG (eeg_data_on:1)", "#16A34A", () => {
           this.addLog("[TX >>] eeg_data_on:1");
         })
-        this.buildConsoleActionBtn("关闭脑电 (eeg_data_on:0)", "#DC2626", () => {
+        this.buildConsoleActionBtn("Stop EEG (eeg_data_on:0)", "#DC2626", () => {
           this.addLog("[TX >>] eeg_data_on:0");
         })
-        this.buildConsoleActionBtn("256Hz采样率", "#475569", () => {
+        this.buildConsoleActionBtn("256Hz Rate", "#475569", () => {
           this.addLog("[TX >>] eeg_data_rate:2 (256Hz)");
         })
-        this.buildConsoleActionBtn("512Hz采样率", "#475569", () => {
+        this.buildConsoleActionBtn("512Hz Rate", "#475569", () => {
           this.addLog("[TX >>] eeg_data_rate:1 (512Hz)");
         })
-        this.buildConsoleActionBtn("开启MEMS (mems_on:1)", "#059669", () => {
+        this.buildConsoleActionBtn("Start MEMS", "#059669", () => {
           this.addLog("[TX >>] mems_on:1");
         })
-        this.buildConsoleActionBtn("关闭MEMS (mems_on:0)", "#94A3B8", () => {
+        this.buildConsoleActionBtn("Stop MEMS", "#94A3B8", () => {
           this.addLog("[TX >>] mems_on:0");
         })
-        this.buildConsoleActionBtn("DFU 扫描模式", "#7C3AED", () => {
-          this.addLog("[TX >>] dfu_scan:1 (进入DFU空中升级就绪模式)");
+        this.buildConsoleActionBtn("DFU Scan", "#7C3AED", () => {
+          this.addLog("[TX >>] dfu_scan:1 (DFU OTA ready mode)");
         })
       }
 
-      // MEMS 姿态实时卡片
       Column({ space: 4 }) {
-        Text("📐 实时 MEMS 空间姿态 (Euler & Quaternion)")
+        Text("📐 Realtime MEMS Posture (Euler & Quaternion)")
           .fontSize(12)
           .fontWeight(FontWeight.Bold)
           .fontColor("#334155")
@@ -532,9 +530,8 @@ struct Index {
       .borderRadius(6)
       .border({ width: 1, color: "#E2E8F0" })
 
-      // 自定义键值对指令发送
       Row({ space: 6 }) {
-        TextInput({ text: this.customCmdInput, placeholder: "自定义指令 (如 mems_on:1 或 sample_rate:512)" })
+        TextInput({ text: this.customCmdInput, placeholder: "Custom command (e.g. mems_on:1)" })
           .layoutWeight(1)
           .height(34)
           .fontSize(12)
@@ -543,7 +540,7 @@ struct Index {
           .borderRadius(6)
           .onChange((v: string) => this.customCmdInput = v)
 
-        Button("发送指令")
+        Button("Send")
           .fontSize(11)
           .height(34)
           .backgroundColor("#2563EB")
@@ -557,14 +554,13 @@ struct Index {
       }
       .width('100%')
 
-      // 黑底终端回显监控窗口
       Column({ space: 6 }) {
         Row() {
-          Text("终端响应监控 (Terminal Monitor):")
+          Text("Terminal Monitor:")
             .fontSize(11)
             .fontColor("#94A3B8")
           Blank()
-          Text("清空")
+          Text("Clear")
             .fontSize(11)
             .fontColor("#38BDF8")
             .onClick(() => {
@@ -611,13 +607,12 @@ struct Index {
   }
 
   // ==========================================
-  // 板块 7 UI：Spectrum Data 详细数据表格 (DeviceShowTable 4x3 三色)
-  // 粉色 #FFE4E1, 青色 #E0FFFF, 黄色 #F0E68C
+  // Section 7 UI: Spectrum Data Table (DeviceShowTable 4x3)
+  // Pink #FFE4E1, Cyan #E0FFFF, Yellow #F0E68C
   // ==========================================
   @Builder
   buildDeviceShowTable() {
     Column({ space: 8 }) {
-      // 居中 MAC 标题条
       Row() {
         Text(`Device MAC: ${this.connectedDeviceMac}`)
           .fontSize(12)
@@ -631,30 +626,25 @@ struct Index {
       .borderRadius(6)
       .justifyContent(FlexAlign.Center)
 
-      // 4x3 表格
       Column() {
-        // Row 1 (全粉 #FFE4E1)
         Row() {
           this.buildTableCell("Attention", `${this.attention}`, "#FFE4E1")
           this.buildTableCell("Meditation", `${this.meditation}`, "#FFE4E1")
           this.buildTableCell("Quality", `${this.signalQuality}`, "#FFE4E1")
         }.width('100%')
 
-        // Row 2 (粉 + 青 + 青)
         Row() {
           this.buildTableCell("Raw EEG", `${this.rawEeg}`, "#FFE4E1")
           this.buildTableCell("Delta", `${this.delta}`, "#E0FFFF")
           this.buildTableCell("Theta", `${this.theta}`, "#E0FFFF")
         }.width('100%')
 
-        // Row 3 (青 + 青 + 黄)
         Row() {
           this.buildTableCell("Low Alpha", `${this.lowAlpha}`, "#E0FFFF")
           this.buildTableCell("High Alpha", `${this.highAlpha}`, "#E0FFFF")
           this.buildTableCell("Low Beta", `${this.lowBeta}`, "#F0E68C")
         }.width('100%')
 
-        // Row 4 (全黄 #F0E68C)
         Row() {
           this.buildTableCell("High Beta", `${this.highBeta}`, "#F0E68C")
           this.buildTableCell("Low Gamma", `${this.lowGamma}`, "#F0E68C")
@@ -692,12 +682,11 @@ struct Index {
   }
 
   // ==========================================
-  // 板块 8 UI：蓝牙搜索弹窗 (BleScanDialog)
+  // Section 8 UI: Bluetooth Scan Modal (BleScanDialog)
   // ==========================================
   @Builder
   buildScanDialog() {
     Column() {
-      // 遮罩
       Column()
         .width('100%')
         .height('100%')
@@ -710,10 +699,9 @@ struct Index {
     .height('100%')
     .position({ x: 0, y: 0 })
 
-    // 弹窗主体卡片
     Column({ space: 10 }) {
       Row() {
-        Text("🔍 搜索周围脑电设备")
+        Text("🔍 Search Nearby BCI Devices")
           .fontSize(16)
           .fontWeight(FontWeight.Bold)
           .fontColor("#1E293B")
@@ -728,7 +716,7 @@ struct Index {
       }
       .width('100%')
 
-      Text(this.isScanning ? "正在扫描周围低功耗蓝牙 (BLE) 脑电设备..." : "扫描完成")
+      Text(this.isScanning ? "Scanning for nearby BLE BCI devices..." : "Scan completed")
         .fontSize(12)
         .fontColor("#64748B")
 
@@ -749,7 +737,7 @@ struct Index {
 
               Blank()
 
-              Button("连接")
+              Button("Connect")
                 .fontSize(11)
                 .height(28)
                 .backgroundColor("#16A34A")
@@ -758,9 +746,9 @@ struct Index {
                   this.connectedDeviceName = item.name;
                   this.connectedDeviceMac = item.mac;
                   this.isConnected = true;
-                  this.connectionStateText = "已就绪 (READY)";
+                  this.connectionStateText = "READY";
                   this.showScanDialog = false;
-                  this.addLog(`[BLE] 成功连接至设备: ${item.name} (${item.mac})`);
+                  this.addLog(`[BLE] Connected successfully to device: ${item.name} (${item.mac})`);
                 })
             }
             .width('100%')
@@ -773,7 +761,7 @@ struct Index {
       .width('100%')
       .layoutWeight(1)
 
-      Button("重新扫描")
+      Button("Rescan")
         .width('100%')
         .height(34)
         .fontSize(12)
@@ -781,7 +769,7 @@ struct Index {
         .borderRadius(6)
         .onClick(() => {
           this.isScanning = true;
-          this.addLog("[BLE] 重新扫描周围设备...");
+          this.addLog("[BLE] Rescanning for nearby devices...");
         })
     }
     .width('90%')

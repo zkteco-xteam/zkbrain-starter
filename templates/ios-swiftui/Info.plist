@@ -9,13 +9,13 @@
     <key>CFBundleVersion</key>
     <string>1.0.0</string>
     
-    <!-- 🌟 核心：iOS 13+ 必填蓝牙访问权限 (缺少会导致 App 启动扫描即闪退) -->
+    <!-- iOS 13+ Required Bluetooth Permissions -->
     <key>NSBluetoothAlwaysUsageDescription</key>
-    <string>ZKBrain 应用需要使用系统低功耗蓝牙 (BLE) 扫描并连接脑机接口头箍以采集脑电生理数据。</string>
+    <string>ZKBrain requires Bluetooth Low Energy access to discover and connect to BCI hardware for physiological signal acquisition.</string>
     <key>NSBluetoothPeripheralUsageDescription</key>
-    <string>ZKBrain 应用需要使用蓝牙与脑电设备进行实时双向数据通信。</string>
+    <string>ZKBrain requires Bluetooth access for bidirectional communication with BCI hardware.</string>
     
-    <!-- 后台蓝牙通信支持 (可选) -->
+    <!-- Background Bluetooth Central Support (Optional) -->
     <key>UIBackgroundModes</key>
     <array>
         <string>bluetooth-central</string>

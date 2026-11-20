@@ -19,7 +19,7 @@ public:
     void parseCustomFff8Packet(const uint8_t* buffer, int length);
     void parseMindRawPacket(const uint8_t* buffer, int length);
     void reset();
-    void setDeviceMode(int mode); // 0 = 自动探测自愈, 1 = 强制ThinkGear协议流(如zk_teco), 2 = 强制MindWave纯20字节裸流
+    void setDeviceMode(int mode); // 0 = Auto-adaptive, 1 = ThinkGear protocol stream, 2 = MindWave 20-byte raw stream
 
     using OnBrainDataCallback = std::function<void(const int* int_data, double hw_version, float temp)>;
     using OnRawWaveCallback = std::function<void(int raw_wave)>;
@@ -43,12 +43,12 @@ private:
     int higCRC;
     float preTemperature;
 
-    // 🌟 协议流模式探测与锁定：0 = AUTO (自适应), 1 = THINKGEAR (自研/ThinkGear协议), 2 = MINDWAVE_RAW (MindWave纯20字节裸流)
+    // Protocol stream mode detection: 0 = AUTO, 1 = THINKGEAR, 2 = MINDWAVE_RAW
     int m_streamMode;
     int m_thinkgear_packet_count;
     int m_mindwave_raw_count;
 
-    // 🌟 FFF8 自定义包状态缓存
+    // FFF8 custom packet cache
     int customSignal;
     int m_lastSignal;
     int customAttention;
@@ -62,7 +62,7 @@ private:
     int customLowGamma;
     int customMidGamma;
 
-    // 🌟 优化：极速权限缓存器
+    // Optimized permission cache
     uint32_t m_auth_check_tick;
     bool m_can_raw_eeg;
     bool m_can_attention;

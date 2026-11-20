@@ -7,8 +7,7 @@ import '../models/brain_data.dart';
 
 enum BleConnectionState { disconnected, connecting, connected }
 
-/// 🌟 ZKBrain 蓝牙 BLE 跨平台通信与解析服务
-/// 技术支持：熵基科技脑机事业部 (ZKTeco BCI Team)
+/// ZKBrain BLE communication and protocol dispatch service
 class ZKBrainBleService extends ChangeNotifier {
   BleConnectionState connectionState = BleConnectionState.disconnected;
   BluetoothDevice? connectedDevice;
@@ -32,7 +31,7 @@ class ZKBrainBleService extends ChangeNotifier {
     });
   }
 
-  /// 🌟 动态申请双端蓝牙与定位权限 (兼容 Android 12+ / Android 11- / iOS 13+)
+  /// Request runtime Bluetooth and Location permissions across Android & iOS
   Future<bool> ensureBluetoothPermissions() async {
     if (!kIsWeb && Platform.isAndroid) {
       final statuses = await [
@@ -46,30 +45,29 @@ class ZKBrainBleService extends ChangeNotifier {
       final locGranted = statuses[Permission.locationWhenInUse]?.isGranted ?? false;
 
       if (!bleGranted && !locGranted) {
-        lastCommandResponse = "[权限拦截] 未授予蓝牙或定位权限，请在系统设置中开启";
+        lastCommandResponse = "[Permission] Bluetooth or location permission denied. Please grant in settings.";
         notifyListeners();
         return false;
       }
     } else if (!kIsWeb && Platform.isIOS) {
       final status = await Permission.bluetooth.request();
       if (!status.isGranted) {
-        lastCommandResponse = "[权限拦截] 请在 iOS 设置中允许本应用访问蓝牙";
+        lastCommandResponse = "[Permission] Please allow Bluetooth access in iOS Settings.";
         notifyListeners();
         return false;
       }
     }
 
-    // 检查蓝牙硬件开关状态
     final adapterState = await FlutterBluePlus.adapterState.first;
     if (adapterState != BluetoothAdapterState.on) {
-      lastCommandResponse = "[蓝牙未开启] 请先打开手机系统蓝牙开关";
+      lastCommandResponse = "[Bluetooth Disabled] Please turn on Bluetooth in system settings.";
       notifyListeners();
       return false;
     }
     return true;
   }
 
-  /// 扫描周围脑电设备 (扫描前自动动态申请蓝牙权限)
+  /// Start scanning nearby BLE BCI devices
   Future<void> startScan() async {
     final hasPerm = await ensureBluetoothPermissions();
     if (!hasPerm) return;
@@ -96,9 +94,9 @@ class ZKBrainBleService extends ChangeNotifier {
   }
 
   BluetoothCharacteristic? _writeCharacteristic;
-  String lastCommandResponse = "暂无回包数据";
+  String lastCommandResponse = "No response received yet.";
 
-  /// 连接目标设备
+  /// Connect to selected BLE device
   Future<void> connect(BluetoothDevice device) async {
     await stopScan();
     connectionState = BleConnectionState.connecting;
@@ -110,7 +108,6 @@ class ZKBrainBleService extends ChangeNotifier {
       connectionState = BleConnectionState.connected;
       notifyListeners();
 
-      // 发现服务并监听脑电特征值通道
       final services = await device.discoverServices();
       for (final service in services) {
         for (final char in service.characteristics) {
@@ -130,38 +127,37 @@ class ZKBrainBleService extends ChangeNotifier {
     }
   }
 
-  /// 🌟 下发 ZKTeco (自研脑电系列) 键值对配置指令 (如 mems_on:1, eeg_data_rate:512)
+  /// Send key-value configuration commands (ASCII protocol)
   Future<void> sendConfigCommand(Map<String, String> config) async {
     for (final entry in config.entries) {
       final cmd = "${entry.key}:${entry.value};\n";
-      await sendCommandString(cmd, "ZKTeco配置: ${entry.key}:${entry.value}");
+      await sendCommandString(cmd, "Config: ${entry.key}:${entry.value}");
     }
   }
 
-  /// 🌟 下发 Sky (NeuroSky / MindWave 系列) 20 字节二进制 XMW 指令
+  /// Send 20-byte binary XMW commands (NeuroSky / MindWave series)
   Future<void> sendXmwCommand(int opCode, [String desc = ""]) async {
-    // 构造标准 20 字节 XMW 指令帧: 0x77, dlen=2, opCode, padding..., checksum
     final packet = List<int>.filled(20, 0);
     packet[0] = 0x77;
-    packet[1] = 0x02; // dlen
+    packet[1] = 0x02;
     packet[2] = opCode & 0xFF;
     int sum = 0;
     for (int i = 1; i <= 18; i++) {
       sum += packet[i];
     }
-    packet[19] = (sum ^ 0xFF) & 0xFF; // 取反校验和
+    packet[19] = (sum ^ 0xFF) & 0xFF;
 
     await sendCommandBytes(packet, desc.isNotEmpty ? desc : "XMW OpCode 0x${opCode.toRadixString(16).toUpperCase()}");
   }
 
-  /// 🌟 下发通用字节流或自定义硬件指令
+  /// Write byte stream to peripheral characteristic
   Future<void> sendCommandBytes(List<int> bytes, [String desc = ""]) async {
     if (_writeCharacteristic != null) {
       await _writeCharacteristic!.write(bytes, withoutResponse: false);
       lastCommandResponse = "[TX >>] ${desc.isNotEmpty ? desc : bytes.toString()}";
       notifyListeners();
     } else {
-      lastCommandResponse = "[未连接] 无法发送: $desc";
+      lastCommandResponse = "[Disconnected] Cannot send: $desc";
       notifyListeners();
     }
   }
@@ -178,20 +174,17 @@ class ZKBrainBleService extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// 模拟与真实数据接收流水线
   void _onDataReceived(List<int> bytes) {
     _rawCount++;
     if (rawWaveBuffer.length >= 300) {
       rawWaveBuffer.removeAt(0);
     }
-    // 假设接收到的时域波形点
     if (bytes.isNotEmpty) {
       rawWaveBuffer.add((bytes[0] - 128).toDouble());
     }
     notifyListeners();
   }
 
-  /// 供演示注入与测试
   void updateDemoData(BrainData data) {
     currentBrainData = data;
     notifyListeners();

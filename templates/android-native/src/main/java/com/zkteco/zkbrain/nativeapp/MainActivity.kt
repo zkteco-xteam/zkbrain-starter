@@ -28,10 +28,10 @@ class MainActivity : AppCompatActivity() {
     ) { results ->
         val allGranted = results.values.all { it }
         if (allGranted) {
-            Toast.makeText(this, "蓝牙权限已授权，正在扫描脑电设备...", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Bluetooth permissions granted, scanning for BCI devices...", Toast.LENGTH_SHORT).show()
             ZKBrainManager.startScan(timeoutMillis = 10000L)
         } else {
-            Toast.makeText(this, "未授予蓝牙权限，请在系统设置中开启附近设备/蓝牙权限", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Bluetooth permission denied. Please enable in App Settings.", Toast.LENGTH_LONG).show()
         }
     }
 
@@ -55,7 +55,7 @@ class MainActivity : AppCompatActivity() {
             ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
         }
         if (missing.isEmpty()) {
-            Toast.makeText(this, "正在扫描周围有效脑电设备...", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Scanning for nearby BCI devices...", Toast.LENGTH_SHORT).show()
             ZKBrainManager.startScan(timeoutMillis = 10000L)
         } else {
             blePermissionLauncher.launch(missing.toTypedArray())
@@ -176,22 +176,22 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // 3. 🌟 硬件指令下发逻辑 (严格遵循《ZKBrain 设备指令下发与硬件协议集成指南》)
+        // 3. 🌟 硬件指令下发逻辑 / Hardware command dispatching
         fun sendDeviceCommand(bytes: ByteArray, desc: String) {
             val dev = ZKBrainManager.connectedDevice.value
             if (dev == null) {
-                Toast.makeText(this, "设备未连接，请先连接脑电设备", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Device not connected. Please connect first.", Toast.LENGTH_SHORT).show()
                 return
             }
             ZKBrainManager.writeCommand(dev.address, bytes)
-            Toast.makeText(this, "已发送: $desc", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Command dispatched: $desc", Toast.LENGTH_SHORT).show()
             tvCmdLog.text = "[TX >>] $desc\n${tvCmdLog.text}"
         }
 
         fun sendConfig(key: String, value: String) {
-            // 采用官方推荐的 sendConfigCommand，内置 2 秒防重护盾
+            // sendConfigCommand with 2s deduplication
             ZKBrainManager.sendConfigCommand(mapOf(key to value))
-            Toast.makeText(this, "已下发配置: $key:$value", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Config sent: $key:$value", Toast.LENGTH_SHORT).show()
             tvCmdLog.text = "[TX >> sendConfig] $key:$value\n${tvCmdLog.text}"
         }
 

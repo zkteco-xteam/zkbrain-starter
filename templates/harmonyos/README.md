@@ -1,23 +1,23 @@
-# ZKBrain 华为鸿蒙 (HarmonyOS Next) 脑机接口模板
+# ZKBrain HarmonyOS Next BCI Starter Template
 
-官方华为鸿蒙 Next (ArkTS / Stage 模型) 脑机接口原生工程。
+Official Huawei HarmonyOS Next (ArkTS / Stage Model) native BCI starter project.
 
-> **技术支持**：熵基科技脑机事业部 (ZKTeco Brain-Computer Interface Division)
-
----
-
-## 🌟 核心特性
-
-- **纯原生 ArkUI 声明式大屏**：支持手机、折叠屏与平板响应式适配。
-- **系统级蓝牙权限声明**：在 `module.json5` 中声明 `ohos.permission.USE_BLUETOOTH` 与 `DISCOVER_BLUETOOTH`。
-- **全景数据指标呈现**：
-  - 1Hz 专注度 (Attention) 与 放松度 (Meditation) 动态进度条；
-  - 脑波 8 频段绝对能量动态彩色柱 (Delta, Theta, Alpha, Beta, Gamma)；
-  - 心流状态与疲劳预警评估模型；
-  - 512Hz 原始脑电波 (Raw EEG) 原生 Canvas 实时高帧率示波器。
+> **Technical Support**: ZKTeco Brain-Computer Interface Division
 
 ---
 
-## 🚀 极速运行
+## Key Features
 
-在 **DevEco Studio** 中直接打开本目录，连接鸿蒙 Next 真机或模拟器，点击运行即可。
+- **Native ArkUI Declarative UI**: Responsive layout for mobile, foldable, and tablet devices.
+- **System-level BLE Permissions**: Declared `ohos.permission.USE_BLUETOOTH` and `DISCOVER_BLUETOOTH` in `module.json5`.
+- **Full Spectrum Metrics Presentation**:
+  - 1Hz Attention & Meditation dynamic progress indicators;
+  - 8-band power spectrum color bars (Delta, Theta, Alpha, Beta, Gamma);
+  - Flow state evaluation and fatigue warning models;
+  - 512Hz raw EEG waveform native Canvas high frame-rate oscilloscope.
+
+---
+
+## Quickstart
+
+Open this directory directly in **DevEco Studio**, connect a HarmonyOS Next device or emulator, and click Run.

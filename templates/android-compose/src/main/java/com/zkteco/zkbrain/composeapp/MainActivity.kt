@@ -10,8 +10,8 @@ import androidx.compose.ui.Modifier
 import com.zkteco.zkbrain.composeapp.ui.DashboardScreen
 
 /**
- * 🌟 纯原生 Android Jetpack Compose 官方推荐模板
- * 技术支持：熵基科技脑机事业部 (ZKTeco BCI Team)
+ * Official ZKBrain Jetpack Compose Starter Template
+ * Technical Support: ZKTeco BCI Team
  */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

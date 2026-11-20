@@ -1,29 +1,29 @@
-# ZKBrain Flutter 跨平台脑机接口开发模板
+# ZKBrain Flutter Cross-Platform BCI Starter Template
 
-官方跨平台 Flutter 脑机接口模板工程，支持 Android 与 iOS 双端编译运行。
+Official cross-platform Flutter BCI starter project supporting both Android and iOS.
 
-> **技术支持**：熵基科技脑机事业部 (ZKTeco Brain-Computer Interface Division)
-
----
-
-## 🌟 核心特性
-
-- **开箱即用**：集成 `flutter_blue_plus` 响应式低功耗蓝牙 (BLE) 扫描与连接。
-- **Android & iOS 权限声明就绪**：预置 Android 12+ 运行时权限与 iOS 13+ 蓝牙权限。
-- **全要素交互大屏**：
-  - 1Hz 专注度 (Attention) 与 放松度 (Meditation) 进度条；
-  - 脑波 8 频段绝对能量动态彩色能量柱 (Delta, Theta, Alpha, Beta, Gamma)；
-  - 心流深度评估与基于 $\theta / (\alpha+\beta)$ 功率比值的疲劳预警算法；
-  - 512Hz 原始脑电波 (Raw EEG, μV) CustomPaint 示波器与实时采样率统计。
+> **Technical Support**: ZKTeco Brain-Computer Interface Division
 
 ---
 
-## 🚀 极速运行
+## Key Features
+
+- **Out of the box**: Integrated `flutter_blue_plus` reactive Bluetooth Low Energy (BLE) scan and connection.
+- **Android & iOS Permissions Ready**: Pre-configured Android 12+ runtime permissions and iOS 13+ BLE usage descriptions.
+- **Comprehensive Interactive Dashboard**:
+  - 1Hz Attention and Meditation progress indicators;
+  - 8-band power spectrum color bars (Delta, Theta, Alpha, Beta, Gamma);
+  - Flow depth index and fatigue alert model based on theta / (alpha + beta) power ratio;
+  - 512Hz raw EEG waveform CustomPaint oscilloscope with real-time sample rate stats.
+
+---
+
+## Quickstart
 
 ```bash
-# 1. 获取依赖
+# 1. Fetch dependencies
 flutter pub get
 
-# 2. 运行至 Android 或 iOS 真机
+# 2. Run on device
 flutter run
 ```

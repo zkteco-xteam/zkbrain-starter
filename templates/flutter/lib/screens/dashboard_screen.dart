@@ -3,8 +3,8 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:provider/provider.dart';
 import '../services/zkbrain_ble_service.dart';
 
-/// 🌟 1:1 完整逐项克隆 shared1 设备管理控制台 (DeviceScreen + DeviceShowTable) - Flutter 原生版
-/// 技术支持：熵基科技脑机事业部 (ZKTeco Brain-Computer Interface Division)
+/// 1:1 DeviceScreen & DeviceShowTable Clone - Flutter Native Edition
+/// Technical Support: ZKTeco Brain-Computer Interface Division
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -13,7 +13,7 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  // MEMS 姿态与欧拉角 (Euler & Quaternion)
+  // MEMS motion posture (Euler & Quaternion)
   double _memsX = 0.0;
   double _memsY = 0.0;
   double _memsZ = 0.0;
@@ -22,7 +22,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   double _memsQ2 = 0.0;
   double _memsQ3 = 0.0;
 
-  // 通道与图表显隐配置
+  // Channel & Chart Display Toggles
   bool _isFp1Visible = true;
   bool _isFp2Visible = false;
 
@@ -44,12 +44,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final TextEditingController _customCmdController = TextEditingController();
   final TextEditingController _writeSnController = TextEditingController();
   final List<String> _terminalLogs = [];
-  String _dfuStatus = "DFU: 空闲就绪";
+  String _dfuStatus = "DFU: Ready / Idle";
 
   @override
   void initState() {
     super.initState();
-    _terminalLogs.add("[系统启动] ZKBrain Flutter 控制台初始化就绪");
+    _terminalLogs.add("[System] ZKBrain Flutter console initialized successfully.");
   }
 
   @override
@@ -74,7 +74,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final isConnected = ble.connectionState == BleConnectionState.connected;
     final deviceName = ble.connectedDevice?.platformName.isNotEmpty == true
         ? ble.connectedDevice!.platformName
-        : (isConnected ? "ZKBrain Device" : "未连接设备");
+        : (isConnected ? "ZKBrain Device" : "Disconnected Device");
     final deviceMac = ble.connectedDevice?.remoteId.str ?? "00:00:00:00:00:00";
     final isNeuroSky = deviceName.contains("MindWave") ||
         deviceName.contains("MW") ||
@@ -82,31 +82,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
         deviceName.contains("xpain");
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9), // 浅灰背景，贴近 shared1 Compose 原生质感
+      backgroundColor: const Color(0xFFF1F5F9),
       appBar: AppBar(
         title: const Text(
-          "设备管理 (DeviceScreen)",
+          "Device Management (DeviceScreen)",
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
         ),
         backgroundColor: const Color(0xFF1E293B),
         elevation: 1,
         actions: [
-          // 顶部操作栏
           IconButton(
             icon: const Icon(Icons.bluetooth_searching, color: Colors.white),
-            tooltip: "搜索设备",
+            tooltip: "Search Devices",
             onPressed: () => _showScanBottomSheet(context, ble),
           ),
           IconButton(
             icon: const Icon(Icons.system_update_alt, color: Colors.white),
-            tooltip: "DFU升级",
+            tooltip: "DFU Upgrade",
             onPressed: () {
               setState(() {
-                _dfuStatus = "DFU: 正在检查固件版本...";
+                _dfuStatus = "DFU: Checking firmware version...";
               });
-              _addLog("[DFU] 发起固件 OTA 检测，当前处于最新稳定版 v2.4.0");
+              _addLog("[DFU] OTA firmware check: already on latest stable release v2.4.0");
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("DFU 固件检测完成：当前为最新版本")),
+                const SnackBar(content: Text("DFU check complete: Current firmware is up to date")),
               );
             },
           ),
@@ -132,27 +131,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // 板块 2：统一设备连接状态卡片
+            // Section 2: Unified Device Status Card
             _buildDeviceStatusCard(context, ble, isConnected, deviceName, deviceMac, isNeuroSky),
             const SizedBox(height: 12),
 
-            // 板块 3：Channel Settings 通道配置卡片
+            // Section 3: Channel Settings Card
             _buildChannelSettingsCard(),
             const SizedBox(height: 12),
 
-            // 板块 4：Chart Display Settings 图表显隐卡片
+            // Section 4: Chart Display Settings Card
             _buildChartDisplaySettingsCard(),
             const SizedBox(height: 12),
 
-            // 板块 5：⚙️ NeuroSky / MindWave 专属 20 字节协议控制台
+            // Section 5: NeuroSky / MindWave 20-Byte Protocol Console
             _buildNeuroSkyConsoleCard(ble, isConnected),
             const SizedBox(height: 12),
 
-            // 板块 6：🧠 ZKBrain 自研脑电设备官方控制台
+            // Section 6: ZKBrain Proprietary Device Console
             _buildZKBrainConsoleCard(ble, isConnected),
             const SizedBox(height: 12),
 
-            // 板块 7：Spectrum Data 详细数据表格 (DeviceShowTable 4x3 三色)
+            // Section 7: Spectrum Data Table (DeviceShowTable 4x3)
             _buildDeviceShowTable(ble, deviceMac),
             const SizedBox(height: 24),
           ],
@@ -162,7 +161,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   // ==========================================
-  // 板块 2：统一设备连接状态卡片
+  // Section 2: Unified Device Status Card
   // ==========================================
   Widget _buildDeviceStatusCard(
     BuildContext context,
@@ -173,13 +172,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     bool isNeuroSky,
   ) {
     Color statusDotColor = const Color(0xFFEF4444);
-    String statusText = "已断开 (Disconnected)";
+    String statusText = "Disconnected";
     if (ble.connectionState == BleConnectionState.connected) {
       statusDotColor = const Color(0xFF22C55E);
-      statusText = "已就绪 (READY)";
+      statusText = "READY";
     } else if (ble.connectionState == BleConnectionState.connecting) {
       statusDotColor = const Color(0xFFF59E0B);
-      statusText = "连接中 (CONNECTING)";
+      statusText = "CONNECTING";
     }
 
     return Card(
@@ -204,7 +203,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: statusDotColor),
                 ),
                 const Spacer(),
-                // 电量胶囊
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
@@ -231,7 +229,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(height: 6),
             Text("MAC: $deviceMac  |  SN: ZK-2026-DEV001", style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
             const SizedBox(height: 10),
-            // 3 个分类徽章
             Wrap(
               spacing: 8,
               runSpacing: 4,
@@ -253,11 +250,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 10),
                     ),
                     icon: Icon(isConnected ? Icons.link_off : Icons.bluetooth),
-                    label: Text(isConnected ? "断开设备" : "搜索连接"),
+                    label: Text(isConnected ? "Disconnect" : "Scan & Connect"),
                     onPressed: () {
                       if (isConnected) {
                         ble.disconnect();
-                        _addLog("[BLE] 用户主动断开设备连接");
+                        _addLog("[BLE] Device disconnected by user.");
                       } else {
                         _showScanBottomSheet(context, ble);
                       }
@@ -285,7 +282,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   // ==========================================
-  // 板块 3：Channel Settings 通道配置卡片
+  // Section 3: Channel Settings Card
   // ==========================================
   Widget _buildChannelSettingsCard() {
     return Card(
@@ -301,7 +298,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 Icon(Icons.tune, size: 18, color: Color(0xFF334155)),
                 SizedBox(width: 8),
-                Text("Channel Settings (通道配置)", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                Text("Channel Settings", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
               ],
             ),
             const SizedBox(height: 10),
@@ -312,16 +309,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   activeColor: const Color(0xFF2563EB),
                   onChanged: (v) {
                     setState(() => _isFp1Visible = v ?? true);
-                    _addLog("[通道设置] Left (FP1) 状态切换: $_isFp1Visible");
+                    _addLog("[Channel] Left (FP1) set to: $_isFp1Visible");
                   },
                 ),
                 const Text("Left (FP1)", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
                 const SizedBox(width: 24),
                 Checkbox(
                   value: _isFp2Visible,
-                  onChanged: null, // 禁用灰色
+                  onChanged: null,
                 ),
-                Text("Right (FP2) [硬件不支持]", style: TextStyle(fontSize: 14, color: Colors.grey.shade400)),
+                Text("Right (FP2) [Unsupported]", style: TextStyle(fontSize: 14, color: Colors.grey.shade400)),
               ],
             ),
           ],
@@ -331,7 +328,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   // ==========================================
-  // 板块 4：Chart Display Settings 图表显隐卡片
+  // Section 4: Chart Display Settings Card
   // ==========================================
   Widget _buildChartDisplaySettingsCard() {
     return Card(
@@ -347,7 +344,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 Icon(Icons.show_chart, size: 18, color: Color(0xFF334155)),
                 SizedBox(width: 8),
-                Text("Chart Display Settings (图表显隐配置)", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                Text("Chart Display Settings", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
               ],
             ),
             const SizedBox(height: 10),
@@ -364,7 +361,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   checkmarkColor: Colors.white,
                   onSelected: (val) {
                     setState(() => _chartToggles[title] = val);
-                    _addLog("[图表配置] $title 显示状态: $val");
+                    _addLog("[Chart] Toggle display for $title: $val");
                   },
                 );
               }).toList(),
@@ -376,7 +373,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   // ==========================================
-  // 板块 5：⚙️ NeuroSky / MindWave 专属 20 字节协议控制台
+  // Section 5: NeuroSky / MindWave 20-Byte Protocol Console
   // ==========================================
   Widget _buildNeuroSkyConsoleCard(ZKBrainBleService ble, bool isConnected) {
     return Card(
@@ -392,43 +389,43 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 Text("⚙️", style: TextStyle(fontSize: 16)),
                 SizedBox(width: 8),
-                Text("NeuroSky / MindWave 专属协议控制台", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                Text("NeuroSky / MindWave Protocol Console", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
               ],
             ),
             const SizedBox(height: 4),
-            Text("支持 20 字节二进制点火帧、工频滤波、SN 读写与经典 MAC 探测", style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+            Text("Supports 20-byte binary ignition frame, notch filter, SN read/write and classic MAC probing", style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: [
-                _buildConsoleBtn("🚀 点火启动 (0x15/17)", const Color(0xFF16A34A), () {
-                  ble.sendCommandBytes([0x02, 0x15, 0x17], "NeuroSky点火包 [0x15 Raw + 0x17 Band]");
-                  _addLog("[TX >> XMW] 下发点火包: 0x15 (Raw) + 0x17 (Band)");
+                _buildConsoleBtn("🚀 Ignition (0x15/17)", const Color(0xFF16A34A), () {
+                  ble.sendCommandBytes([0x02, 0x15, 0x17], "NeuroSky Ignition [0x15 Raw + 0x17 Band]");
+                  _addLog("[TX >> XMW] Ignition command sent: 0x15 (Raw) + 0x17 (Band)");
                 }),
-                _buildConsoleBtn("🛑 停止传输 (0x16/18)", const Color(0xFFDC2626), () {
-                  ble.sendCommandBytes([0x02, 0x16, 0x18], "停止传输 [0x16 + 0x18]");
-                  _addLog("[TX >> XMW] 停止传输: 0x16 + 0x18");
+                _buildConsoleBtn("🛑 Stop (0x16/18)", const Color(0xFFDC2626), () {
+                  ble.sendCommandBytes([0x02, 0x16, 0x18], "Stop Transmission [0x16 + 0x18]");
+                  _addLog("[TX >> XMW] Transmission stopped: 0x16 + 0x18");
                 }),
-                _buildConsoleBtn("50Hz 工频滤波 (0x1B)", const Color(0xFF475569), () {
-                  ble.sendXmwCommand(0x1B, "工频陷波 50Hz (0x1B)");
-                  _addLog("[TX >> XMW] 设置 50Hz 工频陷波滤波");
+                _buildConsoleBtn("50Hz Notch Filter (0x1B)", const Color(0xFF475569), () {
+                  ble.sendXmwCommand(0x1B, "Notch Filter 50Hz (0x1B)");
+                  _addLog("[TX >> XMW] Notch filter set to 50Hz (0x1B)");
                 }),
-                _buildConsoleBtn("60Hz 工频滤波 (0x1C)", const Color(0xFF475569), () {
-                  ble.sendXmwCommand(0x1C, "工频陷波 60Hz (0x1C)");
-                  _addLog("[TX >> XMW] 设置 60Hz 工频陷波滤波");
+                _buildConsoleBtn("60Hz Notch Filter (0x1C)", const Color(0xFF475569), () {
+                  ble.sendXmwCommand(0x1C, "Notch Filter 60Hz (0x1C)");
+                  _addLog("[TX >> XMW] Notch filter set to 60Hz (0x1C)");
                 }),
-                _buildConsoleBtn("读电量 (0x06)", const Color(0xFFD97706), () {
-                  ble.sendXmwCommand(0x06, "读取电量 (0x06)");
-                  _addLog("[TX >> XMW] 读取硬件电量 (0x06)");
+                _buildConsoleBtn("Battery (0x06)", const Color(0xFFD97706), () {
+                  ble.sendXmwCommand(0x06, "Read Battery (0x06)");
+                  _addLog("[TX >> XMW] Read battery level (0x06)");
                 }),
-                _buildConsoleBtn("读序列号 (0xF4)", const Color(0xFFD97706), () {
-                  ble.sendXmwCommand(0xF4, "读取序列号 SN (0xF4)");
-                  _addLog("[TX >> XMW] 查询设备序列号 SN (0xF4)");
+                _buildConsoleBtn("Serial SN (0xF4)", const Color(0xFFD97706), () {
+                  ble.sendXmwCommand(0xF4, "Read Serial SN (0xF4)");
+                  _addLog("[TX >> XMW] Query serial number SN (0xF4)");
                 }),
-                _buildConsoleBtn("探测经典MAC (0xFC)", const Color(0xFF7C3AED), () {
-                  ble.sendXmwCommand(0xFC, "探测经典蓝牙 MAC (0xFC)");
-                  _addLog("[TX >> XMW] 探测经典蓝牙 MAC 地址 (0xFC)");
+                _buildConsoleBtn("Classic MAC (0xFC)", const Color(0xFF7C3AED), () {
+                  ble.sendXmwCommand(0xFC, "Probe Classic BT MAC (0xFC)");
+                  _addLog("[TX >> XMW] Probe classic Bluetooth MAC (0xFC)");
                 }),
               ],
             ),
@@ -441,7 +438,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: TextField(
                       controller: _writeSnController,
                       decoration: const InputDecoration(
-                        hintText: "输入写入序列号 SN...",
+                        hintText: "Enter serial number SN...",
                         contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 0),
                         border: OutlineInputBorder(),
                       ),
@@ -459,11 +456,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   onPressed: () {
                     final sn = _writeSnController.text.trim();
                     if (sn.isNotEmpty) {
-                      _addLog("[TX >> XMW] 写入 SN (0xF2): $sn");
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("SN 写入指令已发送: $sn")));
+                      _addLog("[TX >> XMW] Write SN (0xF2): $sn");
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("SN command sent: $sn")));
                     }
                   },
-                  child: const Text("写入 SN (0xF2)", style: TextStyle(fontSize: 12)),
+                  child: const Text("Write SN (0xF2)", style: TextStyle(fontSize: 12)),
                 ),
               ],
             ),
@@ -474,7 +471,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   // ==========================================
-  // 板块 6：🧠 ZKBrain 自研脑电设备官方控制台
+  // Section 6: ZKBrain Proprietary Device Console
   // ==========================================
   Widget _buildZKBrainConsoleCard(ZKBrainBleService ble, bool isConnected) {
     return Card(
@@ -490,63 +487,61 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 Text("🧠", style: TextStyle(fontSize: 16)),
                 SizedBox(width: 8),
-                Text("ZKBrain 自研脑电设备控制台", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                Text("ZKBrain Proprietary Device Console", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
               ],
             ),
             const SizedBox(height: 4),
-            Text("支持 ASCII 控制、MEMS 姿态传感、采样率切换与终端实时回显", style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+            Text("Supports ASCII control, MEMS posture sensing, sample rate switching and terminal monitor", style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
             const SizedBox(height: 12),
 
-            // 快捷控制按钮矩阵
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: [
-                _buildConsoleBtn("查询授权 (license:?)", const Color(0xFF0284C7), () {
+                _buildConsoleBtn("License (license:?)", const Color(0xFF0284C7), () {
                   ble.sendCommandString("license:?;\n");
                   _addLog("[TX >>] license:?");
                 }),
-                _buildConsoleBtn("读电量 (battery:?)", const Color(0xFF0284C7), () {
+                _buildConsoleBtn("Battery (battery:?)", const Color(0xFF0284C7), () {
                   ble.sendCommandString("battery:?;\n");
                   _addLog("[TX >>] battery:?");
                 }),
-                _buildConsoleBtn("固件版本 (version:?)", const Color(0xFF0284C7), () {
+                _buildConsoleBtn("Version (version:?)", const Color(0xFF0284C7), () {
                   ble.sendCommandString("version:?;\n");
                   _addLog("[TX >>] version:?");
                 }),
-                _buildConsoleBtn("开启脑电 (eeg_data_on:1)", const Color(0xFF16A34A), () {
+                _buildConsoleBtn("Start EEG (eeg_data_on:1)", const Color(0xFF16A34A), () {
                   ble.sendCommandString("eeg_data_on:1;\n");
                   _addLog("[TX >>] eeg_data_on:1");
                 }),
-                _buildConsoleBtn("关闭脑电 (eeg_data_on:0)", const Color(0xFFDC2626), () {
+                _buildConsoleBtn("Stop EEG (eeg_data_on:0)", const Color(0xFFDC2626), () {
                   ble.sendCommandString("eeg_data_on:0;\n");
                   _addLog("[TX >>] eeg_data_on:0");
                 }),
-                _buildConsoleBtn("256Hz采样率", const Color(0xFF475569), () {
+                _buildConsoleBtn("256Hz Rate", const Color(0xFF475569), () {
                   ble.sendCommandString("eeg_data_rate:2;\n");
                   _addLog("[TX >>] eeg_data_rate:2 (256Hz)");
                 }),
-                _buildConsoleBtn("512Hz采样率", const Color(0xFF475569), () {
+                _buildConsoleBtn("512Hz Rate", const Color(0xFF475569), () {
                   ble.sendCommandString("eeg_data_rate:1;\n");
                   _addLog("[TX >>] eeg_data_rate:1 (512Hz)");
                 }),
-                _buildConsoleBtn("开启MEMS (mems_on:1)", const Color(0xFF059669), () {
+                _buildConsoleBtn("Start MEMS (mems_on:1)", const Color(0xFF059669), () {
                   ble.sendCommandString("mems_on:1;\n");
                   _addLog("[TX >>] mems_on:1");
                 }),
-                _buildConsoleBtn("关闭MEMS (mems_on:0)", const Color(0xFF9CA3AF), () {
+                _buildConsoleBtn("Stop MEMS (mems_on:0)", const Color(0xFF9CA3AF), () {
                   ble.sendCommandString("mems_on:0;\n");
                   _addLog("[TX >>] mems_on:0");
                 }),
-                _buildConsoleBtn("DFU 扫描模式", const Color(0xFF7C3AED), () {
+                _buildConsoleBtn("DFU Scan Mode", const Color(0xFF7C3AED), () {
                   ble.sendCommandString("dfu_scan:1;\n");
-                  _addLog("[TX >>] dfu_scan:1 (进入DFU空中升级就绪模式)");
+                  _addLog("[TX >>] dfu_scan:1 (DFU OTA ready mode)");
                 }),
               ],
             ),
             const SizedBox(height: 12),
 
-            // MEMS 姿态传感实时卡片 (Euler & Quaternion)
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -557,7 +552,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text("📐 实时 MEMS 空间姿态 (Euler & Quaternion)", style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
+                  const Text("📐 Realtime MEMS Posture (Euler & Quaternion)", style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
                   const SizedBox(height: 6),
                   Text(
                     "Euler:  Roll: ${_memsX.toStringAsFixed(1)}°   Pitch: ${_memsY.toStringAsFixed(1)}°   Yaw: ${_memsZ.toStringAsFixed(1)}°",
@@ -573,7 +568,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 12),
 
-            // 自定义键值对指令发送框
             Row(
               children: [
                 Expanded(
@@ -582,7 +576,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: TextField(
                       controller: _customCmdController,
                       decoration: const InputDecoration(
-                        hintText: "自定义指令 (如 mems_on:1 或 sample_rate:512)",
+                        hintText: "Custom command (e.g. mems_on:1 or sample_rate:512)",
                         contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 0),
                         border: OutlineInputBorder(),
                       ),
@@ -604,13 +598,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       _addLog("[TX >>] $cmd");
                     }
                   },
-                  child: const Text("发送指令", style: TextStyle(fontSize: 12)),
+                  child: const Text("Send", style: TextStyle(fontSize: 12)),
                 ),
               ],
             ),
             const SizedBox(height: 12),
 
-            // 黑底终端回显监控窗口
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
@@ -623,10 +616,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text("终端响应监控 (Terminal Monitor):", style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12)),
+                      const Text("Terminal Monitor:", style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12)),
                       InkWell(
                         onTap: () => setState(() => _terminalLogs.clear()),
-                        child: const Text("清空", style: TextStyle(color: Color(0xFF38BDF8), fontSize: 12)),
+                        child: const Text("Clear", style: TextStyle(color: Color(0xFF38BDF8), fontSize: 12)),
                       ),
                     ],
                   ),
@@ -636,7 +629,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: SingleChildScrollView(
                       reverse: true,
                       child: Text(
-                        _terminalLogs.isEmpty ? "等待下发或接收指令回包...\n" : _terminalLogs.join("\n"),
+                        _terminalLogs.isEmpty ? "Waiting for command responses...\n" : _terminalLogs.join("\n"),
                         style: const TextStyle(
                           color: Color(0xFF4ADE80),
                           fontFamily: 'monospace',
@@ -672,10 +665,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   // ==========================================
-  // 板块 7：Spectrum Data 详细数据表格 (DeviceShowTable 4x3 三色)
-  // 粉色 #FFE4E1 (Attention, Meditation, Quality, Raw EEG)
-  // 青色 #E0FFFF (Delta, Theta, Low Alpha, High Alpha)
-  // 黄色 #F0E68C (Low Beta, High Beta, Low Gamma, Mid Gamma)
+  // Section 7: Spectrum Data Table (DeviceShowTable 4x3)
+  // Pink #FFE4E1 (Attention, Meditation, Quality, Raw EEG)
+  // Cyan #E0FFFF (Delta, Theta, Low Alpha, High Alpha)
+  // Yellow #F0E68C (Low Beta, High Beta, Low Gamma, Mid Gamma)
   // ==========================================
   Widget _buildDeviceShowTable(ZKBrainBleService ble, String deviceMac) {
     final data = ble.currentBrainData;
@@ -690,7 +683,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // 顶部居中 MAC 标题条
             Container(
               padding: const EdgeInsets.symmetric(vertical: 8),
               decoration: BoxDecoration(
@@ -706,11 +698,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 10),
 
-            // 4x3 单元格矩阵 (粉 #FFE4E1, 青 #E0FFFF, 黄 #F0E68C)
             Table(
               border: TableBorder.all(color: const Color(0xFFCBD5E1), width: 1),
               children: [
-                // 第一行 (粉色背景 #FFE4E1)
                 TableRow(
                   decoration: const BoxDecoration(color: Color(0xFFFFE4E1)),
                   children: [
@@ -719,7 +709,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     _buildTableCell("Quality", "${data.signalQuality}"),
                   ],
                 ),
-                // 第二行 (粉 + 青)
                 TableRow(
                   children: [
                     Container(color: const Color(0xFFFFE4E1), child: _buildTableCell("Raw EEG", "${ble.rawWaveBuffer.isNotEmpty ? ble.rawWaveBuffer.last.toInt() : 0}")),
@@ -727,7 +716,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Container(color: const Color(0xFFE0FFFF), child: _buildTableCell("Theta", "${waves.theta}")),
                   ],
                 ),
-                // 第三行 (青 + 黄)
                 TableRow(
                   children: [
                     Container(color: const Color(0xFFE0FFFF), child: _buildTableCell("Low Alpha", "${waves.lowAlpha}")),
@@ -735,7 +723,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Container(color: const Color(0xFFF0E68C), child: _buildTableCell("Low Beta", "${waves.lowBeta}")),
                   ],
                 ),
-                // 第四行 (黄色背景 #F0E68C)
                 TableRow(
                   decoration: const BoxDecoration(color: Color(0xFFF0E68C)),
                   children: [
@@ -766,7 +753,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   // ==========================================
-  // 板块 8：蓝牙搜索连接底部弹窗 (BleScanDialog)
+  // Section 8: Bluetooth Scan Modal Bottom Sheet (BleScanDialog)
   // ==========================================
   void _showScanBottomSheet(BuildContext context, ZKBrainBleService ble) {
     ble.startScan();
@@ -791,7 +778,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        "🔍 搜索周围脑电设备",
+                        "🔍 Search Nearby BCI Devices",
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
                       ),
                       IconButton(
@@ -806,7 +793,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      Text(ble.isScanning ? "正在扫描低功耗蓝牙设备..." : "扫描完成", style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                      Text(ble.isScanning ? "Scanning BLE devices..." : "Scan completed", style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
                       const Spacer(),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
@@ -818,7 +805,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ble.startScan();
                           setModalState(() {});
                         },
-                        child: Text(ble.isScanning ? "扫描中" : "重新扫描", style: const TextStyle(fontSize: 12)),
+                        child: Text(ble.isScanning ? "Scanning" : "Rescan", style: const TextStyle(fontSize: 12)),
                       ),
                     ],
                   ),
@@ -826,14 +813,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Expanded(
                     child: scanResults.isEmpty
                         ? const Center(
-                            child: Text("暂未发现脑电设备，请确认设备已开机并在附近", style: TextStyle(color: Colors.grey, fontSize: 13)),
+                            child: Text("No BCI devices found. Please ensure device is powered on.", style: TextStyle(color: Colors.grey, fontSize: 13)),
                           )
                         : ListView.separated(
                             itemCount: scanResults.length,
                             separatorBuilder: (_, __) => const Divider(height: 1),
                             itemBuilder: (context, index) {
                               final item = scanResults[index];
-                              final name = item.device.platformName.isNotEmpty ? item.device.platformName : "未知蓝牙设备";
+                              final name = item.device.platformName.isNotEmpty ? item.device.platformName : "Unknown Device";
                               return ListTile(
                                 leading: const Icon(Icons.bluetooth, color: Color(0xFF2563EB)),
                                 title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
@@ -845,11 +832,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                   ),
-                                  child: const Text("连接", style: TextStyle(fontSize: 12)),
+                                  child: const Text("Connect", style: TextStyle(fontSize: 12)),
                                   onPressed: () {
                                     ble.connect(item.device);
                                     Navigator.pop(ctx);
-                                    _addLog("[BLE] 发起连接: $name (${item.device.remoteId.str})");
+                                    _addLog("[BLE] Connecting to device: $name (${item.device.remoteId.str})");
                                   },
                                 ),
                               );

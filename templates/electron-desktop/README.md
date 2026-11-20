@@ -1,34 +1,34 @@
-# ZKBrain Electron 桌面工作站 (Windows / macOS / Linux)
+# ZKBrain Electron Desktop Workstation (Windows / macOS / Linux)
 
-> 🚀 **跨平台桌面端应用**：基于 Electron + Web Bluetooth API，可一键打包生成 macOS (`.dmg`)、Windows (`.exe`) 与 Linux (`.deb`) 原生客户端。
-
----
-
-## 🌟 核心特性
-
-1. **1:1 逐项还原官方 `DeviceScreen` + `DeviceShowTable` 控制台**：
-   - 顶部操作栏（设备搜索、OTA 升级检测、SN 鉴权状态）；
-   - 12 项生理指标 4x3 三色数据表（粉色、青色、黄色标准配色）；
-   - 6 轴 MEMS 姿态传感看板（欧拉角 Roll/Pitch/Yaw 与四元数 Q0~Q3）；
-   - NeuroSky XMW 二进制点火包（`0x15`/`0x17`）与 ZKTeco 硬件配置指令控制台；
-   - 终端监控与双向回包日志。
-2. **免浏览器权限限制**：
-   - 桌面端直接由 Electron 主进程接管蓝牙握手与配对选择器。
+> Cross-platform desktop application based on Electron + Web Bluetooth API. Can be packaged into macOS (`.dmg`), Windows (`.exe`), and Linux (`.deb`) native clients.
 
 ---
 
-## 🛠️ 快速启动
+## Key Features
+
+1. **1:1 Complete realization of official `DeviceScreen` + `DeviceShowTable` Console**:
+   - Top action bar (device search, OTA upgrade check, license badge);
+   - 12-metric 4x3 color-coded table (Pink, Cyan, Yellow standard palette);
+   - 6-axis MEMS spatial attitude board (Euler angles Roll/Pitch/Yaw & Quaternions Q0~Q3);
+   - NeuroSky XMW binary ignition packet (`0x15`/`0x17`) and ZKTeco hardware configuration console;
+   - Terminal monitor with bidirectional packet logs.
+2. **Native Bluetooth Management**:
+   - Electron main process manages Bluetooth handshake and pairing selection.
+
+---
+
+## Quickstart
 
 ```bash
-# 1. 安装依赖
+# 1. Install dependencies
 npm install
 
-# 2. 启动桌面应用
+# 2. Start desktop app
 npm start
 
-# 3. 打包为 Windows 可执行程序 (.exe)
+# 3. Build Windows executable (.exe)
 npm run build:win
 
-# 4. 打包为 macOS 镜像 (.dmg)
+# 4. Build macOS disk image (.dmg)
 npm run build:mac
 ```

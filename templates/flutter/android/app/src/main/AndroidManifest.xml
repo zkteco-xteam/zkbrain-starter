@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.zkteco.zkbrain.flutter_starter">
 
-    <!-- 🌟 Android 12+ 蓝牙扫描与连接核心权限 -->
+    <!-- Android 12+ Bluetooth Scanning & Connection Permissions -->
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
