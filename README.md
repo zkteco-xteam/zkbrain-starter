@@ -12,8 +12,8 @@
 
 | 平台 / 技术栈 | 模板目录 | SDK 接入形式 | 核心亮点 |
 | :--- | :--- | :--- | :--- |
-| **Android Compose (推荐)** | [`templates/android-compose/`](templates/android-compose/) | Maven Central (`io.github.zkteco-xteam:zkbrain-android:1.2.0`) | 现代 Jetpack Compose 声明式大屏，内置 8 频段频谱、心流与示波器 |
-| **Android 原生 (Kotlin)** | [`templates/android-native/`](templates/android-native/) | Maven Central (`io.github.zkteco-xteam:zkbrain-android:1.2.0`) | 纯 Kotlin + Lifecycle 极简调用，开箱即用 |
+| **Android Compose (推荐)** | [`templates/android-compose/`](templates/android-compose/) | Maven Central (`io.github.zkteco-xteam:zkbrain-android:1.2.1`) | 现代 Jetpack Compose 声明式大屏，内置 8 频段频谱、心流与示波器 |
+| **Android 原生 (Kotlin)** | [`templates/android-native/`](templates/android-native/) | Maven Central (`io.github.zkteco-xteam:zkbrain-android:1.2.1`) | 纯 Kotlin + Lifecycle 极简调用，开箱即用 |
 | **Flutter 跨平台** | [`templates/flutter/`](templates/flutter/) | `flutter_blue_plus` 响应式流 | Dart 跨 Android / iOS 双端，Material 3 脑电交互大屏 |
 | **华为鸿蒙 (HarmonyOS Next)** | [`templates/harmonyos/`](templates/harmonyos/) | ArkTS / Stage 模型 | 鸿蒙原生 ArkUI 声明式大屏，系统级低功耗蓝牙扫描与高帧率 Canvas |
 | **原生 iOS (Swift)** | [`templates/ios-swiftui/`](templates/ios-swiftui/) | Swift Package Manager (SPM) | SwiftUI 现代声明式 UI，原生 `async/await` 消费脑电数据流 |

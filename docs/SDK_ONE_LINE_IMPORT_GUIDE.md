@@ -56,7 +56,7 @@ dependencyResolutionManagement {
 ```kotlin
 dependencies {
     // 🌟 熵基科技脑机事业部官方 Android 脑机 SDK (无需配置任何私有 Token，全球加速)
-    implementation("io.github.zkteco-xteam:zkbrain-android:1.2.0")
+    implementation("io.github.zkteco-xteam:zkbrain-android:1.2.1")
 }
 ```
 

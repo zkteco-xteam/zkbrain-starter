@@ -34,7 +34,7 @@ scope.launch {
 ```
 
 ## 平台分发坐标
-- Android (Maven Central 国际中央仓): `implementation("io.github.zkteco-xteam:zkbrain-android:1.2.0")`
+- Android (Maven Central 国际中央仓): `implementation("io.github.zkteco-xteam:zkbrain-android:1.2.1")`
 - iOS SPM: `https://github.com/zkteco-xteam/zkbrain.git`
 - Web NPM: `npm install @zkteco/zkbrain-web-sdk`
 - 小程序 NPM: `npm install @zkteco/zkbrain-miniprogram-sdk`

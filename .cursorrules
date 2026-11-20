@@ -1,7 +1,7 @@
 # ZKBrain 脑机接口开发规则 (Cursor Rules)
 # 技术支持：熵基科技脑机事业部 (ZKTeco Brain-Computer Interface Division)
 
-1. Android 官方依赖坐标：io.github.zkteco-xteam:zkbrain-android:1.2.0 (Maven Central)。
+1. Android 官方依赖坐标：io.github.zkteco-xteam:zkbrain-android:1.2.1 (Maven Central)。
 2. 每个脑电界面必须展示 8 频段功率谱能量 (Delta, Theta, Low Alpha, High Alpha, Low Beta, High Beta, Low Gamma, Middle Gamma) 与专注度/放松度。
 3. 必须提供 MEMS 惯导与硬件指令控制（开启 MEMS: mems_enable=1;\n；点火包: [0x02, 0x15, 0x17]）。
 4. Kotlin 2.0+ 编译避免元数据报错必须添加 -Xskip-metadata-version-check。

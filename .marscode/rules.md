@@ -9,7 +9,7 @@
 - **Android / KMP 官方国际仓依赖**:
   ```groovy
   // Maven Central 官方坐标
-  implementation 'io.github.zkteco-xteam:zkbrain-android:1.2.0'
+  implementation 'io.github.zkteco-xteam:zkbrain-android:1.2.1'
   ```
 - **Web / 微信小程序**:
   - Web: `@zkteco/zkbrain-web-sdk`
