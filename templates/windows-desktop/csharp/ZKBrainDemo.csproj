@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <!-- 支持 Windows 10/11 原生 WinRT BLE API -->
+    <TargetFramework>net6.0-windows10.0.19041.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <Platforms>x64</Platforms>
+    <PlatformTarget>x64</PlatformTarget>
+    <AssemblyName>ZKBrainDemo</AssemblyName>
+    <RootNamespace>ZKBrain.Windows.Demo</RootNamespace>
+  </PropertyGroup>
+
+  <!-- 自动将 64 位核心 DLL 和通用 License 拷贝至输出目录 -->
+  <ItemGroup>
+    <None Include="..\..\bin\x64\zkbrain_sec.dll" Link="zkbrain_sec.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\license.lic" Link="license.lic">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

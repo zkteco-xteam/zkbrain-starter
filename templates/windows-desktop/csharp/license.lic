@@ -1,0 +1,4 @@
+{
+  "payload": "{\"appId\":\"com.zkteco.kmpdemo\",\"deviceId\":\"*\",\"features\":[\"raw_eeg\",\"attention_algo\",\"meditation_algo\",\"eeg_power\"],\"issueDate\":1782984200441,\"minVer\":\"1.0.0\",\"nonce\":\"4b9032c834444bdd9fa5e2318961f13e\",\"validUntil\":253402214400000}",
+  "signature": "P3+/ZoZN3XaGNsKHztREzDKpaxWR0RDKf8zDBqwtayuVR68wCeWmRrevlPcm7B9I0PD18D9YUSMWyGI+2r3r9r9zu2rLSCxB05aBMygXkZT5NYjGpMTklj+aNdW0GQ16gM1E1yhQ+RmYIe4dQ3SZ9lpvrjldkcVd8wW3Fdaj02XHuqegMJJEhn8vARzcsaSZLrWUksmwjFBE8I82WUHAfUeoWWsPp/6gTTo8kSbYZDflFl+hTV6EzXUfUcdFP5Jowuw9Lt74cfPqHRshNBcUNqvl0F/MaZkQvQej9hFugdnZyVRslGmBdC0Y9rgYLDaxif3VAPDRbqVuV72Gjdv7kQ=="
+}

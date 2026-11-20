@@ -12,7 +12,9 @@
 
 | 平台 / 技术栈 | 模板目录 | SDK 接入形式 | 核心亮点 |
 | :--- | :--- | :--- | :--- |
+| **Android 纯原生 (Kotlin)** | [`templates/android-native/`](templates/android-native/) | Maven 一行依赖 | 标准 Android 单工程结构，纯 Kotlin + Lifecycle 极简调用 |
 | **Android & Desktop (KMP)** | [`templates/kmp-compose/`](templates/kmp-compose/) | Maven 一行依赖 | Compose Multiplatform MVI 架构，自带防卡顿 512Hz 脑波画布 |
+| **Windows 桌面端 (Python/C#)** | [`templates/windows-desktop/`](templates/windows-desktop/) | C++ 动态库 (`zkbrain_sec.dll`) | 原生 BLE/串口直连，支持 Python 算法开发与 C# WinUI 桌面开发 |
 | **原生 iOS (Swift)** | [`templates/ios-swiftui/`](templates/ios-swiftui/) | Swift Package Manager (SPM) | SwiftUI 现代声明式 UI，原生 `async/await` 消费脑电数据流 |
 | **Web 浏览器 (H5)** | [`templates/web-ts/`](templates/web-ts/) | NPM (`@zkteco/zkbrain-web-sdk`) | Vite + TypeScript，基于 W3C Web Bluetooth 直连脑电设备 |
 | **微信小程序** | [`templates/miniprogram/`](templates/miniprogram/) | NPM (`@zkteco/zkbrain-miniprogram-sdk`) | 原生小程序架构，内置低功耗蓝牙 (BLE) 扫描与专注度仪表盘 |
