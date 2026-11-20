@@ -19,7 +19,11 @@
 
 ## 2. 跨端模块规范
 
-- **KMP / Compose 模板**：位于 `templates/kmp-compose/`，遵循 MVI 架构（State / Intent / Effect）；
+- **Android Compose 模板**：位于 `templates/android-compose/`，基于最新 Jetpack Compose + Material 3 声明式大屏，通过国际 Maven Central 依赖引入；
+- **Android Native 模板**：位于 `templates/android-native/`，纯 Kotlin 极简样板；
+- **Flutter 模板**：位于 `templates/flutter/`，基于 `flutter_blue_plus` 的 Dart 跨端交互大屏；
+- **华为鸿蒙模板**：位于 `templates/harmonyos/`，基于 ArkTS / Stage 模型的鸿蒙原生交互工程；
 - **iOS SwiftUI 模板**：位于 `templates/ios-swiftui/`，充分利用 SKIE 提供的 `async/await` 语法糖消费 `ZKBrainManager.shared.brainData`；
 - **Web 模板**：位于 `templates/web-ts/`，使用 `@zkteco/zkbrain-web-sdk`；
-- **微信小程序模板**：位于 `templates/miniprogram/`，使用 `@zkteco/zkbrain-miniprogram-sdk`。
+- **微信小程序模板**：位于 `templates/miniprogram/`，使用 `@zkteco/zkbrain-miniprogram-sdk`；
+- **Windows 桌面模板**：位于 `templates/windows-desktop/`，使用 C# / Python 驱动 `zkbrain_sec.dll`。

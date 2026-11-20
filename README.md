@@ -2,7 +2,7 @@
 
 > 🚀 **官方开源脚手架** | 面向二次开发者与 AI 编程助手（Cursor, Antigravity, Windsurf, Copilot）的跨平台脑机接口 (BCI) 开箱即用全栈模板。
 
-本项目是 **ZKBrain 跨平台脑机接口 SDK** 的官方公开脚手架，内置 Android/KMP、iOS、Web H5、微信小程序 4 大平台的最简运行模板，并深度整合了 **AI 上下文工程（Skill + llms.txt + Cursorrules）**。
+本项目是 **ZKBrain 跨平台脑机接口 SDK** 的官方公开脚手架，内置 Android Compose、Android Native、Flutter、华为鸿蒙 (HarmonyOS Next)、iOS SwiftUI、Web H5、微信小程序、Windows 桌面 8 大主流平台的最简运行模板，并深度整合了 **AI 上下文工程（Skill + llms.txt + Cursorrules）**。
 
 开发者（或您的 AI）无需关心底层复杂的硬件点火包、协议解包与加解密，克隆后**只需对 AI 说一句话，即可秒级生成专属脑电应用**！
 
@@ -12,12 +12,14 @@
 
 | 平台 / 技术栈 | 模板目录 | SDK 接入形式 | 核心亮点 |
 | :--- | :--- | :--- | :--- |
-| **Android 纯原生 (Kotlin)** | [`templates/android-native/`](templates/android-native/) | Maven 一行依赖 | 标准 Android 单工程结构，纯 Kotlin + Lifecycle 极简调用 |
-| **Android & Desktop (KMP)** | [`templates/kmp-compose/`](templates/kmp-compose/) | Maven 一行依赖 | Compose Multiplatform MVI 架构，自带防卡顿 512Hz 脑波画布 |
-| **Windows 桌面端 (Python/C#)** | [`templates/windows-desktop/`](templates/windows-desktop/) | C++ 动态库 (`zkbrain_sec.dll`) | 原生 BLE/串口直连，支持 Python 算法开发与 C# WinUI 桌面开发 |
+| **Android Compose (推荐)** | [`templates/android-compose/`](templates/android-compose/) | Maven Central (`io.github.zkteco-xteam:zkbrain-android:1.2.0`) | 现代 Jetpack Compose 声明式大屏，内置 8 频段频谱、心流与示波器 |
+| **Android 原生 (Kotlin)** | [`templates/android-native/`](templates/android-native/) | Maven Central (`io.github.zkteco-xteam:zkbrain-android:1.2.0`) | 纯 Kotlin + Lifecycle 极简调用，开箱即用 |
+| **Flutter 跨平台** | [`templates/flutter/`](templates/flutter/) | `flutter_blue_plus` 响应式流 | Dart 跨 Android / iOS 双端，Material 3 脑电交互大屏 |
+| **华为鸿蒙 (HarmonyOS Next)** | [`templates/harmonyos/`](templates/harmonyos/) | ArkTS / Stage 模型 | 鸿蒙原生 ArkUI 声明式大屏，系统级低功耗蓝牙扫描与高帧率 Canvas |
 | **原生 iOS (Swift)** | [`templates/ios-swiftui/`](templates/ios-swiftui/) | Swift Package Manager (SPM) | SwiftUI 现代声明式 UI，原生 `async/await` 消费脑电数据流 |
 | **Web 浏览器 (H5)** | [`templates/web-ts/`](templates/web-ts/) | NPM (`@zkteco/zkbrain-web-sdk`) | Vite + TypeScript，基于 W3C Web Bluetooth 直连脑电设备 |
 | **微信小程序** | [`templates/miniprogram/`](templates/miniprogram/) | NPM (`@zkteco/zkbrain-miniprogram-sdk`) | 原生小程序架构，内置低功耗蓝牙 (BLE) 扫描与专注度仪表盘 |
+| **Windows 桌面端 (C#/Python)** | [`templates/windows-desktop/`](templates/windows-desktop/) | C++ 动态库 (`zkbrain_sec.dll`) | 原生 BLE/串口直连，支持 Python 算法开发与 C# WinUI 桌面开发 |
 
 ---
 
@@ -33,14 +35,14 @@ cd zkbrain-starter
 ### 步骤 2：复制 Starter Prompt 发给 AI
 在 AI 对话框中直接粘贴以下任一提示词，AI 将自动读取技能与黄金样板，零报错生成功能：
 
-#### 💡 提示词范例 A（KMP / Android 脑波监控）：
-> *"请参考 templates/kmp-compose 模板，使用 ZKBrain SDK 为我新增一个脑电专注度训练页面。要求：包含设备扫描弹窗、一个展示专注度与放松度的仪表盘、以及一个实时跳动的 512Hz 原始脑波图。"*
+#### 💡 提示词范例 A（Android Compose 脑波监控）：
+> *"请参考 templates/android-compose 模板，使用 ZKBrain SDK 为我新增一个脑电专注度训练页面。要求：包含设备扫描弹窗、一个展示专注度与放松度的仪表盘、以及一个实时跳动的 512Hz 原始脑波图。"*
 
-#### 💡 提示词范例 B（iOS 原生开发）：
-> *"请基于 templates/ios-swiftui，用 SwiftUI 帮我写一个心流状态监测 App，实时监听 ZKBrainManager.shared.brainData，当专注度超过 80 时播放鼓励动画。"*
+#### 💡 提示词范例 B（Flutter 跨端开发）：
+> *"请基于 templates/flutter 模板，用 Flutter 帮我写一个心流状态监测 App，实时监听脑电数据，当专注度超过 80 时播放鼓励动画。"*
 
-#### 💡 提示词范例 C（Web / 小程序）：
-> *"请基于 templates/web-ts 模板，帮我增加一个脑电数据历史回放列表，并支持一键将当前数据导出为 CSV。"*
+#### 💡 提示词范例 C（鸿蒙 Next 原生）：
+> *"请参考 templates/harmonyos 模板，使用 ArkUI 帮我实现一个鸿蒙脑机数据分析大屏，包含 8 频段彩色能量柱状图与疲劳指数预警。"*
 
 ---
 

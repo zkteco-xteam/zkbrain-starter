@@ -34,7 +34,9 @@ scope.launch {
 ```
 
 ## 平台分发坐标
-- Maven: `implementation("com.zkteco.zkbrain:core:1.2.0")`
+- Android (Maven Central 国际中央仓): `implementation("io.github.zkteco-xteam:zkbrain-android:1.2.0")`
 - iOS SPM: `https://github.com/zkteco-xteam/zkbrain.git`
 - Web NPM: `npm install @zkteco/zkbrain-web-sdk`
 - 小程序 NPM: `npm install @zkteco/zkbrain-miniprogram-sdk`
+- Flutter 跨端: `templates/flutter/` (支持 Android/iOS 双端)
+- 华为鸿蒙 Next: `templates/harmonyos/` (ArkTS / Stage 模型)

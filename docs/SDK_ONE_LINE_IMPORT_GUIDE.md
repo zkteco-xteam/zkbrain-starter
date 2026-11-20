@@ -38,52 +38,60 @@ Task {
 
 ---
 
-## 📱 2. Android / Kotlin Multiplatform (KMP) 接入
+## 📱 2. Android (Native & Jetpack Compose) 接入
 
-### 步骤 1：配置 Maven 仓库源
-在您的应用根目录 `settings.gradle.kts`（或项目级 `build.gradle.kts`）中添加仓库源：
+### 方式 A：国际官方 Maven Central 直连（推荐！免 Token、零门槛、秒级下载）
 
-#### 选项 A：使用 GitHub Packages（推荐，企业协同与客户分发）
+在您的应用根目录 `settings.gradle.kts` 中确认包含 `mavenCentral()`：
 ```kotlin
 dependencyResolutionManagement {
     repositories {
         google()
-        mavenCentral()
-        maven {
-            url = uri("https://maven.pkg.github.com/zkteco-xteam/zkbrain")
-            credentials {
-                username = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GITHUB_ACTOR")
-                password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN")
-            }
-        }
+        mavenCentral() // 🌟 国际官方中央仓库
     }
 }
 ```
 
-> **提示**：只需在个人用户目录 `~/.gradle/gradle.properties` 中配置一次 `gpr.user` 与 `gpr.key`（GitHub Personal Access Token，勾选 `read:packages` 即可）。
-
-#### 选项 B：使用 Maven Central / 自建 Nexus 私服
-```kotlin
-repositories {
-    google()
-    mavenCentral()
-    // 若使用自建 Nexus：
-    // maven("http://your-nexus-ip:8081/repository/maven-releases/")
-}
-```
-
-### 步骤 2：一行代码添加依赖
-在您的模块级 `build.gradle.kts` 的 `dependencies` 块中加入：
-
+在模块级 `build.gradle.kts` 的 `dependencies` 中添加一行依赖即可：
 ```kotlin
 dependencies {
-    // 🌟 一行代码搞定 (Android 官方发布包)
-    implementation("com.zkteco.zkbrain:zkbrain-android:1.2.0")
-    
-    // 或离线使用：
-    // implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.aar"))))
+    // 🌟 熵基科技脑机事业部官方 Android 脑机 SDK (无需配置任何私有 Token，全球加速)
+    implementation("io.github.zkteco-xteam:zkbrain-android:1.2.0")
 }
 ```
+
+### 极速调用范例：
+```kotlin
+import com.zkteco.zkbrain.ZKBrainManager
+import com.zkteco.zkbrain.bean.ZKBrainConnectionState
+
+// 1. 扫描与连接设备
+ZKBrainManager.startScan(timeoutMillis = 10000L)
+
+// 2. 响应式监听连接状态与 1Hz 脑电指标
+lifecycleScope.launch {
+    ZKBrainManager.brainData.collectLatest { eeg ->
+        println("当前专注度: ${eeg.attentionLevel}, 放松度: ${eeg.meditationDepth}, 信号质量: ${eeg.signal}")
+    }
+}
+```
+
+---
+
+## 🦋 3. Flutter 跨平台接入
+
+参考 `templates/flutter/` 模板工程：
+* 依赖 `flutter_blue_plus` 响应式低功耗蓝牙；
+* 预置 Android 12+ 运行时权限与 iOS 13+ 蓝牙权限；
+* 开箱即用 Attention / Meditation 环形进度条、8 频段彩色能量柱状图与 512Hz Canvas 示波器。
+
+---
+
+## ⚡ 4. 华为鸿蒙 (HarmonyOS Next) 接入
+
+参考 `templates/harmonyos/` 鸿蒙 Next 原生 ArkTS / Stage 模型模板工程：
+* 在 `module.json5` 中声明系统级低功耗蓝牙权限；
+* 原生 ArkUI 声明式大屏，实时呈现专注度、放松度、8 频段能量与 512Hz 示波器 Canvas 动效。
 
 ---
 

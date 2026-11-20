@@ -14,5 +14,7 @@ Always adhere to the following rules:
    - Regular brainwave indices (attention, meditation, 8-band power) arrive via `ZKBrainManager.brainData` at 1Hz.
 
 3. **Platform Standards**:
-   - KMP: Keep common code in `commonMain`, never import Android/JVM specific packages in common modules.
+   - Android Compose: Located in `templates/android-compose/`, use `io.github.zkteco-xteam:zkbrain-android:1.2.0` from Maven Central.
+   - Flutter: Located in `templates/flutter/`, use `flutter_blue_plus` and `provider`.
+   - HarmonyOS: Located in `templates/harmonyos/`, use ArkTS / ArkUI declarative components.
    - iOS: Utilize SKIE native Swift `async/await` syntax to consume `ZKBrainManager.shared.brainData`.
