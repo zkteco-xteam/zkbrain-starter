@@ -226,6 +226,94 @@ fun DashboardScreen() {
                     PowerBarRow("Middle Gamma (41-49.75Hz 高阶多感官)", bw?.middleGamma ?: 0, Color(0xFFE11D48))
                 }
             }
+
+            // 5. 🌟 MEMS 传感器与硬件指令控制台 (命令下发与回包监听模板)
+            var customCommandText by remember { mutableStateOf("mems_enable=1;") }
+            var commandLog by remember { mutableStateOf("暂无指令回包") }
+            val connectedDevice by ZKBrainManager.connectedDevice.collectAsState()
+
+            LaunchedEffect(Unit) {
+                ZKBrainManager.commandResponse.collectLatest { resp ->
+                    commandLog = resp
+                }
+            }
+
+            Card(
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text("🛠️ MEMS 传感器与指令下发控制台", color = Color.White, fontSize = 16.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                        Button(
+                            onClick = {
+                                connectedDevice?.let { dev ->
+                                    ZKBrainManager.writeCommand(dev.address, "mems_enable=1;\n".toByteArray())
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0284C7)),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("📡 开启 MEMS", fontSize = 12.sp)
+                        }
+
+                        Button(
+                            onClick = {
+                                connectedDevice?.let { dev ->
+                                    ZKBrainManager.writeCommand(dev.address, byteArrayOf(0x02, 0x15, 0x17))
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEA580C)),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("🔥 下发点火包", fontSize = 12.sp)
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = customCommandText,
+                            onValueChange = { customCommandText = it },
+                            label = { Text("自定义命令 (ASCII/HEX)") },
+                            modifier = Modifier.weight(1f),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White,
+                                focusedBorderColor = Color(0xFF38BDF8),
+                                unfocusedBorderColor = Color(0xFF475569)
+                            )
+                        )
+                        Button(
+                            onClick = {
+                                connectedDevice?.let { dev ->
+                                    if (customCommandText.isNotBlank()) {
+                                        ZKBrainManager.writeCommand(dev.address, customCommandText.toByteArray())
+                                    }
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2563EB))
+                        ) {
+                            Text("发送")
+                        }
+                    }
+
+                    Text("最新回包响应:", color = Color(0xFF94A3B8), fontSize = 12.sp)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color(0xFF0F172A), RoundedCornerShape(6.dp))
+                            .padding(10.dp)
+                    ) {
+                        Text(commandLog, color = Color(0xFF4ADE80), fontSize = 12.sp, fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace)
+                    }
+                }
+            }
         }
     }
 }

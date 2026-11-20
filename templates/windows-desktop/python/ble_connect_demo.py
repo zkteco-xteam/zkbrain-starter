@@ -104,7 +104,8 @@ def on_brain_data(data_ptr, hw_ver, temp, user_data):
     print("\n" + "=" * 65)
     if signal == 0:
         print(f"🌟 [状态优良] 专注度: \033[1;32m{attention:3d}\033[0m | 放松度: \033[1;34m{meditation:3d}\033[0m | 电量: {battery:2d}% | 额温: {temp:.1f}°C")
-        print(f"📊 [能量分析] Alpha: {low_alpha + high_alpha:8d} | Beta: {low_beta + high_beta:8d} | Gamma: {low_gamma + mid_gamma:8d}")
+        print(f"📊 [8频段功率] Delta: {delta} | Theta: {theta} | LowAlpha: {low_alpha} | HighAlpha: {high_alpha}")
+        print(f"             LowBeta: {low_beta} | HighBeta: {high_beta} | LowGamma: {low_gamma} | MidGamma: {mid_gamma}")
     elif signal == 200:
         print("🚨 \033[1;31m[佩戴脱落] 检测到电极完全未佩戴 (Signal: 200)，请佩戴好额头电极与耳夹！\033[0m")
     else:
@@ -254,6 +255,23 @@ async def run_ble_workflow():
         for ch in selected_chars:
             print(f"  -> 启动通知监听: {ch.uuid}")
             await client.start_notify(ch.uuid, handle_ble_notification)
+
+        # 查找可写通道以支持 MEMS 与控制指令下发
+        write_char = None
+        for service in client.services:
+            for char in service.characteristics:
+                if "write" in char.properties or "write-without-response" in char.properties:
+                    write_char = char
+                    break
+            if write_char:
+                break
+
+        if write_char:
+            print(f"📡 发现硬件指令写通道: {write_char.uuid}")
+            # 示例：开启 MEMS 惯导流指令下发
+            # await client.write_gatt_char(write_char.uuid, b"mems_enable=1;\n")
+            # 示例：NeuroSky 点火包 [0x02, 0x15, 0x17]
+            # await client.write_gatt_char(write_char.uuid, bytearray([0x02, 0x15, 0x17]))
 
         print("\n🚀 数据解调已点火！正在实时接收脑电波...")
         print("提示: 脑电算法需要约 3~5 秒滑动窗口进行初次基线校准。按 Ctrl+C 可停止采集。\n")

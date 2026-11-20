@@ -133,3 +133,47 @@ suspend fun runStandardRecordingFlow(serverUrl: String, apiKey: String) {
     result.onSuccess { report -> println("云端分析完成，综合得分: ${report.score}") }
 }
 ```
+
+---
+
+## ⚡ Recipe 6: 硬件指令下发与 MEMS 惯导/姿态使能 (全端适用)
+
+### Android Native / Jetpack Compose:
+```kotlin
+// 1. 开启 MEMS 姿态惯导流
+val address = ZKBrainManager.connectedDevice.value?.address ?: return
+ZKBrainManager.writeCommand(address, "mems_enable=1;\n".toByteArray(Charsets.UTF_8))
+
+// 2. 监听硬件响应与四元数姿态
+lifecycleScope.launch {
+    ZKBrainManager.commandResponse.collect { response ->
+        Log.d("ZKBrain", "硬件响应: $response")
+    }
+}
+lifecycleScope.launch {
+    ZKBrainManager.quaternionData.collect { q ->
+        Log.d("ZKBrain", "空间姿态四元数: w=${q.q0}, x=${q.q1}, y=${q.q2}, z=${q.q3}")
+    }
+}
+```
+
+### iOS (Swift):
+```swift
+// 下发开启 MEMS 指令
+if let dev = ZKBrainManager.shared.connectedDevice.value {
+    let bytes = Array("mems_enable=1;\n".utf8)
+    let kBytes = KotlinByteArray(size: Int32(bytes.count))
+    for (i, b) in bytes.enumerated() { kBytes.set(index: Int32(i), value: Int8(bitPattern: b)) }
+    ZKBrainManager.shared.writeCommand(address: dev.address, command: kBytes)
+}
+```
+
+### Web & 微信小程序 (TypeScript):
+```typescript
+// Web / 小程序端下发
+await sdk.sendAsciiCommand("mems_enable=1;\n");
+// 监听空间姿态
+sdk.on("posture_data", (gravity) => {
+    console.log(`Pitch=${gravity.x}, Roll=${gravity.y}, Yaw=${gravity.z}`);
+});
+```

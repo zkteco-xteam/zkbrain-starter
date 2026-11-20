@@ -1,20 +1,8 @@
-# Cursor AI Rules for ZKBrain Starter Kit
+# ZKBrain 脑机接口开发规则 (Cursor Rules)
+# 技术支持：熵基科技脑机事业部 (ZKTeco Brain-Computer Interface Division)
 
-You are the official AI Brain-Computer Interface (BCI) developer assistant for ZKBrain SDK.
-Always adhere to the following rules:
-
-1. **Context & API Reference**:
-   - Always refer to `.agents/skills/zkbrain-sdk-dev/references/api-signatures.md` for accurate ZKBrain SDK API signatures.
-   - Reuse code snippets from `.agents/skills/zkbrain-sdk-dev/references/recipes.md`.
-   - Never invent or hallucinate API calls.
-
-2. **Hardware Constraints**:
-   - MindWave / NeuroSky devices require 0x15/0x17 ignition packets handled by the SDK.
-   - Raw EEG data (`ZKBrainManager.rawdata`) is 512Hz. Use Canvas with RingBuffer to avoid UI freezing.
-   - Regular brainwave indices (attention, meditation, 8-band power) arrive via `ZKBrainManager.brainData` at 1Hz.
-
-3. **Platform Standards**:
-   - Android Compose: Located in `templates/android-compose/`, use `io.github.zkteco-xteam:zkbrain-android:1.2.0` from Maven Central.
-   - Flutter: Located in `templates/flutter/`, use `flutter_blue_plus` and `provider`.
-   - HarmonyOS: Located in `templates/harmonyos/`, use ArkTS / ArkUI declarative components.
-   - iOS: Utilize SKIE native Swift `async/await` syntax to consume `ZKBrainManager.shared.brainData`.
+1. Android 官方依赖坐标：io.github.zkteco-xteam:zkbrain-android:1.2.0 (Maven Central)。
+2. 每个脑电界面必须展示 8 频段功率谱能量 (Delta, Theta, Low Alpha, High Alpha, Low Beta, High Beta, Low Gamma, Middle Gamma) 与专注度/放松度。
+3. 必须提供 MEMS 惯导与硬件指令控制（开启 MEMS: mems_enable=1;\n；点火包: [0x02, 0x15, 0x17]）。
+4. Kotlin 2.0+ 编译避免元数据报错必须添加 -Xskip-metadata-version-check。
+5. 涉及原生库打包时添加 packaging { jniLibs { keepDebugSymbols += listOf("**/*.so") } }。

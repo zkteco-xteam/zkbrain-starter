@@ -109,7 +109,8 @@ namespace ZKBrain.Windows.Demo
                 if (signal == 0)
                 {
                     Console.WriteLine($"🌟 [1Hz 特征] 专注度: {attention,3} | 放松度: {meditation,3} | 电量: {battery,2}% | 额温: {temp:F1}°C");
-                    Console.WriteLine($"   频段能量: Delta={data[7]}, Theta={data[8]}, LowAlpha={data[9]}, HighAlpha={data[10]}, LowBeta={data[11]}");
+                    Console.WriteLine($"📊 [8频段功率] Delta={data[7]}, Theta={data[8]}, LowAlpha={data[9]}, HighAlpha={data[10]}");
+                    Console.WriteLine($"             LowBeta={data[11]}, HighBeta={data[12]}, LowGamma={data[13]}, MidGamma={data[14]}");
                 }
                 else if (signal == 200)
                 {

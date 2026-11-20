@@ -17,9 +17,11 @@ namespace ZKBrain.Windows.Demo
         private BluetoothLEAdvertisementWatcher _watcher;
         private BluetoothLEDevice _currentDevice;
         private List<GattCharacteristic> _subscribedCharacteristics = new List<GattCharacteristic>();
+        private GattCharacteristic _writeCharacteristic;
         private Action<byte[]> _onDataReceived;
 
         public bool IsConnected => _currentDevice != null && _currentDevice.ConnectionStatus == BluetoothConnectionStatus.Connected;
+        public bool CanWrite => _writeCharacteristic != null;
 
         public BleManager(Action<byte[]> onDataReceived)
         {
@@ -119,6 +121,12 @@ namespace ZKBrain.Windows.Demo
                         {
                             await SubscribeCharacteristicAsync(ch);
                         }
+                        if (ch.CharacteristicProperties.HasFlag(GattCharacteristicProperties.Write) ||
+                            ch.CharacteristicProperties.HasFlag(GattCharacteristicProperties.WriteWithoutResponse))
+                        {
+                            _writeCharacteristic = ch;
+                            Console.WriteLine($"  发现硬件指令下发通道 (Write): {ch.Uuid}");
+                        }
                     }
                 }
             }
@@ -176,6 +184,7 @@ namespace ZKBrain.Windows.Demo
                 catch { }
             }
             _subscribedCharacteristics.Clear();
+            _writeCharacteristic = null;
 
             if (_currentDevice != null)
             {
@@ -183,6 +192,46 @@ namespace ZKBrain.Windows.Demo
                 _currentDevice = null;
             }
             Console.WriteLine("[BLE] 蓝牙连接已断开并释放资源。");
+        }
+
+        /// <summary>
+        /// 下发 ASCII 指令给硬件 (如 mems_enable=1;\n, eeg_data_rate=1;\n)
+        /// </summary>
+        public async Task<bool> SendCommandAsync(string command)
+        {
+            if (_writeCharacteristic == null) return false;
+            try
+            {
+                var writer = new DataWriter();
+                writer.WriteString(command);
+                var status = await _writeCharacteristic.WriteValueAsync(writer.DetachBuffer());
+                return status == GattCommunicationStatus.Success;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[BLE] 指令下发失败: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 下发二进制指令包 (如 NeuroSky 点火包 new byte[] { 0x02, 0x15, 0x17 })
+        /// </summary>
+        public async Task<bool> SendBytesAsync(byte[] bytes)
+        {
+            if (_writeCharacteristic == null) return false;
+            try
+            {
+                var writer = new DataWriter();
+                writer.WriteBytes(bytes);
+                var status = await _writeCharacteristic.WriteValueAsync(writer.DetachBuffer());
+                return status == GattCommunicationStatus.Success;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[BLE] 字节包下发失败: {ex.Message}");
+                return false;
+            }
         }
     }
 }

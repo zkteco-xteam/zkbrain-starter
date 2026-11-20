@@ -24,6 +24,38 @@ class BrainMonitorViewModel: ObservableObject {
 
     @Published var scannedDevices: [ZKBrainDevice] = []
 
+    // MEMS 与硬件指令控制
+    @Published var commandInput: String = "mems_enable=1;\n"
+    @Published var commandLogs: String = "等待下发硬件指令...\n"
+
+    func sendCommand(_ cmd: String) {
+        guard let dev = ZKBrainManager.shared.connectedDevice.value, connectionStatus == "CONNECTED" else {
+            commandLogs += "[错误] 设备未连接，无法下发指令\n"
+            return
+        }
+        commandLogs += "[TX >>] \(cmd.trimmingCharacters(in: .whitespacesAndNewlines))\n"
+        let bytes = Array(cmd.utf8)
+        let kBytes = KotlinByteArray(size: Int32(bytes.count))
+        for (i, b) in bytes.enumerated() {
+            kBytes.set(index: Int32(i), value: Int8(bitPattern: b))
+        }
+        ZKBrainManager.shared.writeCommand(address: dev.address, command: kBytes)
+    }
+
+    func sendIgnitionBytes() {
+        guard let dev = ZKBrainManager.shared.connectedDevice.value, connectionStatus == "CONNECTED" else {
+            commandLogs += "[错误] 设备未连接，无法下发点火包\n"
+            return
+        }
+        let bytes: [UInt8] = [0x02, 0x15, 0x17]
+        commandLogs += "[TX >>] 点火包: [0x02, 0x15, 0x17]\n"
+        let kBytes = KotlinByteArray(size: Int32(bytes.count))
+        for (i, b) in bytes.enumerated() {
+            kBytes.set(index: Int32(i), value: Int8(bitPattern: b))
+        }
+        ZKBrainManager.shared.writeCommand(address: dev.address, command: kBytes)
+    }
+
     func toggleScan() {
         if isScanning {
             ZKBrainManager.shared.stopScan()
@@ -92,6 +124,12 @@ class BrainMonitorViewModel: ObservableObject {
         Task {
             for await list in ZKBrainManager.shared.scannedDevices {
                 self.scannedDevices = list
+            }
+        }
+
+        Task {
+            for await resp in ZKBrainManager.shared.commandResponse {
+                self.commandLogs += "[RX <<] \(resp)\n"
             }
         }
     }
@@ -208,6 +246,62 @@ struct ContentView: View {
                         BandPowerBar(title: "High Beta (17-29.75Hz 计算焦虑)", value: vm.highBeta, color: .orange)
                         BandPowerBar(title: "Low Gamma (31-39.75Hz 认知加工)", value: vm.lowGamma, color: .pink)
                         BandPowerBar(title: "Mid Gamma (41-49.75Hz 高阶感知)", value: vm.midGamma, color: .purple)
+                    }
+                    .padding()
+                    .background(Color(.secondarySystemBackground))
+                    .cornerRadius(12)
+
+                    // ==========================================
+                    // 4. MEMS 惯导与硬件指令下发控制台
+                    // ==========================================
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("MEMS 传感器与硬件指令控制台")
+                            .font(.headline)
+
+                        Text("预设常用指令:")
+                            .font(.caption).foregroundColor(.secondary)
+
+                        HStack(spacing: 8) {
+                            Button("开启 MEMS") {
+                                vm.sendCommand("mems_enable=1;\n")
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(.blue)
+
+                            Button("关闭 MEMS") {
+                                vm.sendCommand("mems_enable=0;\n")
+                            }
+                            .buttonStyle(.bordered)
+
+                            Button("点火包 (0x15/0x17)") {
+                                vm.sendIgnitionBytes()
+                            }
+                            .buttonStyle(.bordered)
+                        }
+
+                        HStack(spacing: 8) {
+                            TextField("输入硬件 ASCII 控制指令", text: $vm.commandInput)
+                                .textFieldStyle(.roundedBorder)
+
+                            Button("发送") {
+                                vm.sendCommand(vm.commandInput)
+                            }
+                            .buttonStyle(.borderedProminent)
+                        }
+
+                        Text("指令收发终端日志:")
+                            .font(.caption).foregroundColor(.secondary)
+
+                        ScrollView {
+                            Text(vm.commandLogs)
+                                .font(.system(size: 11, design: .monospaced))
+                                .foregroundColor(.green)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(8)
+                        }
+                        .frame(height: 80)
+                        .background(Color.black.opacity(0.85))
+                        .cornerRadius(6)
                     }
                     .padding()
                     .background(Color(.secondarySystemBackground))

@@ -1,60 +1,99 @@
 package com.zkteco.zkbrain.nativeapp
 
 import android.os.Bundle
-import android.widget.Button
-import android.widget.ProgressBar
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.zkteco.zkbrain.ZKBrainManager
+import com.zkteco.zkbrain.bean.MultiBrainEeg
 import com.zkteco.zkbrain.bean.ZKBrainConnectionState
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 /**
  * 🌟 纯原生 Android 开发者极速样板 (纯 Kotlin + LifecycleScope)
+ * 包含：8 频段频谱、专注/放松度、512Hz 原始波与 MEMS/硬件指令下发
+ * 技术支持：熵基科技脑机事业部 (ZKTeco Brain-Computer Interface Division)
  */
 class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
-        // 编程式极简布局，开箱直接编译运行
-        val layout = android.widget.LinearLayout(this).apply {
-            orientation = android.widget.LinearLayout.VERTICAL
-            setPadding(48, 48, 48, 48)
-        }
 
+        val scrollView = ScrollView(this)
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(32, 32, 32, 32)
+        }
+        scrollView.addView(layout)
+
+        // 1. 状态与连接卡片
         val tvStatus = TextView(this).apply {
             text = "链路状态: 未连接"
-            textSize = 18f
+            textSize = 17f
         }
         val btnScan = Button(this).apply {
             text = "⚡ 扫描并连接脑电设备"
         }
-        val tvAttention = TextView(this).apply {
-            text = "实时专注度: 0 / 100"
-            textSize = 16f
+
+        // 2. 专注与放松核心指标
+        val tvAttention = TextView(this).apply { text = "实时专注度 (Attention): 0 / 100" }
+        val pbAttention = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply { max = 100 }
+        val tvMeditation = TextView(this).apply { text = "实时放松度 (Meditation): 0 / 100" }
+        val pbMeditation = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply { max = 100 }
+
+        // 3. 脑波 8 频段绝对功率
+        val tvBandsTitle = TextView(this).apply {
+            text = "\n📊 脑波 8 频段能量分布 (EEG Power Spectrum):"
+            textSize = 15f
         }
-        val pbAttention = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
-            max = 100
-        }
-        val tvMeditation = TextView(this).apply {
-            text = "实时放松度: 0 / 100"
-            textSize = 16f
-        }
-        val pbMeditation = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
-            max = 100
+        val tvBands = TextView(this).apply {
+            text = "Delta: 0 | Theta: 0 | LowAlpha: 0 | HighAlpha: 0\nLowBeta: 0 | HighBeta: 0 | LowGamma: 0 | MidGamma: 0"
+            textSize = 13f
         }
 
+        // 4. 🌟 MEMS 传感器与硬件指令交互区 (命令发送模板)
+        val tvCmdTitle = TextView(this).apply {
+            text = "\n🛠️ MEMS 传感器与硬件指令交互控制台:"
+            textSize = 15f
+        }
+        val btnMemsStream = Button(this).apply {
+            text = "📡 开启 MEMS 惯导/姿态流 (mems_enable=1;)"
+        }
+        val btnIgnite = Button(this).apply {
+            text = "🔥 下发点火指令 (0x15 Raw + 0x17 Band)"
+        }
+        val etCustomCmd = EditText(this).apply {
+            hint = "输入自定义 ASCII 指令 (如 eeg_data_rate=1;)"
+        }
+        val btnSendCustom = Button(this).apply {
+            text = "📤 发送自定义指令"
+        }
+        val tvCmdLog = TextView(this).apply {
+            text = "指令回包监控: 暂无数据"
+            textSize = 12f
+        }
+
+        // 组装视图
         layout.addView(tvStatus)
         layout.addView(btnScan)
         layout.addView(tvAttention)
         layout.addView(pbAttention)
         layout.addView(tvMeditation)
         layout.addView(pbMeditation)
-        setContentView(layout)
+        layout.addView(tvBandsTitle)
+        layout.addView(tvBands)
+        layout.addView(tvCmdTitle)
+        layout.addView(btnMemsStream)
+        layout.addView(btnIgnite)
+        layout.addView(etCustomCmd)
+        layout.addView(btnSendCustom)
+        layout.addView(tvCmdLog)
+        setContentView(scrollView)
+
+        // ==========================================
+        // 逻辑处理
+        // ==========================================
 
         // 1. 扫描与连接
         btnScan.setOnClickListener {
@@ -62,7 +101,6 @@ class MainActivity : AppCompatActivity() {
             ZKBrainManager.startScan(timeoutMillis = 10000L)
         }
 
-        // 2. 自动匹配首个扫描到的设备并建连
         lifecycleScope.launch {
             ZKBrainManager.scannedDevices.collectLatest { devices ->
                 val target = devices.firstOrNull()
@@ -73,14 +111,13 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // 3. 监听连接状态
         lifecycleScope.launch {
             ZKBrainManager.connState.collectLatest { state ->
                 tvStatus.text = "链路状态: ${state.name}"
             }
         }
 
-        // 4. 监听 1Hz 专注度与放松度 (官方标准字段: attentionLevel / meditationDepth)
+        // 2. 监听 1Hz 专注度、放松度与 8 频段数据
         lifecycleScope.launch {
             ZKBrainManager.brainData.collectLatest { eeg ->
                 tvAttention.text = "实时专注度 (Attention): ${eeg.attentionLevel} / 100"
@@ -88,11 +125,52 @@ class MainActivity : AppCompatActivity() {
 
                 tvMeditation.text = "实时放松度 (Meditation): ${eeg.meditationDepth} / 100"
                 pbMeditation.progress = eeg.meditationDepth
+
+                val bw = eeg.brainWaves
+                tvBands.text = "Delta: ${bw.delta} | Theta: ${bw.theta} | LowAlpha: ${bw.lowAlpha} | HighAlpha: ${bw.highAlpha}\n" +
+                        "LowBeta: ${bw.lowBeta} | HighBeta: ${bw.highBeta} | LowGamma: ${bw.lowGamma} | MidGamma: ${bw.middleGamma}"
+            }
+        }
+
+        // 3. 🌟 MEMS 与指令下发逻辑
+        fun sendDeviceCommand(bytes: ByteArray, desc: String) {
+            val dev = ZKBrainManager.connectedDevice.value
+            if (dev == null) {
+                Toast.makeText(this, "设备未连接，请先连接脑电设备", Toast.LENGTH_SHORT).show()
+                return
+            }
+            ZKBrainManager.writeCommand(dev.address, bytes)
+            Toast.makeText(this, "已发送: $desc", Toast.LENGTH_SHORT).show()
+        }
+
+        btnMemsStream.setOnClickListener {
+            // 下发 MEMS 传感器流开启指令
+            val memsCmd = "mems_enable=1;\n".toByteArray(Charsets.UTF_8)
+            sendDeviceCommand(memsCmd, "开启 MEMS 惯导流")
+        }
+
+        btnIgnite.setOnClickListener {
+            // 下发 NeuroSky 标准 20 字节点火包 (0x15 Raw + 0x17 Band)
+            val ignitionBytes = byteArrayOf(0x02, 0x15, 0x17)
+            sendDeviceCommand(ignitionBytes, "点火指令")
+        }
+
+        btnSendCustom.setOnClickListener {
+            val input = etCustomCmd.text.toString().trim()
+            if (input.isNotEmpty()) {
+                sendDeviceCommand(input.toByteArray(Charsets.UTF_8), input)
+            }
+        }
+
+        // 4. 监听设备指令回包与响应
+        lifecycleScope.launch {
+            ZKBrainManager.commandResponse.collectLatest { resp ->
+                tvCmdLog.text = "指令回包监控 [最新]:\n$resp"
             }
         }
     }
 }
 
 // 🌟 便捷兼容扩展：支持开发者使用简写 .attention / .meditation
-val com.zkteco.zkbrain.bean.MultiBrainEeg.attention: Int get() = attentionLevel
-val com.zkteco.zkbrain.bean.MultiBrainEeg.meditation: Int get() = meditationDepth
+val MultiBrainEeg.attention: Int get() = attentionLevel
+val MultiBrainEeg.meditation: Int get() = meditationDepth

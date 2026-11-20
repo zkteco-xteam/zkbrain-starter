@@ -52,6 +52,9 @@ class ZKBrainBleService extends ChangeNotifier {
     notifyListeners();
   }
 
+  BluetoothCharacteristic? _writeCharacteristic;
+  String lastCommandResponse = "暂无回包数据";
+
   /// 连接目标设备
   Future<void> connect(BluetoothDevice device) async {
     await stopScan();
@@ -68,10 +71,12 @@ class ZKBrainBleService extends ChangeNotifier {
       final services = await device.discoverServices();
       for (final service in services) {
         for (final char in service.characteristics) {
+          if (char.properties.write || char.properties.writeWithoutResponse) {
+            _writeCharacteristic = char;
+          }
           if (char.properties.notify || char.properties.indicate) {
             await char.setNotifyValue(true);
             _dataSub = char.lastValueStream.listen(_onDataReceived);
-            break;
           }
         }
       }
@@ -80,6 +85,19 @@ class ZKBrainBleService extends ChangeNotifier {
       connectionState = BleConnectionState.disconnected;
       notifyListeners();
     }
+  }
+
+  /// 🌟 下发 MEMS 控制或自定义硬件命令
+  Future<void> sendCommandBytes(List<int> bytes, [String desc = ""]) async {
+    if (_writeCharacteristic != null) {
+      await _writeCharacteristic!.write(bytes, withoutResponse: false);
+      lastCommandResponse = "已发送: ${desc.isNotEmpty ? desc : bytes.toString()}";
+      notifyListeners();
+    }
+  }
+
+  Future<void> sendCommandString(String text) async {
+    await sendCommandBytes(text.codeUnits, text);
   }
 
   Future<void> disconnect() async {

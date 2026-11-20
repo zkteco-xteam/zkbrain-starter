@@ -25,9 +25,25 @@ struct Index {
     middleGamma: 2100
   };
 
+  // MEMS 传感器与硬件指令控制
+  @State commandInput: string = "mems_enable=1;\n";
+  @State commandLog: string = "等待下发指令...\n";
+
   private wavePoints: number[] = [];
   private canvasContext: CanvasRenderingContext2D = new CanvasRenderingContext2D(new RenderingContextSettings(true));
   private timerId: number = -1;
+
+  sendCommand(cmd: string): void {
+    if (!this.isConnected) {
+      this.commandLog += `[错误] 设备未连接，无法下发: ${cmd.trim()}\n`;
+      return;
+    }
+    // 实际项目中调用 ble.writeCharacteristicValue 向硬件通道写字节
+    this.commandLog += `[TX >>] 下发指令: ${cmd.trim()}\n`;
+    setTimeout(() => {
+      this.commandLog += `[RX <<] 硬件响应: OK (${cmd.trim()})\n`;
+    }, 200);
+  }
 
   aboutToAppear(): void {
     // 启动模拟波形渲染时钟
@@ -209,6 +225,91 @@ struct Index {
           this.buildPowerRow("High Beta (17-29.75Hz 紧张计算)", this.waves.highBeta, "#FB923C")
           this.buildPowerRow("Low Gamma (31-39.75Hz 认知加工)", this.waves.lowGamma, "#F43F5E")
           this.buildPowerRow("Middle Gamma (41-49.75Hz 多感官整合)", this.waves.middleGamma, "#E11D48")
+        }
+        .width('100%')
+        .padding(16)
+        .backgroundColor("#1E293B")
+        .borderRadius(12)
+
+        // 5. 硬件指令下发与 MEMS 传感器交互控制台
+        Column({ space: 10 }) {
+          Text("硬件指令下发与 MEMS 传感器控制台")
+            .fontSize(16)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(Color.White)
+
+          Text("预设常用指令 (一键注入):")
+            .fontSize(13)
+            .fontColor("#94A3B8")
+
+          Flex({ wrap: FlexWrap.Wrap }) {
+            Button("开启 MEMS 惯导流")
+              .fontSize(12)
+              .backgroundColor("#334155")
+              .margin(4)
+              .onClick(() => {
+                this.commandInput = "mems_enable=1;\n";
+                this.sendCommand(this.commandInput);
+              })
+            Button("关闭 MEMS 惯导流")
+              .fontSize(12)
+              .backgroundColor("#334155")
+              .margin(4)
+              .onClick(() => {
+                this.commandInput = "mems_enable=0;\n";
+                this.sendCommand(this.commandInput);
+              })
+            Button("点火包 (0x15, 0x17)")
+              .fontSize(12)
+              .backgroundColor("#334155")
+              .margin(4)
+              .onClick(() => {
+                this.sendCommand("点火包: [0x02, 0x15, 0x17]");
+              })
+            Button("切换 512Hz 采样率")
+              .fontSize(12)
+              .backgroundColor("#334155")
+              .margin(4)
+              .onClick(() => {
+                this.commandInput = "eeg_data_rate=1;\n";
+                this.sendCommand(this.commandInput);
+              })
+          }
+
+          Row({ space: 8 }) {
+            TextInput({ text: this.commandInput, placeholder: "输入 ASCII 硬件控制指令" })
+              .layoutWeight(1)
+              .backgroundColor("#0F172A")
+              .fontColor(Color.White)
+              .fontSize(13)
+              .onChange((val: string) => {
+                this.commandInput = val;
+              })
+
+            Button("发送指令")
+              .backgroundColor("#0284C7")
+              .fontSize(13)
+              .onClick(() => {
+                this.sendCommand(this.commandInput);
+              })
+          }
+          .width('100%')
+
+          Text("指令收发终端日志:")
+            .fontSize(12)
+            .fontColor("#94A3B8")
+
+          Scroll() {
+            Text(this.commandLog)
+              .fontSize(11)
+              .fontColor("#A7F3D0")
+              .fontFamily("monospace")
+              .padding(8)
+          }
+          .width('100%')
+          .height(90)
+          .backgroundColor("#0F172A")
+          .borderRadius(6)
         }
         .width('100%')
         .padding(16)

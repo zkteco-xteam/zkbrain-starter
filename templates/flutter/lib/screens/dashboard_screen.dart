@@ -163,6 +163,55 @@ class DashboardScreen extends StatelessWidget {
                 ],
               ),
             ),
+            const SizedBox(height: 16),
+
+            // 5. 🌟 MEMS 传感器与指令下发控制台
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E293B),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("🛠️ MEMS 传感器与指令下发控制台", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => ble.sendCommandString("mems_enable=1;\n"),
+                          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0284C7)),
+                          child: const Text("📡 开启 MEMS", style: TextStyle(color: Colors.white, fontSize: 12)),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => ble.sendCommandBytes([0x02, 0x15, 0x17], "0x15/0x17 点火包"),
+                          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEA580C)),
+                          child: const Text("🔥 点火指令", style: TextStyle(color: Colors.white, fontSize: 12)),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0F172A),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      "最新指令响应: ${ble.lastCommandResponse}",
+                      style: const TextStyle(color: Color(0xFF4ADE80), fontSize: 12, fontFamily: 'monospace'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

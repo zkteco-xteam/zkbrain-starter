@@ -7,9 +7,32 @@ page { background-color: #0f172a; color: #f8fafc; font-family: -apple-system, Bl
 .dot.orange { background-color: #f97316; }
 .status-title { font-size: 32rpx; font-weight: bold; }
 .btn { background-color: #3b82f6; color: white; border-radius: 12rpx; font-size: 28rpx; width: 100%; }
-.metric-title { font-size: 34rpx; font-weight: bold; margin-bottom: 24rpx; }
+.metric-title { font-size: 32rpx; font-weight: bold; margin-bottom: 24rpx; }
 .metric-item { display: flex; justify-content: space-between; font-size: 28rpx; margin-bottom: 12rpx; }
 .metric-val { font-weight: bold; }
 .text-blue { color: #60a5fa; }
 .text-green { color: #4ade80; }
 .signal-tag { margin-top: 24rpx; font-size: 24rpx; color: #94a3b8; }
+
+/* 8 频段功率谱网格 */
+.band-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16rpx; }
+.band-item { background: #0f172a; padding: 16rpx; border-radius: 8rpx; display: flex; flex-direction: column; justify-content: space-between; }
+.band-name { font-size: 22rpx; margin-bottom: 6rpx; }
+.band-val { font-size: 26rpx; font-weight: bold; }
+.text-indigo { color: #818cf8; }
+.text-cyan { color: #38bdf8; }
+.text-teal { color: #2dd4bf; }
+.text-emerald { color: #34d399; }
+.text-amber { color: #fbbf24; }
+.text-orange { color: #fb923c; }
+.text-rose { color: #f43f5e; }
+.text-pink { color: #ec4899; }
+
+/* MEMS 与指令控制台 */
+.preset-buttons { display: flex; flex-wrap: wrap; gap: 12rpx; margin-bottom: 20rpx; }
+.sub-btn { font-size: 24rpx; background: #334155; color: white; border-radius: 8rpx; padding: 0 16rpx; line-height: 56rpx; margin: 0; }
+.input-row { display: flex; gap: 16rpx; margin-bottom: 20rpx; align-items: center; }
+.cmd-input { flex: 1; height: 72rpx; background: #0f172a; border-radius: 8rpx; padding: 0 20rpx; font-size: 26rpx; color: white; border: 1rpx solid #334155; }
+.send-btn { width: 140rpx; height: 72rpx; line-height: 72rpx; font-size: 26rpx; background: #0284c7; color: white; border-radius: 8rpx; padding: 0; }
+.log-label { font-size: 24rpx; color: #94a3b8; margin-bottom: 8rpx; }
+.log-box { height: 160rpx; background: #090d16; border-radius: 8rpx; padding: 16rpx; box-sizing: border-box; font-family: monospace; font-size: 22rpx; color: #34d399; }

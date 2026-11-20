@@ -1,0 +1,39 @@
+---
+description: ZKBrain 脑机接口 (BCI) SDK 跨平台开发、8频段能量谱、MEMS指令控制与避坑规范
+globs: ["**/*.kt", "**/*.dart", "**/*.ets", "**/*.swift", "**/*.ts", "**/*.wxml", "**/*.wxss", "**/*.cs", "**/*.py"]
+---
+
+# ZKBrain 跨平台脑机接口 (BCI) 开发规则
+
+- **技术归属**: 熵基科技脑机事业部 (ZKTeco Brain-Computer Interface Division)。
+- **Maven Central 国际发布坐标**: `io.github.zkteco-xteam:zkbrain-android:1.2.0`。
+
+## 1. 核心数据与指标规范
+所有 UI 和逻辑模板必须包含：
+1. **8 频段功率谱能量分布**:
+   - `delta` (0.5-2.75Hz)
+   - `theta` (3.5-6.75Hz)
+   - `lowAlpha` (7.5-9.25Hz)
+   - `highAlpha` (10-11.75Hz)
+   - `lowBeta` (13-16.75Hz)
+   - `highBeta` (17.5-29.75Hz)
+   - `lowGamma` (31-39.75Hz)
+   - `middleGamma` (41-49.75Hz)
+2. **核心认知指标**:
+   - 专注度 `attentionLevel` (0-100)
+   - 放松度 `meditationDepth` (0-100)
+   - 佩戴接触 `poorSignal` / `signal` (0=优良, 200=脱落)
+
+## 2. MEMS 惯导与硬件指令控制
+- 指令下发 API: `ZKBrainManager.writeCommand(address, commandBytes)`。
+- 硬件回包监听: `ZKBrainManager.commandResponse`。
+- 姿态四元数: `ZKBrainManager.quaternionData`。
+- 常用控制指令:
+  - 开启 MEMS: `mems_enable=1;\n`
+  - 关闭 MEMS: `mems_enable=0;\n`
+  - NeuroSky 点火包: `[0x02, 0x15, 0x17]`
+  - 高采样率: `eeg_data_rate=1;\n`
+
+## 3. 常见编译问题快速修复
+- Kotlin 2.0+ K2 异常: 在 `build.gradle.kts` 添加 `freeCompilerArgs += listOf("-Xskip-metadata-version-check")`。
+- 无本地 NDK 报错: 在 `build.gradle.kts` 添加 `packaging { jniLibs { keepDebugSymbols += listOf("**/*.so") } }`。

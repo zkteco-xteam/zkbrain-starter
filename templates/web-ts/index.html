@@ -66,6 +66,23 @@
       </div>
     </div>
 
+    <!-- 🌟 新增：MEMS 惯导与硬件指令控制台 -->
+    <div class="card">
+      <h2>MEMS 传感器与硬件指令控制台</h2>
+      <div style="margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 8px;">
+        <button class="btn" id="btnMemsOn" style="padding: 6px 12px; font-size: 13px; background: #0284c7;">开启 MEMS 惯导流</button>
+        <button class="btn" id="btnMemsOff" style="padding: 6px 12px; font-size: 13px; background: #475569;">关闭 MEMS</button>
+        <button class="btn" id="btnIgnition" style="padding: 6px 12px; font-size: 13px; background: #475569;">下发点火包 (0x15/0x17)</button>
+        <button class="btn" id="btnRate512" style="padding: 6px 12px; font-size: 13px; background: #475569;">采样率 512Hz</button>
+      </div>
+      <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+        <input type="text" id="cmdInput" value="mems_enable=1;\n" style="flex: 1; padding: 8px 12px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: white;" placeholder="输入 ASCII 指令 (如 mems_enable=1;\n)">
+        <button class="btn" id="sendCmdBtn" style="padding: 8px 16px;">发送指令</button>
+      </div>
+      <div style="font-size: 12px; color: #94a3b8; margin-bottom: 4px;">指令终端日志:</div>
+      <pre id="cmdLogs" style="background: #090d16; color: #34d399; padding: 10px; border-radius: 6px; font-size: 12px; height: 90px; overflow-y: auto; margin: 0;">等待下发指令...\n</pre>
+    </div>
+
     <div class="card">
       <h2>512Hz 原始脑电波形 (Raw EEG)</h2>
       <canvas id="waveCanvas" width="800" height="160"></canvas>

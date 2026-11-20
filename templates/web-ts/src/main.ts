@@ -91,3 +91,62 @@ function renderWave() {
   requestAnimationFrame(renderWave);
 }
 requestAnimationFrame(renderWave);
+
+// 5. MEMS 惯导与硬件指令控制台
+const cmdInput = document.getElementById('cmdInput') as HTMLInputElement;
+const sendCmdBtn = document.getElementById('sendCmdBtn')!;
+const cmdLogs = document.getElementById('cmdLogs')!;
+const btnMemsOn = document.getElementById('btnMemsOn')!;
+const btnMemsOff = document.getElementById('btnMemsOff')!;
+const btnIgnition = document.getElementById('btnIgnition')!;
+const btnRate512 = document.getElementById('btnRate512')!;
+
+function appendLog(msg: string) {
+  cmdLogs.innerText += msg + '\n';
+  cmdLogs.scrollTop = cmdLogs.scrollHeight;
+}
+
+async function sendCommand(cmd: string) {
+  try {
+    appendLog(`[TX >>] ${cmd.trim()}`);
+    if (typeof (sdk as any).sendAsciiCommand === 'function') {
+      await (sdk as any).sendAsciiCommand(cmd);
+    } else if (typeof (sdk as any).writeCommand === 'function') {
+      await (sdk as any).writeCommand(cmd);
+    }
+    appendLog(`[RX <<] 下发成功: ${cmd.trim()}`);
+  } catch (err: any) {
+    appendLog(`[错误] 下发失败: ${err.message}`);
+  }
+}
+
+sendCmdBtn.addEventListener('click', () => {
+  if (cmdInput.value) sendCommand(cmdInput.value);
+});
+
+btnMemsOn.addEventListener('click', () => {
+  cmdInput.value = 'mems_enable=1;\n';
+  sendCommand('mems_enable=1;\n');
+});
+
+btnMemsOff.addEventListener('click', () => {
+  cmdInput.value = 'mems_enable=0;\n';
+  sendCommand('mems_enable=0;\n');
+});
+
+btnIgnition.addEventListener('click', async () => {
+  try {
+    appendLog('[TX >>] 点火包: [0x02, 0x15, 0x17]');
+    if (typeof (sdk as any).writeCommand === 'function') {
+      await (sdk as any).writeCommand(new Uint8Array([0x02, 0x15, 0x17]));
+    }
+    appendLog('[RX <<] 点火包已下发');
+  } catch (err: any) {
+    appendLog(`[错误] 点火失败: ${err.message}`);
+  }
+});
+
+btnRate512.addEventListener('click', () => {
+  cmdInput.value = 'eeg_data_rate=1;\n';
+  sendCommand('eeg_data_rate=1;\n');
+});

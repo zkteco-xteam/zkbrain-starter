@@ -28,4 +28,38 @@
       <text>电极接触状态: {{poorSignal === 0 ? '🟢 接触良好' : '🔴 接触不良或脱落'}}</text>
     </view>
   </view>
+
+  <!-- 3. 脑电 8 频段功率谱能量分布 -->
+  <view class="card">
+    <view class="metric-title">8 频段脑电功率谱能量 (Band Powers)</view>
+    <view class="band-grid">
+      <view class="band-item"><text class="band-name text-indigo">Delta (深度睡眠):</text><text class="band-val">{{waves.delta}}</text></view>
+      <view class="band-item"><text class="band-name text-cyan">Theta (潜意识):</text><text class="band-val">{{waves.theta}}</text></view>
+      <view class="band-item"><text class="band-name text-teal">Low Alpha (闭目放松):</text><text class="band-val">{{waves.lowAlpha}}</text></view>
+      <view class="band-item"><text class="band-name text-emerald">High Alpha (静定心流):</text><text class="band-val">{{waves.highAlpha}}</text></view>
+      <view class="band-item"><text class="band-name text-amber">Low Beta (轻度专注):</text><text class="band-val">{{waves.lowBeta}}</text></view>
+      <view class="band-item"><text class="band-name text-orange">High Beta (计算紧张):</text><text class="band-val">{{waves.highBeta}}</text></view>
+      <view class="band-item"><text class="band-name text-rose">Low Gamma (认知加工):</text><text class="band-val">{{waves.lowGamma}}</text></view>
+      <view class="band-item"><text class="band-name text-pink">Mid Gamma (多感官整合):</text><text class="band-val">{{waves.middleGamma}}</text></view>
+    </view>
+  </view>
+
+  <!-- 4. MEMS 传感器与硬件指令控制台 -->
+  <view class="card">
+    <view class="metric-title">MEMS 传感器与硬件指令控制台</view>
+    <view class="preset-buttons">
+      <button class="sub-btn" bindtap="handleMemsOn">开启 MEMS 惯导流</button>
+      <button class="sub-btn" bindtap="handleMemsOff">关闭 MEMS</button>
+      <button class="sub-btn" bindtap="handleIgnition">点火包 (0x15/0x17)</button>
+      <button class="sub-btn" bindtap="handleRate512">采样率 512Hz</button>
+    </view>
+    <view class="input-row">
+      <input class="cmd-input" value="{{commandInput}}" bindinput="onCommandInput" placeholder="输入 ASCII 指令 (如 mems_enable=1;\n)" />
+      <button class="send-btn" bindtap="handleSendCommand">发送</button>
+    </view>
+    <view class="log-label">指令收发终端日志:</view>
+    <scroll-view scroll-y class="log-box">
+      <text>{{commandLogs}}</text>
+    </scroll-view>
+  </view>
 </view>
