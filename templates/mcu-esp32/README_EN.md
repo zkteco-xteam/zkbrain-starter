@@ -1,7 +1,7 @@
 # ZKBrain ESP32 Embedded BCI SDK Starter Kit
 
 > **Organization**: **ZKTeco Brain-Computer Interface Division**  
-> **Core Principle**: **Official black-box SDK abstraction; low-level binary protocols and hardware ignition algorithms are 100% encapsulated and shielded.**  
+> **Core Specification**: **100% Precompiled Static Binary Delivery (Source mode completely removed). Proprietary protocol and ignition sequences are entirely encapsulated in compiled machine code.**  
 > **Supported Microcontrollers**: Espressif ESP32 / ESP32-S3 / ESP32-C3  
 > **Framework**: Arduino IDE / PlatformIO (C/C++)  
 > **Serial Output Standard**: **100% Pure English Telemetry**  
@@ -9,9 +9,9 @@
 
 ---
 
-## 1. Overview & Black-Box SDK Architecture
+## 1. Overview & Pure Binary SDK Distribution
 
-To safeguard proprietary intellectual property and streamline developer integration, this kit adopts a **highly cohesive black-box SDK architecture** (`lib/ZKBrain/`). Application and maker developers interact solely with high-level cognitive event streams, completely isolated from low-level frame synchronization (`0xAA 0xAA`), hardware ignition packets (`0x15`/`0x17`), checksums, and BLE characteristic mapping:
+To provide absolute protection for enterprise intellectual property and eliminate protocol reverse-engineering, this project **completely removes source code mode**. The SDK is delivered exclusively as precompiled static libraries. Application developers interact with the public header [`ZKBrain.h`](lib/ZKBrain/src/ZKBrain.h) only:
 
 ```mermaid
 flowchart TD
@@ -20,11 +20,12 @@ flowchart TD
         HW2["ZKBrain / NeuroSky Headband<br/>(2.4GHz BLE Advertising)"]
     end
 
-    subgraph SDK["2. Official ZKBrain Embedded SDK (lib/ZKBrain)"]
+    subgraph BINARY["2. Precompiled Static Binary (lib/ZKBrain/src/*/libzkbrain.a)"]
         direction TB
-        B1["Protocol State Machine & Frame Validation"]
-        B2["Dual-Mode Ignition Sequence & Watchdog Auto-Healing"]
-        B3["PIMPL Architecture: 100% Protocol Isolation"]
+        B1["ESP32 (Xtensa LX6) ➔ libzkbrain_esp32_lx6.a"]
+        B2["ESP32-S3 (Xtensa LX7) ➔ libzkbrain_esp32_s3.a"]
+        B3["ESP32-C3 (RISC-V) ➔ libzkbrain_esp32_c3.a"]
+        B4["Zero source code exposed: Prevents protocol leaks"]
     end
 
     subgraph APP["3. Developer Application Layer (Include ZKBrain.h Only)"]
@@ -34,36 +35,28 @@ flowchart TD
         C4["Mind-Controlled PWM / Relay / Buzzer Actuators"]
     end
 
-    HW1 --> SDK
-    HW2 --> SDK
-    SDK --> APP
+    HW1 --> BINARY
+    HW2 --> BINARY
+    BINARY --> APP
 ```
 
 ---
 
-## 2. Commercial Delivery & IP Protection (Static Library Mode)
+## 2. Bundled Precompiled Static Archives
 
-When distributing to commercial clients, third-party contractors, or open-source environments, two integration patterns are supported:
+Precompiled and hardware-validated static libraries are bundled in [`precompiled/`](precompiled/) and [`lib/ZKBrain/src/`](lib/ZKBrain/src/):
 
-### Mode A: Source Library Inclusion (Internal Rapid Prototyping)
-- Keep `lib/ZKBrain` inside the project. PlatformIO auto-detects and compiles it;
-- Arduino IDE developers can copy `lib/ZKBrain` into their `Arduino/libraries/` folder to `#include <ZKBrain.h>` directly.
-
-### Mode B: Precompiled Static Binary Delivery (Bundled in precompiled/)
-- Precompiled `.a` static libraries for all 3 major architectures are bundled in [`precompiled/`](precompiled/):
-  - Classic ESP32 (Xtensa LX6 Dual-Core): [`precompiled/esp32/libzkbrain_esp32_lx6.a`](precompiled/esp32/libzkbrain_esp32_lx6.a) (780KB)
-  - ESP32-S3 (Xtensa LX7 Dual-Core): [`precompiled/esp32s3/libzkbrain_esp32_s3.a`](precompiled/esp32s3/libzkbrain_esp32_s3.a) (756KB)
-  - ESP32-C3 (RISC-V 32-bit Single-Core): [`precompiled/esp32c3/libzkbrain_esp32_c3.a`](precompiled/esp32c3/libzkbrain_esp32_c3.a) (950KB)
-- **Closed-Source Distribution Standard**:
-  1. Public header: [`ZKBrain.h`](lib/ZKBrain/src/ZKBrain.h) (Interfaces & structs only; zero protocol hex codes or macros)
-  2. Precompiled static library: Target `.a` binary file
-- **Result**: Downstream developers cannot inspect or reverse-engineer raw communication protocols or ignition sequences. See [`precompiled/README.md`](precompiled/README.md) for linkage flags.
+| Target Architecture | Chip Model | Precompiled Archive | Size | Toolchain / ABI |
+| :--- | :--- | :--- | :--- | :--- |
+| **Xtensa LX6 (Dual Core)** | Classic ESP32 (WROOM-32, NodeMCU-32S) | [`precompiled/esp32/libzkbrain_esp32_lx6.a`](precompiled/esp32/libzkbrain_esp32_lx6.a) | **780 KB** | `xtensa-esp32-elf-g++` (ESP-IDF v5) |
+| **Xtensa LX7 (Dual Core)** | ESP32-S3 (DevKitC-1, Vector instruction model) | [`precompiled/esp32s3/libzkbrain_esp32_s3.a`](precompiled/esp32s3/libzkbrain_esp32_s3.a) | **756 KB** | `xtensa-esp32s3-elf-g++` (ESP-IDF v5) |
+| **RISC-V 32-bit (Single Core)** | ESP32-C3 (DevKitM-1, Compact IoT model) | [`precompiled/esp32c3/libzkbrain_esp32_c3.a`](precompiled/esp32c3/libzkbrain_esp32_c3.a) | **950 KB** | `riscv32-esp-elf-g++` (ESP-IDF v5) |
 
 ---
 
 ## 3. Minimal 10-Line SDK Usage
 
-In your application code, simply include `<ZKBrain.h>`:
+Simply include `<ZKBrain.h>` and link the static library:
 
 ```cpp
 #include <Arduino.h>
@@ -123,45 +116,38 @@ void loop() {
 
 ---
 
-## 5. Operating Mode Switch (`include/Config.h`)
-
-Select your connection mode in [`include/Config.h`](include/Config.h):
-
-```c
-// Mode 1: Wireless BLE Central Mode (Default)
-#define MODE_BLE_CENTRAL    1
-#define MODE_UART_DIRECT    0
-
-// Mode 2: Direct Hardware UART Mode (Helmets / Wearables)
-#define MODE_BLE_CENTRAL    0
-#define MODE_UART_DIRECT    1
-```
-
----
-
-## 6. Flashing Guide
+## 5. Flashing Guide
 
 ### Method A: PlatformIO (Recommended)
 
-1. Open `templates/mcu-esp32` in VS Code with PlatformIO extension;
-2. Build and flash for your board:
-   ```bash
-   pio run -e esp32dev -t upload
-   pio device monitor
-   ```
+PlatformIO is pre-configured to link the static library automatically:
+```bash
+# Classic ESP32
+pio run -e esp32dev -t upload
+
+# ESP32-S3
+pio run -e esp32-s3-devkitc-1 -t upload
+
+# ESP32-C3
+pio run -e esp32-c3-devkitm-1 -t upload
+
+# Serial Monitor
+pio device monitor
+```
 
 ### Method B: Arduino IDE
 
 1. Copy `templates/mcu-esp32/lib/ZKBrain` to your Arduino `libraries/` folder;
-2. Open any example sketch:
+2. Conforms to the official Arduino 1.5 precompiled library specification (`library.properties` + precompiled `.a` per architecture);
+3. Open any example sketch:
    - [`examples/01_uart_direct_tgam/01_uart_direct_tgam.ino`](examples/01_uart_direct_tgam/01_uart_direct_tgam.ino)
    - [`examples/02_ble_central_headband/02_ble_central_headband.ino`](examples/02_ble_central_headband/02_ble_central_headband.ino)
    - [`examples/03_mind_controlled_actuator/03_mind_controlled_actuator.ino`](examples/03_mind_controlled_actuator/03_mind_controlled_actuator.ino)
-3. Select board and port, then click Upload.
+4. Select board and port, then click Upload.
 
 ---
 
-## 7. Pure English Telemetry Standard
+## 6. Pure English Telemetry Standard
 
 ```text
 ========================================================

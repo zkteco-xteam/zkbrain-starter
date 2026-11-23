@@ -1,7 +1,7 @@
 # ZKBrain ESP32 嵌入式脑机接口 SDK 开发套件 (ESP32 MCU BCI SDK)
 
 > **归属组织**：**熵基科技脑机事业部 (ZKTeco Brain-Computer Interface Division)**  
-> **核心原则**：**官方黑盒 SDK 抽象，底层二进制协议与硬件点火算法 100% 内部隔离与脱敏**  
+> **核心规范**：**纯预编译二进制静态库交付（Pure Precompiled Static Binary），彻底剔除源码模式，底层协议与硬件点火时序 100% 物理隔离**  
 > **支持芯片**：Espressif ESP32 / ESP32-S3 / ESP32-C3  
 > **开发框架**：Arduino IDE / PlatformIO (C/C++)  
 > **运行日志标准**：**100% 纯英文终端输出**  
@@ -9,9 +9,9 @@
 
 ---
 
-## 1. 架构简介与黑盒 SDK 设计
+## 1. 架构简介与纯二进制 SDK 交付
 
-为了保护核心协议资产与降低下游应用开发门槛，本套件采用**高内聚黑盒 SDK 架构**（`lib/ZKBrain/`）。应用层与创客开发者只需关注高阶脑波事件，无需处理底层的帧同步（`0xAA 0xAA`）、硬件点火指令（`0x15`/`0x17`）、校验和计算或 BLE 特征值排布：
+为了彻底保护企业核心脑电协议与算法资产，本工程**完全移除了源码模式**，采用纯预编译二进制静态库架构。开发者仅能接触公开脱敏头文件 [`ZKBrain.h`](lib/ZKBrain/src/ZKBrain.h)，底层帧同步（`0xAA 0xAA`）、双模点火时序（`0x15`/`0x17`）、校验和算法与 BLE 特征值全盘固化在目标芯片机器码中：
 
 ```mermaid
 flowchart TD
@@ -20,11 +20,12 @@ flowchart TD
         HW2["ZKBrain / NeuroSky 头环<br/>(BLE 2.4GHz 无线广播)"]
     end
 
-    subgraph SDK["2. ZKBrain 官方嵌入式 SDK (黑盒封装 lib/ZKBrain)"]
+    subgraph BINARY["2. 纯预编译静态库 (lib/ZKBrain/src/*/libzkbrain.a)"]
         direction TB
-        B1["协议状态机 & 帧同步校验"]
-        B2["双模点火时序与链路自愈看门狗"]
-        B3["PIMPL 架构完全隔离私有协议细节"]
+        B1["ESP32 (Xtensa LX6) ➔ libzkbrain_esp32_lx6.a"]
+        B2["ESP32-S3 (Xtensa LX7) ➔ libzkbrain_esp32_s3.a"]
+        B3["ESP32-C3 (RISC-V) ➔ libzkbrain_esp32_c3.a"]
+        B4["完全剔除源码实现，杜绝协议反查与算法泄露"]
     end
 
     subgraph APP["3. 开发者应用层 (仅引用 ZKBrain.h)"]
@@ -34,36 +35,28 @@ flowchart TD
         C4["意念 PWM 调光 / 继电器 / 蜂鸣器"]
     end
 
-    HW1 --> SDK
-    HW2 --> SDK
-    SDK --> APP
+    HW1 --> BINARY
+    HW2 --> BINARY
+    BINARY --> APP
 ```
 
 ---
 
-## 2. 商业交付与知识产权保护（静态库模式）
+## 2. 内置预编译静态库归档表
 
-在面向商业客户、第三方外协团队或开源交付时，可采用两种分发模式：
+工程在 [`precompiled/`](precompiled/) 与 [`lib/ZKBrain/src/`](lib/ZKBrain/src/) 目录中已全量内置官方编译并通过硬件验证的 3 大芯片架构静态库：
 
-### 模式 A：源码库引入（适用于团队内部敏捷开发）
-- 将 `lib/ZKBrain` 直接保留在工程中，PlatformIO 会自动扫描并编译；
-- Arduino IDE 用户只需将 `lib/ZKBrain` 目录复制至个人电脑的 `Arduino/libraries/` 目录中即可直接 `#include <ZKBrain.h>`。
-
-### 模式 B：二进制静态库交付（已内置在工程 precompiled/ 目录中）
-- 工程内置官方交叉编译生成的 3 大主流芯片架构 `.a` 二进制静态归档库（存放于 [`precompiled/`](precompiled/)）：
-  - 经典 ESP32 双核 Xtensa LX6：[`precompiled/esp32/libzkbrain_esp32_lx6.a`](precompiled/esp32/libzkbrain_esp32_lx6.a) (780KB)
-  - ESP32-S3 双核 Xtensa LX7：[`precompiled/esp32s3/libzkbrain_esp32_s3.a`](precompiled/esp32s3/libzkbrain_esp32_s3.a) (756KB)
-  - ESP32-C3 单核 RISC-V 32位：[`precompiled/esp32c3/libzkbrain_esp32_c3.a`](precompiled/esp32c3/libzkbrain_esp32_c3.a) (950KB)
-- **交付物规范（完全杜绝源码逆向）**：
-  1. 公开纯头文件：[`ZKBrain.h`](lib/ZKBrain/src/ZKBrain.h)（仅含高阶事件接口与数据结构体，不含任何协议常量或宏定义）
-  2. 预编译静态库：对应芯片架构的 `.a` 二进制文件
-- **成效**：商业客户与外部人员无法通过反查源码获取任何底层通信协议、点火算法或特定厂商硬件逻辑，彻底保护核心技术资产。详细链接指南参见 [`precompiled/README.md`](precompiled/README.md)。
+| 芯片架构 | 适用硬件型号 | 静态库文件路径 | 大小 | 工具链与 ABI |
+| :--- | :--- | :--- | :--- | :--- |
+| **Xtensa LX6 (双核)** | 经典 ESP32 (WROOM-32, NodeMCU-32S) | [`precompiled/esp32/libzkbrain_esp32_lx6.a`](precompiled/esp32/libzkbrain_esp32_lx6.a) | **780 KB** | `xtensa-esp32-elf-g++` (ESP-IDF v5) |
+| **Xtensa LX7 (双核)** | ESP32-S3 (DevKitC-1, 矢量指令集款) | [`precompiled/esp32s3/libzkbrain_esp32_s3.a`](precompiled/esp32s3/libzkbrain_esp32_s3.a) | **756 KB** | `xtensa-esp32s3-elf-g++` (ESP-IDF v5) |
+| **RISC-V (32位单核)** | ESP32-C3 (DevKitM-1, 物联网精简款) | [`precompiled/esp32c3/libzkbrain_esp32_c3.a`](precompiled/esp32c3/libzkbrain_esp32_c3.a) | **950 KB** | `riscv32-esp-elf-g++` (ESP-IDF v5) |
 
 ---
 
 ## 3. 极简 10 行 SDK 调用范式
 
-在下游应用中，仅需包含 `<ZKBrain.h>`：
+在下游应用中，仅需包含公开头文件 `<ZKBrain.h>`，链接预编译静态库即可运行：
 
 ```cpp
 #include <Arduino.h>
@@ -123,47 +116,31 @@ void loop() {
 
 ---
 
-## 5. 运行模式配置 (`include/Config.h`)
-
-在 [`include/Config.h`](include/Config.h) 中可自由切换双模运行方式：
-
-```c
-// 1. 无线蓝牙主机模式 (默认)：自动扫描连接周边的 MindWave / ZKBrain 头环
-#define MODE_BLE_CENTRAL    1
-#define MODE_UART_DIRECT    0
-
-// 2. 硬件串口直连模式：直接读取头盔/智能眼罩内部 TGAM 芯片引脚
-#define MODE_BLE_CENTRAL    0
-#define MODE_UART_DIRECT    1
-```
-
----
-
-## 6. 快速开始与烧录指南
+## 5. 快速开始与烧录指南
 
 ### 方法 A：使用 PlatformIO (推荐)
 
-1. 在 VS Code 中安装 **PlatformIO IDE** 插件；
-2. 打开 `templates/mcu-esp32` 目录；
-3. 选择开发板构建环境并烧录：
+PlatformIO 预置了开箱即用的静态库自动链接配置：
+1. 在 VS Code 中打开 `templates/mcu-esp32`；
+2. 直接执行编译与烧录：
    ```bash
-   # 编译并烧录到经典 ESP32
+   # 经典 ESP32 (自动链接 precompiled/esp32/libzkbrain_esp32_lx6.a)
    pio run -e esp32dev -t upload
 
-   # 编译并烧录到 ESP32-S3
+   # ESP32-S3 (自动链接 precompiled/esp32s3/libzkbrain_esp32_s3.a)
    pio run -e esp32-s3-devkitc-1 -t upload
 
-   # 编译并烧录到 ESP32-C3
+   # ESP32-C3 (自动链接 precompiled/esp32c3/libzkbrain_esp32_c3.a)
    pio run -e esp32-c3-devkitm-1 -t upload
 
-   # 打开 115200 波特率串口监视器
+   # 打开串口监视器
    pio device monitor
    ```
 
 ### 方法 B：使用 Arduino IDE
 
-1. 打开 Arduino IDE（建议 2.0+ 版本）；
-2. 将 `templates/mcu-esp32/lib/ZKBrain` 文件夹复制至 Arduino 库目录（通常位于 `我的文档/Arduino/libraries/`）；
+1. 将 `templates/mcu-esp32/lib/ZKBrain` 文件夹复制至个人电脑的 Arduino 库目录（`我的文档/Arduino/libraries/`）；
+2. 库内遵循 Arduino 1.5 官方预编译标准（包含 `library.properties` 与架构子目录下的 `.a` 文件），Arduino IDE 会自动匹配目标开发板的架构并完成静态库链接；
 3. 打开示例工程：
    - [`examples/01_uart_direct_tgam/01_uart_direct_tgam.ino`](examples/01_uart_direct_tgam/01_uart_direct_tgam.ino)：基于 SDK 的 TGAM 极简串口读取
    - [`examples/02_ble_central_headband/02_ble_central_headband.ino`](examples/02_ble_central_headband/02_ble_central_headband.ino)：基于 SDK 的蓝牙主机自连
@@ -172,9 +149,7 @@ void loop() {
 
 ---
 
-## 7. 串口纯英文输出标准 (100% Pure English Telemetry)
-
-系统启动及运行时，串口以标准 115200 波特率输出全英文格式化日志：
+## 6. 串口纯英文输出标准 (100% Pure English Telemetry)
 
 ```text
 ========================================================
