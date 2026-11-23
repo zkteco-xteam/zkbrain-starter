@@ -14,6 +14,26 @@ namespace ZKBrain.Unity
     {
         public static ZKBrainBleBridge Instance { get; private set; }
 
+        [Header("BLE Scan & Discovery")]
+        public bool isScanning = false;
+
+        [System.Serializable]
+        public struct DiscoveredDevice
+        {
+            public string name;
+            public string mac;
+            public int rssi;
+
+            public DiscoveredDevice(string n, string m, int r)
+            {
+                name = n;
+                mac = m;
+                rssi = r;
+            }
+        }
+
+        public List<DiscoveredDevice> discoveredDevices = new List<DiscoveredDevice>();
+
         [Header("Connection Status")]
         public bool isConnected = false;
         public string deviceName = "ZKBrain Headband PRO";
@@ -58,6 +78,10 @@ namespace ZKBrain.Unity
         // Callbacks
         public event Action<int, int> OnBrainMetricsUpdated; // attention, meditation
         public event Action<string> OnCommandLogEmitted;
+        public event Action<List<DiscoveredDevice>> OnDeviceDiscovered;
+        public event Action<bool> OnScanStateChanged;
+
+        private Coroutine scanCoroutine;
 
         private void Awake()
         {
@@ -87,8 +111,58 @@ namespace ZKBrain.Unity
             }
         }
 
+        public void StartScan()
+        {
+            if (isScanning) return;
+            isScanning = true;
+            discoveredDevices.Clear();
+            OnScanStateChanged?.Invoke(true);
+            Log("[BLE] Scan started... Searching for nearby BCI hardware");
+
+            if (scanCoroutine != null) StopCoroutine(scanCoroutine);
+            scanCoroutine = StartCoroutine(PerformScanRoutine());
+        }
+
+        public void StopScan()
+        {
+            if (!isScanning) return;
+            isScanning = false;
+            if (scanCoroutine != null)
+            {
+                StopCoroutine(scanCoroutine);
+                scanCoroutine = null;
+            }
+            OnScanStateChanged?.Invoke(false);
+            Log("[BLE] Scan stopped");
+        }
+
+        private IEnumerator PerformScanRoutine()
+        {
+            // Simulate realistic progressive BLE device discovery
+            yield return new WaitForSeconds(0.4f);
+            discoveredDevices.Add(new DiscoveredDevice("ZKBrain-PRO-8801", "DC:23:4F:9A:88:01", -54));
+            OnDeviceDiscovered?.Invoke(discoveredDevices);
+            Log("[BLE] Found device: ZKBrain-PRO-8801 (-54 dBm)");
+
+            yield return new WaitForSeconds(0.6f);
+            discoveredDevices.Add(new DiscoveredDevice("MindWave Mobile", "AA:BB:CC:DD:EE:01", -68));
+            OnDeviceDiscovered?.Invoke(discoveredDevices);
+            Log("[BLE] Found device: MindWave Mobile (-68 dBm)");
+
+            yield return new WaitForSeconds(0.8f);
+            discoveredDevices.Add(new DiscoveredDevice("XMind-BrainLink", "F1:22:33:44:55:66", -72));
+            OnDeviceDiscovered?.Invoke(discoveredDevices);
+            Log("[BLE] Found device: XMind-BrainLink (-72 dBm)");
+
+            yield return new WaitForSeconds(1.2f);
+            isScanning = false;
+            OnScanStateChanged?.Invoke(false);
+            Log("[BLE] Scan complete. Found 3 nearby BCI devices");
+        }
+
         public void ConnectDevice(string name, string mac)
         {
+            StopScan();
             deviceName = name;
             deviceMac = mac;
             isConnected = true;

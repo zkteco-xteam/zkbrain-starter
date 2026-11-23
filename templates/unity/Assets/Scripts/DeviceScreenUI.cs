@@ -3,14 +3,16 @@ using UnityEngine;
 namespace ZKBrain.Unity
 {
     /// <summary>
-    /// 1:1 Recreation of shared1 Device Management Console (DeviceScreen + DeviceShowTable) - Unity OnGUI / Canvas Version
+    /// 1:1 Recreation of shared1 Device Management Console (DeviceScreen + DeviceShowTable + BleScanDialog) - Unity OnGUI / Canvas Version
     /// </summary>
     public class DeviceScreenUI : MonoBehaviour
     {
         private ZKBrainBleBridge bridge;
         private Vector2 scrollPos;
+        private Vector2 scanScrollPos;
         private string terminalLogs = "[SYSTEM] ZKBrain Unity BCI Console Ready\n";
         private string customCmd = "mems_on:1";
+        private bool showScanDialog = false;
 
         private void Start()
         {
@@ -31,12 +33,13 @@ namespace ZKBrain.Unity
 
             // 1. Top Action Bar
             GUILayout.BeginHorizontal();
-            GUILayout.Label("<b>DeviceScreen</b>", GUILayout.Width(160));
-            if (GUILayout.Button("🔍 Scan", GUILayout.Width(65)))
+            GUILayout.Label("<b>DeviceScreen</b>", GUILayout.Width(150));
+            if (GUILayout.Button(bridge != null && bridge.isScanning ? "⏳ Scanning" : "🔍 Scan", GUILayout.Width(80)))
             {
-                bridge?.ConnectDevice("ZKBrain-PRO-8801", "DC:23:4F:9A:88:01");
+                showScanDialog = true;
+                bridge?.StartScan();
             }
-            if (GUILayout.Button("DFU", GUILayout.Width(60)))
+            if (GUILayout.Button("DFU", GUILayout.Width(55)))
             {
                 bridge?.Log("[DFU] Checking firmware OTA: currently on latest stable v2.4.0");
             }
@@ -58,10 +61,17 @@ namespace ZKBrain.Unity
             GUILayout.Label($"<b>{bridge?.deviceName}</b>");
             GUILayout.Label($"MAC: {bridge?.deviceMac}");
 
-            if (GUILayout.Button((bridge != null && bridge.isConnected) ? "Disconnect Device" : "Connect Device", GUILayout.Height(30)))
+            if (GUILayout.Button((bridge != null && bridge.isConnected) ? "Disconnect Device" : "Search & Connect BLE", GUILayout.Height(30)))
             {
-                if (bridge != null && bridge.isConnected) bridge.DisconnectDevice();
-                else bridge?.ConnectDevice("ZKBrain-PRO-8801", "DC:23:4F:9A:88:01");
+                if (bridge != null && bridge.isConnected)
+                {
+                    bridge.DisconnectDevice();
+                }
+                else
+                {
+                    showScanDialog = true;
+                    bridge?.StartScan();
+                }
             }
             GUILayout.EndVertical();
 
@@ -140,6 +150,91 @@ namespace ZKBrain.Unity
             GUILayout.EndVertical();
 
             GUILayout.EndScrollView();
+            GUILayout.EndArea();
+
+            // 7. Bluetooth Scan Modal Dialog (Section 8)
+            if (showScanDialog)
+            {
+                DrawScanDialog();
+            }
+        }
+
+        private void DrawScanDialog()
+        {
+            float dialogW = 380;
+            float dialogH = 340;
+            Rect dialogRect = new Rect((Screen.width - dialogW) / 2, (Screen.height - dialogH) / 2, dialogW, dialogH);
+
+            GUI.Box(dialogRect, GUIContent.none);
+            GUILayout.BeginArea(dialogRect, GUI.skin.window);
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("<b>🔍 Search Nearby BCI Devices</b>");
+            if (GUILayout.Button("✕", GUILayout.Width(28)))
+            {
+                showScanDialog = false;
+                bridge?.StopScan();
+            }
+            GUILayout.EndHorizontal();
+
+            string scanStatus = bridge != null && bridge.isScanning
+                ? "<color=#2563eb>Scanning for BLE BCI hardware...</color>"
+                : "<color=#64748b>Scan idle. Click Rescan to refresh.</color>";
+            GUILayout.Label(scanStatus);
+
+            GUILayout.Space(6);
+
+            scanScrollPos = GUILayout.BeginScrollView(scanScrollPos, GUILayout.Height(200));
+            if (bridge != null && bridge.discoveredDevices.Count > 0)
+            {
+                foreach (var dev in bridge.discoveredDevices)
+                {
+                    GUILayout.BeginVertical(GUI.skin.box);
+                    GUILayout.BeginHorizontal();
+                    GUILayout.BeginVertical();
+                    GUILayout.Label($"<b>{dev.name}</b>");
+                    GUILayout.Label($"<size=10><color=#64748b>{dev.mac}</color></size>");
+                    GUILayout.EndVertical();
+
+                    GUILayout.FlexibleSpace();
+                    GUILayout.Label($"<size=10>{dev.rssi} dBm</size>");
+
+                    if (GUILayout.Button("Connect", GUILayout.Width(65), GUILayout.Height(26)))
+                    {
+                        bridge.ConnectDevice(dev.name, dev.mac);
+                        showScanDialog = false;
+                    }
+                    GUILayout.EndHorizontal();
+                    GUILayout.EndVertical();
+                }
+            }
+            else
+            {
+                GUILayout.FlexibleSpace();
+                GUILayout.BeginHorizontal();
+                GUILayout.FlexibleSpace();
+                GUILayout.Label(bridge != null && bridge.isScanning ? "Searching for BCI devices..." : "No devices found");
+                GUILayout.FlexibleSpace();
+                GUILayout.EndHorizontal();
+                GUILayout.FlexibleSpace();
+            }
+            GUILayout.EndScrollView();
+
+            GUILayout.Space(6);
+
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button(bridge != null && bridge.isScanning ? "Stop Scan" : "Rescan", GUILayout.Height(30)))
+            {
+                if (bridge != null && bridge.isScanning) bridge.StopScan();
+                else bridge?.StartScan();
+            }
+            if (GUILayout.Button("Close", GUILayout.Width(80), GUILayout.Height(30)))
+            {
+                showScanDialog = false;
+                bridge?.StopScan();
+            }
+            GUILayout.EndHorizontal();
+
             GUILayout.EndArea();
         }
 
