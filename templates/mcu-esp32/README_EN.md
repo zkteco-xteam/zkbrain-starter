@@ -49,15 +49,15 @@ When distributing to commercial clients, third-party contractors, or open-source
 - Keep `lib/ZKBrain` inside the project. PlatformIO auto-detects and compiles it;
 - Arduino IDE developers can copy `lib/ZKBrain` into their `Arduino/libraries/` folder to `#include <ZKBrain.h>` directly.
 
-### Mode B: Precompiled Static Binary Delivery (Commercial IP Protection)
-- Compile `lib/ZKBrain/src/ZKBrain.cpp` into precompiled static archives via PlatformIO or ESP-IDF:
-  - `libzkbrain_esp32_lx6.a` (Classic ESP32 Dual-Core Xtensa LX6)
-  - `libzkbrain_esp32_s3.a` (ESP32-S3 Xtensa LX7)
-  - `libzkbrain_esp32_c3.a` (ESP32-C3 RISC-V)
-- Deliverables strictly contain:
-  1. Clean public header: [`ZKBrain.h`](lib/ZKBrain/src/ZKBrain.h) (Interfaces & structs only; zero protocol hex codes or macros)
-  2. Precompiled static binary: `libzkbrain_esp32.a`
-- **Result**: Downstream developers and external partners cannot reverse-engineer or inspect raw communication protocols, ignition sequences, or proprietary hardware logic.
+### Mode B: Precompiled Static Binary Delivery (Bundled in precompiled/)
+- Precompiled `.a` static libraries for all 3 major architectures are bundled in [`precompiled/`](precompiled/):
+  - Classic ESP32 (Xtensa LX6 Dual-Core): [`precompiled/esp32/libzkbrain_esp32_lx6.a`](precompiled/esp32/libzkbrain_esp32_lx6.a) (780KB)
+  - ESP32-S3 (Xtensa LX7 Dual-Core): [`precompiled/esp32s3/libzkbrain_esp32_s3.a`](precompiled/esp32s3/libzkbrain_esp32_s3.a) (756KB)
+  - ESP32-C3 (RISC-V 32-bit Single-Core): [`precompiled/esp32c3/libzkbrain_esp32_c3.a`](precompiled/esp32c3/libzkbrain_esp32_c3.a) (950KB)
+- **Closed-Source Distribution Standard**:
+  1. Public header: [`ZKBrain.h`](lib/ZKBrain/src/ZKBrain.h) (Interfaces & structs only; zero protocol hex codes or macros)
+  2. Precompiled static library: Target `.a` binary file
+- **Result**: Downstream developers cannot inspect or reverse-engineer raw communication protocols or ignition sequences. See [`precompiled/README.md`](precompiled/README.md) for linkage flags.
 
 ---
 

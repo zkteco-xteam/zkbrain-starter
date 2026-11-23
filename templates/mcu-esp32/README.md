@@ -49,15 +49,15 @@ flowchart TD
 - 将 `lib/ZKBrain` 直接保留在工程中，PlatformIO 会自动扫描并编译；
 - Arduino IDE 用户只需将 `lib/ZKBrain` 目录复制至个人电脑的 `Arduino/libraries/` 目录中即可直接 `#include <ZKBrain.h>`。
 
-### 模式 B：二进制静态库交付（适用于商用防逆向保护与对外合作）
-- 通过 PlatformIO 或 ESP-IDF 将 `lib/ZKBrain/src/ZKBrain.cpp` 预编译为对应芯片架构的目标静态库：
-  - `libzkbrain_esp32_lx6.a`（对应经典 ESP32 双核 Xtensa LX6）
-  - `libzkbrain_esp32_s3.a`（对应 ESP32-S3 Xtensa LX7）
-  - `libzkbrain_esp32_c3.a`（对应 ESP32-C3 RISC-V）
-- 交付物仅包含：
-  1. 公开纯头文件：[`ZKBrain.h`](lib/ZKBrain/src/ZKBrain.h)（仅含高层接口与结构体，不含任何协议常量与宏定义）
-  2. 预编译静态库：`libzkbrain_esp32.a`
-- **成效**：商业客户与外部人员无法通过阅读源码获取任何底层通信协议、点火算法或特定厂商硬件逻辑，彻底保护核心技术壁垒。
+### 模式 B：二进制静态库交付（已内置在工程 precompiled/ 目录中）
+- 工程内置官方交叉编译生成的 3 大主流芯片架构 `.a` 二进制静态归档库（存放于 [`precompiled/`](precompiled/)）：
+  - 经典 ESP32 双核 Xtensa LX6：[`precompiled/esp32/libzkbrain_esp32_lx6.a`](precompiled/esp32/libzkbrain_esp32_lx6.a) (780KB)
+  - ESP32-S3 双核 Xtensa LX7：[`precompiled/esp32s3/libzkbrain_esp32_s3.a`](precompiled/esp32s3/libzkbrain_esp32_s3.a) (756KB)
+  - ESP32-C3 单核 RISC-V 32位：[`precompiled/esp32c3/libzkbrain_esp32_c3.a`](precompiled/esp32c3/libzkbrain_esp32_c3.a) (950KB)
+- **交付物规范（完全杜绝源码逆向）**：
+  1. 公开纯头文件：[`ZKBrain.h`](lib/ZKBrain/src/ZKBrain.h)（仅含高阶事件接口与数据结构体，不含任何协议常量或宏定义）
+  2. 预编译静态库：对应芯片架构的 `.a` 二进制文件
+- **成效**：商业客户与外部人员无法通过反查源码获取任何底层通信协议、点火算法或特定厂商硬件逻辑，彻底保护核心技术资产。详细链接指南参见 [`precompiled/README.md`](precompiled/README.md)。
 
 ---
 
