@@ -2,7 +2,7 @@
 
 [English](README_EN.md) | [中文](README.md)
 
-> 🧠 **Production-Grade Cross-Platform BCI Application Starter Kit** | Covering 14 major software ecosystems, 1:1 industrial device management console, zero-configuration beginner walkthrough, and commercial product blueprints.
+> 🧠 **Production-Grade Cross-Platform BCI Application Starter Kit** | Covering 15 major software ecosystems, 1:1 industrial device management console, zero-configuration beginner walkthrough, and commercial product blueprints.
 
 **ZKBrain Starter Kit** is the official open-source starter suite built upon the **ZKBrain Cross-Platform BCI Core SDK**. Whether you are an **absolute beginner with zero programming experience** or a **senior engineer building commercial neurotechnology products**, this suite provides ready-to-run codebases, comprehensive hardware state machines, standardized 4x3 tri-color brainwave dashboards (`DeviceShowTable`), and established blueprints modeled after leading international open-source BCI projects.
 
@@ -22,7 +22,7 @@
   - [2.5 ADHD Attention Training & Neurofeedback Focus Pomodoro](#25-adhd-attention-training--neurofeedback-focus-pomodoro)
   - [2.6 Smart Industrial Safety Helmet & Fleet Driver Fatigue Edge Gateway](#26-smart-industrial-safety-helmet--fleet-driver-fatigue-edge-gateway)
   - [2.7 Web-Bluetooth Browser Driver-Free Cloud BCI & Interactive Showroom](#27-web-bluetooth-browser-driver-free-cloud-bci--interactive-showroom)
-- [📂 3. The 14 Production-Grade Templates Matrix](#-3-the-14-production-grade-templates-matrix)
+- [📂 3. The 15 Production-Grade Templates Matrix](#-3-the-15-production-grade-templates-matrix)
   - [3.1 Mobile Native](#31-mobile-native)
   - [3.2 Cross-Platform & MiniProgram](#32-cross-platform--miniprogram)
   - [3.3 Desktop Workstation](#33-desktop-workstation)
@@ -115,6 +115,7 @@ flowchart TD
         P5["Focusmate / ADHD Neurofeedback<br/>(Attention Training & Pomodoro)"]
         P6["Smart Safety Helmet<br/>(Industrial IoT & Fleet Drowsiness Alert)"]
         P7["Web-Bluetooth Cloud BCI<br/>(Driver-Free Online BCI SaaS)"]
+        P8["Arduino BCI / Maker Robotics<br/>(Embedded MCU & Mind-Controlled Actuators)"]
     end
 
     subgraph ZKBrainTemplates["ZKBrain Starter Templates"]
@@ -125,6 +126,7 @@ flowchart TD
         T5["templates/android-compose & miniprogram"]
         T6["templates/iot-raspberrypi"]
         T7["templates/web-ts & uni-app"]
+        T8["templates/mcu-esp32"]
     end
 
     P1 -.-> T1
@@ -134,6 +136,7 @@ flowchart TD
     P5 -.-> T5
     P6 -.-> T6
     P7 -.-> T7
+    P8 -.-> T8
 ```
 
 ### 2.1 BrainFlow & OpenBCI GUI Model ➔ Professional BCI Analysis Workstation
@@ -199,9 +202,18 @@ flowchart TD
   - W3C Standard Web Bluetooth API, pure TypeScript client;
   - Easily extendable with Three.js for 3D neural particle stream visualizations.
 
+### 2.8 Arduino BCI & Embedded Mind-Controlled Actuators (Maker & Robotics)
+- **Product Features**:
+  Maker DIY projects, wearable prototypes, or robotic actuation where an ultra-low-cost ESP32 reads EEG directly, triggers a physical relay/servo on high focus, alarms via buzzer on distraction, and renders on a 0.96" OLED screen.
+- **Recommended Template**: [`templates/mcu-esp32/`](templates/mcu-esp32/)
+- **Engineering Blueprint**:
+  - Dual-mode support for **wireless BLE Central** and **TGAM direct hardware UART (57600 baud)**;
+  - Zero-heap dynamic memory allocation state machine parser, preventing embedded memory fragmentation;
+  - Controls GPIO2 PWM dimming LED, GPIO18 distraction buzzer, and GPIO19 mind-triggered relay.
+
 ---
 
-## 📂 3. The 14 Production-Grade Templates Matrix
+## 📂 3. The 15 Production-Grade Templates Matrix
 
 All templates reside cleanly inside `templates/`, pre-validated across physical hardware:
 
@@ -234,6 +246,7 @@ All templates reside cleanly inside `templates/`, pre-validated across physical 
 | **Unity 3D / XR Telekinesis** | [`templates/unity/`](templates/unity/) | Open scene in Unity 2021+ | **Force Levitation Demo**: Attention controls physics upward thrust; Meta Quest / Pico / Vision Pro ready |
 | **Python Research Workstation** | [`templates/python-research/`](templates/python-research/) | Run `python research_gui.py` or Jupyter | 0.5-50Hz bandpass, Welch PSD analysis, one-click export to standard **EDF+** & CSV |
 | **Raspberry Pi / Linux IoT Gateway** | [`templates/iot-raspberrypi/`](templates/iot-raspberrypi/) | `python daemon_fatigue_alert.py` | Linux daemon, GPIO Pin 18 buzzer alert on fatigue threshold, LAN Web console |
+| **ESP32 Embedded MCU / AIoT** | [`templates/mcu-esp32/`](templates/mcu-esp32/) | PlatformIO `pio run -t upload` or Arduino IDE | Tailored for ESP32/S3/C3, zero-heap parser, dual-mode BLE Central + UART direct, OLED & relay/buzzer triggers |
 
 ---
 
@@ -251,7 +264,7 @@ The SDK features an intelligent hardware routing engine:
 
 ### 4.2 1:1 Standard UI & 4x3 Tri-Color Data Table Specifications
 
-All 14 templates feature an identical 7-module layout:
+All screen-enabled templates share an identical 7-module layout (with ESP32 presenting real-time telemetry via a standard 0.96" OLED display and serial console):
 - **Module 1: Top Navigation Bar** ➔ Search modal button, DFU/OTA firmware check, and license authorization badge;
 - **Module 2: Unified Device Status Card** ➔ Indicator dot, device name, battery capsule, 3 capability badges, MAC/SN display, and Connect/Disconnect button;
 - **Module 3: Channel Settings** ➔ Left (FP1) channel toggle with Right (FP2) greyed-out safeguard;

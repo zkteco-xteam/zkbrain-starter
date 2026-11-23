@@ -1,0 +1,189 @@
+# ZKBrain SDK 20-Line Golden Code Recipes (recipes-en.md)
+
+> **Principle**: All code snippets below are verified, copy-paste ready minimal end-to-end closed loops for production environments, complying with anti-freeze and anti-collapse guidelines.
+
+---
+
+## ⚡ Recipe 1: Minimal Scan & Auto-Connect (Kotlin)
+
+```kotlin
+import com.zkteco.zkbrain.ZKBrainManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+
+fun scanAndConnectFirstDevice(scope: CoroutineScope) {
+    // 1. Observe scan radar results
+    scope.launch {
+        ZKBrainManager.scannedDevices.collect { devices ->
+            val target = devices.firstOrNull()
+            if (target != null && ZKBrainManager.connState.value.name == "DISCONNECTED") {
+                println("Discovered target device: ${target.name} [${target.address}], connecting...")
+                ZKBrainManager.stopScan()
+                ZKBrainManager.connect(target)
+            }
+        }
+    }
+    // 2. Start 10s timeout scan
+    ZKBrainManager.startScan(timeoutMillis = 10000L)
+}
+```
+
+---
+
+## ⚡ Recipe 2: Reactive 1Hz Attention & 8-Band Stream (Compose / Coroutines)
+
+```kotlin
+import com.zkteco.zkbrain.ZKBrainManager
+import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+
+@Composable
+fun AttentionMonitorView() {
+    val brainData by ZKBrainManager.brainData.collectAsState(initial = null)
+    
+    Column(modifier = Modifier.padding(16.dp)) {
+        Text("Attention: ${brainData?.attention ?: 0} / 100", style = MaterialTheme.typography.h6)
+        Text("Meditation: ${brainData?.meditation ?: 0} / 100")
+        Text("Signal: ${if (brainData?.poorSignal == 0) "Good Contact 🟢" else "Poor Signal / Off-Head 🔴"}")
+        LinearProgressIndicator(
+            progress = (brainData?.attention ?: 0) / 100f,
+            modifier = Modifier.fillMaxWidth().height(8.dp)
+        )
+    }
+}
+```
+
+---
+
+## ⚡ Recipe 3: High-Frequency 512Hz Raw Waveform Canvas (RingBuffer)
+
+```kotlin
+import com.zkteco.zkbrain.ZKBrainManager
+import androidx.compose.foundation.Canvas
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.*
+
+@Composable
+fun RawWaveformChart(modifier: Modifier = Modifier.fillMaxWidth().height(120.dp)) {
+    val points = remember { mutableStateListOf<Float>() }
+    
+    // Safely consume 512Hz high-frequency stream with RingBuffer
+    LaunchedEffect(Unit) {
+        ZKBrainManager.rawdata.collect { raw ->
+            if (points.size > 300) points.removeFirst()
+            points.add(raw.toFloat())
+        }
+    }
+
+    Canvas(modifier = modifier) {
+        if (points.size < 2) return@Canvas
+        val path = Path()
+        val stepX = size.width / 300f
+        val centerY = size.height / 2f
+        points.forEachIndexed { i, p ->
+            val y = centerY - (p / 2048f) * centerY // Microvolt normalization
+            if (i == 0) path.moveTo(0f, y) else path.lineTo(i * stepX, y)
+        }
+        drawPath(path, color = Color.Green, style = Stroke(width = 2.dp.toPx()))
+    }
+}
+```
+
+---
+
+## ⚡ Recipe 4: Native iOS (Swift) Consumer (SKIE async/await)
+
+```swift
+import SwiftUI
+import zkbrain_parser
+
+class BrainViewModel: ObservableObject {
+    @Published var attention: Int32 = 0
+    @Published var meditation: Int32 = 0
+
+    func startListening() {
+        // Automatically bridged as native Swift AsyncSequence
+        Task {
+            for await eeg in ZKBrainManager.shared.brainData {
+                await MainActor.run {
+                    self.attention = eeg.attention
+                    self.meditation = eeg.meditation
+                }
+            }
+        }
+    }
+}
+```
+
+---
+
+## ⚡ Recipe 5: One-Click Standard Cloud Recording & Upload
+
+```kotlin
+import com.zkteco.zkbrain.record.ZKBrainCloudRecordManager
+
+suspend fun runStandardRecordingFlow(serverUrl: String, apiKey: String) {
+    // 1. Start recording session
+    val sessionId = ZKBrainCloudRecordManager.startRecording(sessionType = "concentration_test")
+    println("Session created: $sessionId")
+
+    // 2. Inject business event tag
+    ZKBrainCloudRecordManager.appendEvent(eventCode = 101, eventName = "task_stimulus_appear")
+
+    // 3. Conclude recording, stitch 3-table dataset, and upload
+    val result = ZKBrainCloudRecordManager.stopAndUpload(serverUrl = serverUrl, apiKey = apiKey)
+    result.onSuccess { report -> println("Cloud analysis completed, score: ${report.score}") }
+}
+```
+
+---
+
+## ⚡ Recipe 6: Hardware Command Dispatch & 6-Axis MEMS (Cross-Platform)
+
+### Android Native / Jetpack Compose:
+```kotlin
+// 1. Enable 6-axis MEMS IMU stream
+val address = ZKBrainManager.connectedDevice.value?.address ?: return
+ZKBrainManager.writeCommand(address, "mems_on:1;\n".toByteArray(Charsets.UTF_8))
+
+// 2. Listen to hardware response and quaternion posture
+lifecycleScope.launch {
+    ZKBrainManager.commandResponse.collect { response ->
+        Log.d("ZKBrain", "Hardware response: $response")
+    }
+}
+lifecycleScope.launch {
+    ZKBrainManager.quaternionData.collect { q ->
+        Log.d("ZKBrain", "Spatial quaternion: w=${q.q0}, x=${q.q1}, y=${q.q2}, z=${q.q3}")
+    }
+}
+```
+
+### iOS (Swift):
+```swift
+// Dispatch MEMS enable command
+if let dev = ZKBrainManager.shared.connectedDevice.value {
+    let bytes = Array("mems_on:1;\n".utf8)
+    let kBytes = KotlinByteArray(size: Int32(bytes.count))
+    for (i, b) in bytes.enumerated() { kBytes.set(index: Int32(i), value: Int8(bitPattern: b)) }
+    ZKBrainManager.shared.writeCommand(address: dev.address, command: kBytes)
+}
+```
+
+### Web & WeChat MiniProgram (TypeScript):
+```typescript
+// Web / MiniProgram dispatch
+await sdk.sendAsciiCommand("mems_on:1;\n");
+// Listen to posture data
+sdk.on("posture_data", (gravity) => {
+    console.log(`Pitch=${gravity.x}, Roll=${gravity.y}, Yaw=${gravity.z}`);
+});
+```

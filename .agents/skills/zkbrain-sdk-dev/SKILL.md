@@ -6,6 +6,8 @@ description: Official authoritative expert skill for developers and AI assistant
 # ZKBrain SDK Official Development Expert Skill (zkbrain-sdk-dev)
 # ZKBrain SDK 官方二次开发专家技能
 
+[English Skill Guide](SKILL_EN.md) | [中文说明](SKILL.md)
+
 This skill serves as the sole authoritative guide for application development and secondary extensions based on the **ZKBrain Cross-Platform Brain-Computer Interface (BCI) SDK**. Any AI assistant or developer writing BCI business logic must strictly comply with this skill specification to eliminate API hallucinations.
 本技能为基于 **ZKBrain 脑机接口跨平台 SDK** 进行应用开发与二次扩展的唯一权威指南。任何 AI 或开发者在编写脑电业务代码时，必须严格遵守本技能规范，杜绝 API 幻觉。
 

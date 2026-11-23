@@ -2,7 +2,7 @@
 
 [English](README_EN.md) | [中文](README.md)
 
-> 🧠 **开箱即用的多端脑机接口 (BCI) 工程脚手架** | 覆盖 14 大主流生态、1:1 官方工业级控制台、零配置极速体验与前沿商业级产品蓝图。
+> 🧠 **开箱即用的多端脑机接口 (BCI) 工程脚手架** | 覆盖 15 大主流生态、1:1 官方工业级控制台、零配置极速体验与前沿商业级产品蓝图。
 
 **ZKBrain Starter Kit** 是基于 **ZKBrain 脑机接口跨平台核心 SDK** 构建的官方全栈模板库。无论您是**零编程基础的脑机探索者**，还是正在进行商业化落地的**资深软硬件工程师**，本套件均提供现成可运行的代码工程、完备的硬件通信状态机、标准的 4x3 三色全波段数据看板（`DeviceShowTable`），以及对标国际前沿脑机项目的成熟落地范式。
 
@@ -22,7 +22,7 @@
   - [5. ADHD 儿童感统训练 & 考研考公高效专注番茄钟](#5-adhd-儿童感统训练--考研考公高效专注番茄钟)
   - [6. 工业智能安全帽 & 车载特种作业疲劳驾驶边缘预警网关](#6-工业智能安全帽--车载特种作业疲劳驾驶边缘预警网关)
   - [7. Web-Bluetooth 网页免驱直连与科技馆交互云展厅](#7-web-bluetooth-网页免驱直连与科技馆交互云展厅)
-- [📂 三、14 大官方脚手架工程全景矩阵](#-三14-大官方脚手架工程全景矩阵)
+- [📂 三、15 大官方脚手架工程全景矩阵](#-三15-大官方脚手架工程全景矩阵)
   - [1. 移动端原生开发 (Mobile Native)](#1-移动端原生开发-mobile-native)
   - [2. 跨平台与轻应用 (Cross-Platform & MiniProgram)](#2-跨平台与轻应用-cross-platform--miniprogram)
   - [3. 专业桌面端开发 (Desktop Workstation)](#3-专业桌面端开发-desktop-workstation)
@@ -115,6 +115,7 @@ flowchart TD
         P5["Focusmate / ADHD Neurofeedback<br/>(儿童专注力感统训练)"]
         P6["Smart Safety Helmet<br/>(工业特种作业疲劳驾驶预警)"]
         P7["Web-Bluetooth Cloud BCI<br/>(免安装在线脑机 SaaS)"]
+        P8["Arduino BCI / Maker Robotics<br/>(嵌入式单片机与意念机械执行器)"]
     end
 
     subgraph ZKBrainTemplates["ZKBrain 官方脚手架映射"]
@@ -125,6 +126,7 @@ flowchart TD
         T5["templates/android-compose & miniprogram"]
         T6["templates/iot-raspberrypi"]
         T7["templates/web-ts & uni-app"]
+        T8["templates/mcu-esp32"]
     end
 
     P1 -.-> T1
@@ -134,6 +136,7 @@ flowchart TD
     P5 -.-> T5
     P6 -.-> T6
     P7 -.-> T7
+    P8 -.-> T8
 ```
 
 ### 1. BrainFlow & OpenBCI GUI 模式 ➔ 跨平台专业脑电分析工作站
@@ -200,9 +203,18 @@ flowchart TD
   - 基于 W3C 标准 Web Bluetooth API，纯前端 TypeScript 实现，零服务端驱动；
   - 结合 Three.js 或 Canvas 可快速拓展三维大脑神经元粒子流互动。
 
+### 8. Arduino BCI & 嵌入式意念控制执行器 (Maker & Robotics)
+- **产品核心功能**：
+  在创客 DIY、智能硬件原型或微型穿戴设备中，使用超低成本 ESP32 芯片直接读取脑电。当专注度达到阈值时吸合继电器开门或驱动舵机机械手，分心时触发蜂鸣器报警，并在 0.96 寸 OLED 屏上实时呈现专注度与各频段柱状图。
+- **推荐对应脚手架**：[`templates/mcu-esp32/`](templates/mcu-esp32/)
+- **工程落地蓝图**：
+  - 支持 **BLE Central 无线主机** 与 **TGAM 硬件串口直连 (57600 波特率)** 双模运行；
+  - 零堆内存分配 (Zero Dynamic Allocation) 状态机解析器，杜绝嵌入式内存碎片化；
+  - 驱动 GPIO2 PWM 线性调光 LED、GPIO18 蜂鸣器走神报警、GPIO19 继电器高专注触发。
+
 ---
 
-## 📂 三、14 大官方脚手架工程全景矩阵
+## 📂 三、15 大官方脚手架工程全景矩阵
 
 全工程严格收敛在 `templates/` 目录下，所有模板均已通过编译验证与真机联调：
 
@@ -235,6 +247,7 @@ flowchart TD
 | **Unity 3D / XR 脑控** | [`templates/unity/`](templates/unity/) | Unity 2021+ 导入打开场景 | **意念悬浮小球场景**：专注度越高小球悬浮越高，支持 Meta Quest / Pico / Vision Pro |
 | **Python 科研算法工作站** | [`templates/python-research/`](templates/python-research/) | `python research_gui.py` 或启动 Jupyter | 0.5-50Hz 带通滤波、Welch PSD 功率谱估计，一键导出国际标准 **EDF+** 与 CSV 数据集 |
 | **树莓派 / Linux IoT 边缘网关** | [`templates/iot-raspberrypi/`](templates/iot-raspberrypi/) | `python daemon_fatigue_alert.py` | 工业边缘守护进程，疲劳超限触发硬件 GPIO 引脚 18 蜂鸣器报警，带局域网 Web 看板 |
+| **ESP32 嵌入式单片机 / 物联网** | [`templates/mcu-esp32/`](templates/mcu-esp32/) | PlatformIO `pio run -t upload` 或 Arduino IDE 打开示例 | 专为 ESP32/S3/C3 打造，零堆分配解析器，BLE Central 与 TGAM 串口直连双模，驱动 OLED 屏与意念继电器/蜂鸣器 |
 
 ---
 
@@ -252,7 +265,7 @@ SDK 底层内置智能硬件路由器，开发者无需手动关心分包与粘�
 
 ### 2. 1:1 标准 UI 与 4x3 三色数据表规范
 
-全套 14 个模板在界面设计上 100% 保持一致，均包含以下 7 大核心功能板块：
+全套模板在交互规范与控制台上保持高度统一，在图形界面端（14 款具备屏幕呈现的模板）均包含以下 7 大核心功能板块（ESP32 端则通过标准 0.96 寸 OLED 屏与纯英文串口呈现）：
 - **板块 1：顶部操作栏** ➔ 包含设备搜索弹窗按钮、OTA/DFU 固件检测通道与授权徽章；
 - **板块 2：统一设备连接状态卡片** ➔ 状态指示圆点、设备名称、电量胶囊、3 个技术特性 Badges、MAC/SN 序列号展示与断开/重连主按钮；
 - **板块 3：Channel Settings 通道配置** ➔ Left (FP1) 单通道使能开关；
